@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PulseTime</string>
+    <string name="tile_label">PulseTime</string>
+    <string name="tell_time">Tell time</string>
+    <string name="tell_time_hint">Plays the current time as a haptic pattern</string>
+    <string name="settings">Settings</string>
+    <string name="training">Training</string>
+    <string name="calibration">Calibration</string>
+    <string name="precision">Exact minutes</string>
+    <string name="precision_desc">After quarters, add short ticks for leftover minutes</string>
+    <string name="precision_locked">Complete training to unlock exact minutes</string>
+    <string name="training_done">Training complete</string>
+    <string name="intensity">Intensity</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="play_sample">Play sample</string>
+    <string name="finish">Finish</string>
+    <string name="got_it">Got it</string>
+    <string name="start_quiz">Start quiz</string>
+    <string name="add_tile_hint">Add the PulseTime tile for one-tap haptic time</string>
+    <string name="calibration_step">Step %1$d of %2$d</string>
+    <string name="calibration_hint">Play the sample, then choose Next when the intensity feels right. Steps get stronger.</string>
+    <string name="lesson_n">Lesson %1$d of %2$d</string>
+    <string name="quiz_n">Quiz %1$d of %2$d</string>
+</resources>
