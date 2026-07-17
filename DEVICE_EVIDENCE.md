@@ -10,19 +10,24 @@
 
 ## Device-tested (Pixel Watch 2)
 
-**Status: blocked — no Wear device in `adb devices` during this session.**
+**Status: installed — haptic / TalkBack QA pending human.**
 
-Phones may appear when USB-connected; the watch needs its own Wireless debugging session:
+| Field | Value |
+|-------|-------|
+| Model | Google Pixel Watch 2 (`aurora`) |
+| Wear OS | 15 |
+| Package | `com.lukesteuber.pulsetime.wear.debug` v0.1.0-debug |
+| Install | 2026-07-16 22:04 — wireless pair `192.168.0.146` + sideload |
+| Serial (mDNS) | `adb-38041RTJWW36NH-VNJaEW (2)._adb-tls-connect._tcp` |
 
 ```sh
 adb pair <watch-ip>:<pairing-port>
-adb connect <watch-ip>:<port>
 ./scripts/install-watch.sh
 ```
 
-After install, record here:
+Human checklist:
 
-- [ ] `adb -s <serial> shell getprop ro.product.model` → Pixel Watch 2 / aurora
+- [x] `getprop ro.product.model` → Google Pixel Watch 2 / aurora
 - [ ] Tell time matches wall clock (±1s) for a known time (e.g. 3:20 → 3 + pause + 1)
 - [ ] Retap cancels in-flight pattern
 - [ ] Calibration steps feel monotonically stronger
