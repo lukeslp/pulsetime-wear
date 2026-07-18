@@ -30,55 +30,59 @@ data class EncodedPattern(
     val quarterIndex: Int,
     val minuteRemainder: Int,
 ) {
-    /** Flatten to VibrationEffect waveform timings (starts with delay 0). */
-    fun toTimings(): LongArray {
-        val list = ArrayList<Long>()
-        list.add(0L)
-        for (seg in segments) {
-            if (seg.onMs > 0) {
-                list.add(seg.onMs)
-                if (seg.offMs > 0) list.add(seg.offMs)
-            } else if (seg.offMs > 0) {
-                // Leading silence: append to previous off or start delay
-                if (list.size == 1) {
-                    list[0] = seg.offMs
-                } else {
-                    list[list.size - 1] = list.last() + seg.offMs
-                }
-            }
-        }
-        // Drop trailing off if odd length ends on off after last on — waveform
-        // pairs are on,off,on,off… after initial delay.
-        return list.toLongArray()
-    }
+    /**
+     * Flatten to VibrationEffect.createWaveform(timings, amplitudes) slots.
+     * Each index is a duration with matching amplitude (0 = silence).
+     * Starts with a 0ms delay. Silence segments become amp-0 slots — never
+     * merge into a preceding ON duration (that glued hour+gap+quarter together).
+     */
+    fun toTimings(): LongArray = toWaveform().first
 
-    fun toAmplitudes(): IntArray {
+    fun toAmplitudes(): IntArray = toWaveform().second
+
+    fun toWaveform(): Pair<LongArray, IntArray> {
+        val timings = ArrayList<Long>()
         val amps = ArrayList<Int>()
-        amps.add(0) // initial delay
-        for (seg in segments) {
-            if (seg.onMs > 0) {
-                amps.add(seg.amplitude)
-                if (seg.offMs > 0) amps.add(0)
+        timings.add(0L)
+        amps.add(0)
+
+        fun appendSilence(ms: Long) {
+            if (ms <= 0L) return
+            if (amps.isNotEmpty() && amps.last() == 0) {
+                timings[timings.lastIndex] = timings.last() + ms
+            } else {
+                timings.add(ms)
+                amps.add(0)
             }
         }
-        return amps.toIntArray()
+
+        for (seg in segments) {
+            if (seg.onMs > 0) {
+                timings.add(seg.onMs)
+                amps.add(seg.amplitude)
+            }
+            appendSilence(seg.offMs)
+        }
+
+        return timings.toLongArray() to amps.toIntArray()
     }
 }
 
 object TerseQuarterTimings {
+    // Gaps sized for Pixel Watch motor settle — short offs smear into one buzz.
     const val HOUR_ON_MS = 200L
-    const val HOUR_OFF_MS = 150L
-    const val GAP_MS = 600L
-    const val QUARTER_ON_MS = 150L
-    const val QUARTER_OFF_MS = 100L
+    const val HOUR_OFF_MS = 280L
+    const val GAP_MS = 700L
+    const val QUARTER_ON_MS = 320L
+    const val QUARTER_OFF_MS = 280L
     const val MINUTE_ON_MS = 80L
-    const val MINUTE_OFF_MS = 60L
+    const val MINUTE_OFF_MS = 120L
 }
 
 /**
  * Terse-quarter encoding:
  * - Hours 1–12 as pulses (midnight/noon = 12)
- * - 600ms gap
+ * - Long silence gap
  * - Quarters 0–3 for :00–:14, :15–:29, :30–:44, :45–:59
  * - Optional remainder minutes within the quarter (0–14) as short ticks
  */

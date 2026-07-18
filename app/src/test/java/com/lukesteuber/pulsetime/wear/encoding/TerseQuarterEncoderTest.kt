@@ -182,4 +182,39 @@ class TerseQuarterEncoderTest {
         assertEquals(1, p.quarterIndex)
         assertEquals(1, p.segments.count { it.onMs == TerseQuarterTimings.QUARTER_ON_MS })
     }
+
+    @Test
+    fun threeFifteen_waveformKeepsGapBetweenLastHourAndQuarter() {
+        val (timings, amps) = TerseQuarterEncoder.encode(3, 15).toWaveform()
+        assertEquals(timings.size, amps.size)
+        // Expected: off0, H, off, H, off, H, GAP off, Q
+        assertEquals(
+            listOf(0, 180, 0, 180, 0, 180, 0, 180).map { if (it == 0) 0 else it },
+            amps.map { if (it == 0) 0 else 180 },
+        )
+        val onOff = timings.zip(amps.toList()) { t, a -> t to (a > 0) }
+        assertEquals(3, onOff.count { it.second && it.first == TerseQuarterTimings.HOUR_ON_MS })
+        assertEquals(1, onOff.count { it.second && it.first == TerseQuarterTimings.QUARTER_ON_MS })
+        assertTrue(onOff.any { !it.second && it.first >= TerseQuarterTimings.GAP_MS })
+        // No back-to-back ON slots (the old bug glued hour+gap+quarter).
+        for (i in 1 until amps.size) {
+            assertTrue("consecutive ON at $i", !(amps[i - 1] > 0 && amps[i] > 0))
+        }
+    }
+
+    @Test
+    fun threeThirty_waveformSeparatesTwoQuarters() {
+        val (timings, amps) = TerseQuarterEncoder.encode(3, 30).toWaveform()
+        assertEquals(timings.size, amps.size)
+        assertEquals(3, timings.zip(amps.toList()).count { (t, a) -> a > 0 && t == TerseQuarterTimings.HOUR_ON_MS })
+        assertEquals(2, timings.zip(amps.toList()).count { (t, a) -> a > 0 && t == TerseQuarterTimings.QUARTER_ON_MS })
+        for (i in 1 until amps.size) {
+            assertTrue("consecutive ON at $i", !(amps[i - 1] > 0 && amps[i] > 0))
+        }
+        // Quarter-to-quarter off present
+        val qOffIdx = timings.indices.first { i ->
+            amps[i] == 0 && timings[i] == TerseQuarterTimings.QUARTER_OFF_MS
+        }
+        assertTrue(qOffIdx > 0)
+    }
 }
