@@ -23,9 +23,9 @@ coupling.
 | M2 | Haptic player + cancel | done |
 | M3 | Tile + Tell time | done |
 | M4 | Calibration + training | done |
-| M5 | Device evidence + AAB stage | AAB staged; watch adb pending human wireless debug |
+| M5 | Device evidence + AAB stage | AAB staged; Pixel Watch 2 installed; haptic and TalkBack QA pending human review |
 
 ## Outstanding
 
-1. Pixel Watch 2 wireless ADB → `./scripts/install-watch.sh`
+1. Human haptic and TalkBack QA on the installed Pixel Watch 2
 2. Human Play internal-track upload (replace debug signing with upload keystore)

@@ -11,10 +11,10 @@ package IDs, App Groups, or product coupling.
 
 ## Encoding (terse-quarter)
 
-1. **Hours** 1–12 — 200 ms ON / 150 ms OFF  
-2. **600 ms** silence  
-3. **Quarters** 0–3 — 150 ms ON / 100 ms OFF  
-4. Optional **exact minutes** (after training) — short ticks for the remainder inside the quarter
+1. **Hours** 1–12 — 200 ms ON / 280 ms OFF
+2. **700 ms** silence
+3. **Quarters** 0–3 — 320 ms ON / 280 ms OFF
+4. Optional **exact minutes** (after training) — 80 ms ticks, separated by 120 ms, for the remainder inside the quarter
 
 Example: **3:20** → 3 hour pulses, pause, 1 quarter pulse.
 
@@ -25,6 +25,10 @@ Base amplitude is 180/255 × your calibration scale.
 - JDK 21 (toolchain) / project compiles with Java 17 bytecode  
 - Android SDK with Wear OS (compileSdk 36, minSdk 30, targetSdk 35)  
 - A physical watch for haptic QA — **emulator vibration is not sufficient**
+
+Gradle must run with JDK 21, and the Android SDK must be available through
+`ANDROID_HOME` or `sdk.dir` in the ignored `local.properties` file. JDK 26 is
+not supported by this project's Kotlin/Gradle toolchain.
 
 ## Build
 

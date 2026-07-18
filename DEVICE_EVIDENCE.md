@@ -6,7 +6,7 @@
 |----------|------|-------|
 | Debug APK | `app/build/outputs/apk/debug/app-debug.apk` | 2026-07-16 — `assembleDebug` green |
 | Release AAB | `app/build/outputs/bundle/release/app-release.aab` | 2026-07-16 — `bundleRelease` green (debug signing for local stage only) |
-| Unit tests | `./gradlew :app:testDebugUnitTest` | 20 tests, green |
+| Unit tests | `./gradlew :app:testDebugUnitTest` | 22 tests, green (2026-07-18; JDK 21 + Android SDK configured) |
 
 ## Device-tested (Pixel Watch 2)
 
