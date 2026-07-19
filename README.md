@@ -9,7 +9,22 @@ as a short vibration pattern.
 This project is standalone. It is not part of Ambient Time and shares no
 package IDs, App Groups, or product coupling.
 
-## Encoding (terse-quarter)
+## Time systems
+
+PulseTime now includes six selectable haptic time languages:
+
+- **Terse Quarter** — hours, quarters, and optional leftover-minute ticks
+- **Five-Minute Ladder** — hours, five-minute steps, and leftover minutes
+- **Decimal Place Rhythm** — hours, minute tens, and minute ones
+- **Binary Clock** — four hour bits followed by six minute bits
+- **Nearest-Quarter Offset** — a quarter-hour landmark plus before/after minutes
+- **Morse Digits** — displayed digits as standard Morse numerals
+
+The original Terse Quarter system remains the default for existing installs.
+Settings also control playback speed and whether relative-strength layers are
+used alongside duration and rhythm. No system depends on amplitude alone.
+
+### Terse Quarter
 
 1. **Hours** 1–12 — 200 ms ON / 280 ms OFF
 2. **700 ms** silence
@@ -85,7 +100,7 @@ No network. No location.
 `scaffolded` → `built` → `validated` → `device-tested` → `store-staged` → **stop**  
 (Play upload/publish is a human gate.)
 
-## Phase 2 (not in this MVP)
+## Later work
 
-Digits encoding, complications, hourly ambient chimes, phone sync, watchOS
+Complications, hourly ambient chimes, phone sync, watchOS
 (Core Haptics — only if meaningfully better than Apple Taptic Time).

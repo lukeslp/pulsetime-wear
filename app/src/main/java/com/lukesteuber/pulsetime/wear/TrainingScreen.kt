@@ -27,6 +27,7 @@ import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings
+import com.lukesteuber.pulsetime.wear.encoding.TimeSystem
 
 private data class Lesson(
     val title: String,
@@ -75,6 +76,15 @@ fun TrainingScreen(
     onComplete: () -> Unit,
     onBack: () -> Unit,
 ) {
+    if (settings.timeSystem != TimeSystem.TerseQuarter) {
+        AlternateSystemTraining(
+            settings = settings,
+            controller = controller,
+            onComplete = onComplete,
+            onBack = onBack,
+        )
+        return
+    }
     var lessonIndex by remember { mutableIntStateOf(0) }
     var inQuiz by remember { mutableStateOf(false) }
     var quizIndex by remember { mutableIntStateOf(0) }
@@ -206,6 +216,59 @@ fun TrainingScreen(
                 .fillMaxWidth()
                 .semantics { contentDescription = "Back to home" },
         ) {
+            Text(stringResource(R.string.back))
+        }
+    }
+}
+
+@Composable
+private fun AlternateSystemTraining(
+    settings: PulseSettings,
+    controller: TellTimeController,
+    onComplete: () -> Unit,
+    onBack: () -> Unit,
+) {
+    val samples = listOf(
+        Triple("Three o'clock", 3, 0),
+        Triple("Three forty-two", 3, 42),
+        Triple("Eleven fifty-nine", 11, 59),
+    )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(settings.timeSystem.title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        Text(settings.timeSystem.description, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+        Text(
+            when (settings.timeSystem) {
+                TimeSystem.FiveMinuteLadder -> "Long pulses are hours, medium pulses are five-minute steps, and short pulses are leftover minutes."
+                TimeSystem.DecimalPlace -> "Hours come first. Firm pulses count minute tens; short pulses count minute ones. A held pulse means zero."
+                TimeSystem.BinaryClock -> "Four hour bits come first, then six minute bits. A long firm pulse is one; a short soft pulse is zero."
+                TimeSystem.NearestQuarter -> "Feel the nearest quarter-hour, then a direction pair and the number of minutes before or after it."
+                TimeSystem.MorseDigits -> "Each displayed digit uses standard Morse numerals. Long pulses are dashes and short pulses are dots."
+                TimeSystem.TerseQuarter -> ""
+            },
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+        )
+        samples.forEach { (label, hour, minute) ->
+            Button(
+                onClick = { controller.playSample(hour, minute, settings) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = "Play $label using ${settings.timeSystem.title}" },
+            ) {
+                Text("Play $label")
+            }
+        }
+        Button(onClick = onComplete, modifier = Modifier.fillMaxWidth()) {
+            Text("Finish training")
+        }
+        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.back))
         }
     }

@@ -9,7 +9,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.lukesteuber.pulsetime.wear.encoding.PlaybackSpeed
+import com.lukesteuber.pulsetime.wear.encoding.TimeSystem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -20,6 +23,9 @@ data class PulseSettings(
     val precisionEnabled: Boolean = false,
     val trainingComplete: Boolean = false,
     val firstRunComplete: Boolean = false,
+    val timeSystem: TimeSystem = TimeSystem.TerseQuarter,
+    val layeredHaptics: Boolean = true,
+    val playbackSpeed: PlaybackSpeed = PlaybackSpeed.Standard,
 )
 
 class PulseSettingsRepository(private val context: Context) {
@@ -27,6 +33,9 @@ class PulseSettingsRepository(private val context: Context) {
     private val precisionKey = booleanPreferencesKey("precision_enabled")
     private val trainingKey = booleanPreferencesKey("training_complete")
     private val firstRunKey = booleanPreferencesKey("first_run_complete")
+    private val timeSystemKey = stringPreferencesKey("time_system")
+    private val layeredHapticsKey = booleanPreferencesKey("layered_haptics")
+    private val playbackSpeedKey = stringPreferencesKey("playback_speed")
 
     val settings: Flow<PulseSettings> = context.dataStore.data.map { prefs ->
         PulseSettings(
@@ -34,6 +43,9 @@ class PulseSettingsRepository(private val context: Context) {
             precisionEnabled = prefs[precisionKey] ?: false,
             trainingComplete = prefs[trainingKey] ?: false,
             firstRunComplete = prefs[firstRunKey] ?: false,
+            timeSystem = TimeSystem.fromStorage(prefs[timeSystemKey]),
+            layeredHaptics = prefs[layeredHapticsKey] ?: true,
+            playbackSpeed = PlaybackSpeed.fromStorage(prefs[playbackSpeedKey]),
         )
     }
 
@@ -51,5 +63,17 @@ class PulseSettingsRepository(private val context: Context) {
 
     suspend fun setFirstRunComplete(complete: Boolean) {
         context.dataStore.edit { it[firstRunKey] = complete }
+    }
+
+    suspend fun setTimeSystem(system: TimeSystem) {
+        context.dataStore.edit { it[timeSystemKey] = system.storageId }
+    }
+
+    suspend fun setLayeredHaptics(enabled: Boolean) {
+        context.dataStore.edit { it[layeredHapticsKey] = enabled }
+    }
+
+    suspend fun setPlaybackSpeed(speed: PlaybackSpeed) {
+        context.dataStore.edit { it[playbackSpeedKey] = speed.storageId }
     }
 }

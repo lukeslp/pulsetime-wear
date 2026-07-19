@@ -4,7 +4,8 @@
 package com.lukesteuber.pulsetime.wear
 
 import android.content.Context
-import com.lukesteuber.pulsetime.wear.encoding.TerseQuarterEncoder
+import com.lukesteuber.pulsetime.wear.encoding.EncodingOptions
+import com.lukesteuber.pulsetime.wear.encoding.TimeEncoderRegistry
 import com.lukesteuber.pulsetime.wear.haptics.HapticPlayer
 import com.lukesteuber.pulsetime.wear.haptics.HapticPlayerHolder
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings
@@ -19,24 +20,31 @@ class TellTimeController(
             player.cancel()
             return
         }
-        val pattern = TerseQuarterEncoder.encodeNow(
+        val pattern = TimeEncoderRegistry.encodeNow(
+            system = settings.timeSystem,
             calendar = calendar,
-            includePrecision = settings.precisionEnabled,
-            amplitudeScale = settings.amplitudeScale,
+            options = settings.encodingOptions(),
         )
         player.play(pattern)
     }
 
     fun playSample(hourOfDay: Int, minute: Int, settings: PulseSettings) {
         player.cancel()
-        val pattern = TerseQuarterEncoder.encode(
+        val pattern = TimeEncoderRegistry.encode(
+            system = settings.timeSystem,
             hourOfDay = hourOfDay,
             minute = minute,
-            includePrecision = settings.precisionEnabled,
-            amplitudeScale = settings.amplitudeScale,
+            options = settings.encodingOptions(),
         )
         player.play(pattern)
     }
 
     fun cancel() = player.cancel()
 }
+
+private fun PulseSettings.encodingOptions() = EncodingOptions(
+    amplitudeScale = amplitudeScale,
+    layeredHaptics = layeredHaptics,
+    playbackSpeed = playbackSpeed,
+    includePrecision = precisionEnabled,
+)

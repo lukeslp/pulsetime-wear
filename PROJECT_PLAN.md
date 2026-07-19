@@ -2,16 +2,16 @@
 
 ## Objective
 
-Standalone Wear OS haptic clock for blind/low-vision users. Terse-quarter
-encoding, Tile-first invocation, training + calibration. No Ambient Time
+Standalone Wear OS haptic clock for blind/low-vision users. Six selectable
+haptic time systems, Tile-first invocation, training + calibration. No Ambient Time
 coupling.
 
 ## Architecture
 
 - `:app` only — Wear Compose Material3 + Tile service
-- Pure `TerseQuarterEncoder` (JVM unit tests)
+- Pure encoder registry with six time systems (JVM unit tests)
 - `AndroidHapticPlayer` via `VibratorManager` / amplitude waveform
-- `PulseSettingsRepository` (DataStore): amplitude scale, precision, training
+- `PulseSettingsRepository` (DataStore): system, amplitude layers, speed, precision, training
 - Surfaces: Tile → `TellTimeRelayActivity` (blank); in-app Tell time / Training / Calibration
 
 ## Milestone status

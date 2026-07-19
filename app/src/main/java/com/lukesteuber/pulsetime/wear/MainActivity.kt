@@ -42,6 +42,7 @@ private enum class Screen {
     Home,
     Calibration,
     Training,
+    TimeSystems,
 }
 
 class MainActivity : ComponentActivity() {
@@ -72,6 +73,7 @@ fun PulseTimeApp(
             onTellTime = { controller.tellTime(settings) },
             onOpenCalibration = { screen = Screen.Calibration },
             onOpenTraining = { screen = Screen.Training },
+            onOpenTimeSystems = { screen = Screen.TimeSystems },
             onTogglePrecision = { enabled ->
                 scope.launch { repo.setPrecisionEnabled(enabled) }
             },
@@ -98,6 +100,14 @@ fun PulseTimeApp(
             },
             onBack = { screen = Screen.Home },
         )
+        Screen.TimeSystems -> TimeSystemScreen(
+            settings = settings,
+            controller = controller,
+            onSelectSystem = { system -> scope.launch { repo.setTimeSystem(system) } },
+            onSetLayered = { enabled -> scope.launch { repo.setLayeredHaptics(enabled) } },
+            onSetSpeed = { speed -> scope.launch { repo.setPlaybackSpeed(speed) } },
+            onBack = { screen = Screen.Home },
+        )
     }
 }
 
@@ -107,6 +117,7 @@ private fun HomeScreen(
     onTellTime: () -> Unit,
     onOpenCalibration: () -> Unit,
     onOpenTraining: () -> Unit,
+    onOpenTimeSystems: () -> Unit,
     onTogglePrecision: (Boolean) -> Unit,
     onDismissFirstRun: () -> Unit,
 ) {
@@ -149,6 +160,16 @@ private fun HomeScreen(
             Text(stringResource(R.string.tell_time))
         }
         Button(
+            onClick = onOpenTimeSystems,
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    contentDescription = "Choose time system. Current: ${settings.timeSystem.title}"
+                },
+        ) {
+            Text("System: ${settings.timeSystem.shortLabel}")
+        }
+        Button(
             onClick = onOpenCalibration,
             modifier = Modifier
                 .fillMaxWidth()
@@ -164,34 +185,24 @@ private fun HomeScreen(
         ) {
             Text(stringResource(R.string.training))
         }
-        val precisionEnabled = settings.precisionEnabled
-        val precisionAllowed = settings.trainingComplete
-        SwitchButton(
-            checked = precisionEnabled && precisionAllowed,
-            onCheckedChange = { checked ->
-                if (precisionAllowed) onTogglePrecision(checked)
-            },
-            enabled = precisionAllowed,
-            label = { Text(stringResource(R.string.precision)) },
-            secondaryLabel = {
-                Text(
-                    if (precisionAllowed) {
-                        stringResource(R.string.precision_desc)
-                    } else {
-                        stringResource(R.string.precision_locked)
-                    },
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics {
-                    contentDescription = if (precisionAllowed) {
-                        "Exact minutes toggle"
-                    } else {
-                        "Exact minutes locked until training is complete"
-                    }
+        if (!settings.timeSystem.inherentlyExact) {
+            val precisionEnabled = settings.precisionEnabled
+            val precisionAllowed = settings.trainingComplete
+            SwitchButton(
+                checked = precisionEnabled && precisionAllowed,
+                onCheckedChange = { checked -> if (precisionAllowed) onTogglePrecision(checked) },
+                enabled = precisionAllowed,
+                label = { Text(stringResource(R.string.precision)) },
+                secondaryLabel = {
+                    Text(if (precisionAllowed) stringResource(R.string.precision_desc) else stringResource(R.string.precision_locked))
                 },
-        )
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = if (precisionAllowed) "Exact minutes toggle" else "Exact minutes locked until training is complete"
+                    },
+            )
+        }
         if (settings.trainingComplete) {
             Text(
                 text = stringResource(R.string.training_done),
