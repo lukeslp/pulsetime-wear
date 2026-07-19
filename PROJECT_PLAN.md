@@ -8,7 +8,9 @@ coupling.
 
 ## Architecture
 
-- `:app` only — Wear Compose Material3 + Tile service
+- `:app` Wear Compose app + Tile and remote playback service
+- `:mobile` accessible Android companion for learning, practice, and watch demos
+- `:shared` versioned playback protocol and six-system education catalog
 - Pure encoder registry with six time systems (JVM unit tests)
 - `AndroidHapticPlayer` via `VibratorManager` / amplitude waveform
 - `PulseSettingsRepository` (DataStore): system, amplitude layers, speed, precision, training
@@ -24,6 +26,7 @@ coupling.
 | M3 | Tile + Tell time | done |
 | M4 | Calibration + training | done |
 | M5 | Device evidence + AAB stage | AAB staged; Pixel Watch 2 installed; haptic and TalkBack QA pending human review |
+| M6 | Companion learning and remote watch demos | built; paired-device QA pending |
 
 ## Outstanding
 

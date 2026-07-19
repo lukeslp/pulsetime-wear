@@ -1,5 +1,5 @@
 // File purpose: Gradle settings for the PulseTime Wear OS haptic clock.
-// Primary components: pluginManagement, dependencyResolution, :app module.
+// Primary components: pluginManagement, dependencyResolution, watch, phone, shared modules.
 // I/O: Resolves Android/Kotlin/Compose plugins; produces Wear APK.
 pluginManagement {
     repositories {
@@ -18,4 +18,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "pulsetime-wear"
-include(":app")
+include(":app", ":mobile", ":shared")

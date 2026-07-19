@@ -24,6 +24,17 @@ The original Terse Quarter system remains the default for existing installs.
 Settings also control playback speed and whether relative-strength layers are
 used alongside duration and rhythm. No system depends on amplitude alone.
 
+## Android companion
+
+The `:mobile` companion teaches every system on its own page. Each page includes
+a pulse legend, worked examples, watch demonstrations, and a replayable test.
+Separate pages explain playback speed, layered strength, and exact minutes.
+
+When a compatible watch is reachable, the phone sends an immediate versioned
+playback request through the Wear OS Data Layer. The watch validates the request,
+generates the pattern locally, starts the vibration, and acknowledges playback.
+Demonstrations never change saved watch settings and are never queued offline.
+
 ### Terse Quarter
 
 1. **Hours** 1–12 — 200 ms ON / 280 ms OFF
@@ -50,6 +61,7 @@ not supported by this project's Kotlin/Gradle toolchain.
 ```sh
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
+./gradlew :shared:testDebugUnitTest :mobile:assembleDebug
 ./gradlew :app:bundleRelease   # AAB for internal Play track (human publish)
 ```
 
@@ -57,6 +69,10 @@ Debug APK:
 
 `app/build/outputs/apk/debug/app-debug.apk`  
 (application id `com.lukesteuber.pulsetime.wear.debug`)
+
+Companion debug APK:
+
+`mobile/build/outputs/apk/debug/mobile-debug.apk`
 
 Release AAB:
 

@@ -4,9 +4,15 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.lukesteuber.pulsetime.shared.SystemGuideCatalog
 
 class TimeSystemsTest {
     private val standard = EncodingOptions(amplitudeScale = 1f, layeredHaptics = true)
+
+    @Test
+    fun everyEncoderHasExactlyOneSharedGuide() {
+        assertEquals(TimeSystem.entries.map { it.storageId }.toSet(), SystemGuideCatalog.all.map { it.id }.toSet())
+    }
 
     @Test
     fun registry_encodesEverySystemAtBoundaries() {
