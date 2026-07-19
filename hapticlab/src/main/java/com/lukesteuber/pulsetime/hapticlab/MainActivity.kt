@@ -9,7 +9,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +42,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -50,11 +50,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -62,7 +63,10 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -79,6 +83,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import android.os.SystemClock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -90,6 +95,11 @@ private val Mist = Color(0xFFE9F5F7)
 private val Signal = Color(0xFF087F8C)
 private val SignalBright = Color(0xFF42D4E8)
 private val Urgent = Color(0xFFB3261E)
+
+private val StringStateListSaver = listSaver<SnapshotStateList<String>, String>(
+    save = { it.toList() },
+    restore = { it.toMutableStateList() },
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,11 +130,13 @@ private fun PulseLabApp() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val player = remember { PhoneHapticPlayer(context) }
     val scope = rememberCoroutineScope()
-    val trials = remember { mutableStateListOf<String>() }
-    var screen by rememberSaveable { mutableStateOf("home") }
+    val trials = rememberSaveable(saver = StringStateListSaver) { mutableStateListOf<String>() }
+    val backStack = rememberSaveable(saver = StringStateListSaver) { mutableStateListOf("home") }
+    val screen = backStack.last()
     var playingId by remember { mutableStateOf<String?>(null) }
     var status by remember { mutableStateOf(if (player.isAvailable) "Ready to vibrate this phone" else "This phone has no vibrator") }
-    var strength by rememberSaveable { mutableFloatStateOf(.8f) }
+    var strength by rememberSaveable { mutableFloatStateOf(.55f) }
+    var testContext by rememberSaveable { mutableStateOf("Holding the phone while still") }
     var completionJob by remember { mutableStateOf<Job?>(null) }
 
     fun stop(message: String = "Vibration stopped") {
@@ -136,14 +148,40 @@ private fun PulseLabApp() {
 
     fun play(id: String, timings: LongArray, amplitudes: IntArray, durationMs: Long) {
         stop()
-        if (!player.play(timings, amplitudes)) {
-            status = "This phone cannot vibrate"
-            return
-        }
         playingId = id
-        status = "Playing vibration"
+        status = "Vibration starts shortly"
         completionJob = scope.launch {
+            delay(650)
+            if (!player.play(timings, amplitudes)) {
+                playingId = null
+                status = "This phone cannot vibrate"
+                return@launch
+            }
+            status = "Playing vibration"
             delay(durationMs + 120)
+            playingId = null
+            status = "Vibration finished"
+        }
+    }
+
+    fun playPattern(id: String, pattern: HapticPattern, scale: Float = strength) {
+        val waveform = pattern.waveform(strength = scale)
+        play(id, waveform.first, waveform.second, waveform.first.sum())
+    }
+
+    fun playClearCue(cue: ClearCue) {
+        stop()
+        playingId = "clear-${cue.name}"
+        status = "Vibration starts shortly"
+        completionJob = scope.launch {
+            delay(650)
+            if (!player.playClearCue(cue)) {
+                playingId = null
+                status = "This phone cannot vibrate"
+                return@launch
+            }
+            status = "Playing built-in cue"
+            delay(500)
             playingId = null
             status = "Vibration finished"
         }
@@ -151,10 +189,15 @@ private fun PulseLabApp() {
 
     fun navigate(destination: String) {
         stop("Ready to vibrate this phone")
-        screen = destination
+        if (destination != screen) backStack += destination
     }
 
-    BackHandler(screen != "home") { navigate("home") }
+    fun goBack() {
+        stop("Ready to vibrate this phone")
+        if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
+    }
+
+    BackHandler(backStack.size > 1) { goBack() }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) stop("Vibration stopped when app left foreground")
@@ -173,8 +216,8 @@ private fun PulseLabApp() {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 if (screen != "home") {
-                    OutlinedButton(onClick = { navigate("home") }, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text("Back to Pulse Lab", color = SignalBright)
+                    OutlinedButton(onClick = ::goBack, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text("Back", color = SignalBright)
                     }
                 }
                 Text(
@@ -197,11 +240,15 @@ private fun PulseLabApp() {
         Box(Modifier.fillMaxSize().background(Paper).padding(padding)) {
             when {
                 screen == "home" -> HomeScreen(player, strength, { strength = it }, ::navigate)
-                screen == "time" -> TimeLabScreen(strength, playingId, ::play) { trials += it }
+                screen == "time" -> TimeLabScreen(strength, testContext, playingId, ::play) { trials += it }
                 screen == "signals" -> SignalsScreen { navigate("demo:$it") }
-                screen == "feedback" -> FeedbackScreen(trials)
+                screen == "quick-test" -> QuickTestScreen(strength, testContext, ::playPattern) { trials += it }
+                screen == "perception" -> PerceptionLabScreen(player, strength, testContext, { testContext = it }, ::playPattern, ::playClearCue) { trials += it }
+                screen == "builder" -> PatternBuilderScreen(strength, player.hasAmplitudeControl, ::playPattern) { trials += it }
+                screen == "guide" -> GuidanceScreen()
+                screen == "feedback" -> FeedbackScreen(trials, testContext, strength, player.capabilities)
                 screen.startsWith("demo:") -> HapticDemoCatalog.byId(screen.removePrefix("demo:"))?.let { demo ->
-                    DemoScreen(demo, strength, playingId == demo.id, ::play) { trials += it }
+                    DemoScreen(demo, strength, testContext, playingId, ::play) { trials += it }
                 }
             }
         }
@@ -230,9 +277,13 @@ private fun HomeScreen(
             )
         }
     }
+    DestinationCard("Calibrate and compare", "Check comfort, see what this phone supports, and compare the building blocks of a tactile phrase.") { navigate("perception") }
     DestinationCard("Tell time on this phone", "All six time systems, exact-minute options, speed, layered haptics, examples, and blind tests.") { navigate("time") }
-    DestinationCard("Explore other signals", "Blind trials for markets, weather, people, urgency, and acknowledgement.") { navigate("signals") }
-    DestinationCard("Send testing feedback", "Share what was clear, what was confused, and accessibility or navigation notes.") { navigate("feedback") }
+    DestinationCard("Explore other signals", "Blind trials for messages, weather, travel, trends, exercise, home, and live events.") { navigate("signals") }
+    DestinationCard("Run a mixed blind test", "Draw hidden patterns from the whole library and record which meanings get confused.") { navigate("quick-test") }
+    DestinationCard("Build a personal pattern", "Arrange short pulses, long pulses, strength levels, and pauses into a signal of your own.") { navigate("builder") }
+    DestinationCard("How Pulse Lab works", "Read the signal grammar, testing guidance, safety limits, and privacy details.") { navigate("guide") }
+    DestinationCard("Send testing feedback", "Share what felt clear, which signals you mixed up, and any accessibility or navigation notes.") { navigate("feedback") }
 }
 
 @Composable
@@ -249,6 +300,7 @@ private fun DestinationCard(title: String, body: String, open: () -> Unit) {
 @Composable
 private fun TimeLabScreen(
     strength: Float,
+    testContext: String,
     playingId: String?,
     play: (String, LongArray, IntArray, Long) -> Unit,
     recordTrial: (String) -> Unit,
@@ -277,7 +329,7 @@ private fun TimeLabScreen(
             FilterChip(
                 selected = system == item,
                 onClick = { systemId = item.storageId },
-                label = { Text("${item.title} — ${item.shortLabel}") },
+                label = { Text("${item.title}: ${item.shortLabel}") },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             )
         }
@@ -309,7 +361,7 @@ private fun TimeLabScreen(
         OutlinedButton(onClick = { playTime("now", now.get(Calendar.HOUR), now.get(Calendar.MINUTE)) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play the current time") }
     }
     Section("Blind recognition test") {
-        Text("The answer stays hidden until you choose. Nothing is timed.")
+        Text("Pulse Lab hides the answer until you choose. Take all the time you need.")
         Button(onClick = { quizAnswer = null; playTime("time-quiz", guide.quiz.hour, guide.quiz.minute) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play hidden time") }
         guide.quiz.choices.forEach { choice ->
             FilterChip(
@@ -317,7 +369,7 @@ private fun TimeLabScreen(
                 onClick = {
                     quizAnswer = choice
                     val result = if (choice == guide.quiz.answer) "correct" else "incorrect"
-                    recordTrial("Time | ${guide.title} | $result | chose $choice | answer ${guide.quiz.answer} | speed ${speed.label} | strength ${(strength * 100).toInt()}% | layered $layered | precision $precision")
+                    recordTrial("Time | ${guide.title} | $result | chose $choice | answer ${guide.quiz.answer} | speed ${speed.label} | strength ${(strength * 100).toInt()}% | layered $layered | precision $precision | context $testContext")
                 },
                 label = { Text(choice) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
@@ -342,12 +394,17 @@ private fun Stepper(label: String, value: Int, decrease: () -> Unit, increase: (
 
 @Composable
 private fun SettingToggle(title: String, explanation: String, checked: Boolean, change: (Boolean) -> Unit) {
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+            .toggleable(value = checked, role = Role.Switch, onValueChange = change)
+            .semantics(mergeDescendants = true) { stateDescription = if (checked) "On" else "Off" },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+    ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, fontWeight = FontWeight.Bold)
             Text(explanation)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(checked, change)
+                Switch(checked, null, modifier = Modifier.clearAndSetSemantics { })
                 Spacer(Modifier.width(10.dp))
                 Text(if (checked) "On" else "Off")
             }
@@ -358,7 +415,7 @@ private fun SettingToggle(title: String, explanation: String, checked: Boolean, 
 @Composable
 private fun SignalsScreen(openDemo: (String) -> Unit) = Page {
     PageHeading("Explore other signals")
-    Text("Each fictional pattern has an untimed blind trial. Results can be included in your feedback.")
+    Text("These fictional patterns test a shared phrase structure across everyday situations. Pulse Lab does not read live data. Each example includes an untimed blind trial.")
     HapticDemoCatalog.all.groupBy { it.category }.forEach { (category, demos) ->
         SectionHeading(category)
         demos.forEach { demo -> DestinationCard(demo.title, demo.summary) { openDemo(demo.id) } }
@@ -369,57 +426,124 @@ private fun SignalsScreen(openDemo: (String) -> Unit) = Page {
 private fun DemoScreen(
     demo: HapticDemo,
     strength: Float,
-    isPlaying: Boolean,
+    testContext: String,
+    playingId: String?,
     play: (String, LongArray, IntArray, Long) -> Unit,
     recordTrial: (String) -> Unit,
 ) = Page {
     var blind by remember(demo.id) { mutableStateOf(false) }
     var answer by remember(demo.id) { mutableStateOf<String?>(null) }
+    var confidence by remember(demo.id) { mutableStateOf<String?>(null) }
+    var replayCount by remember(demo.id) { mutableIntStateOf(0) }
+    var trialStartedAt by remember(demo.id) { mutableStateOf<Long?>(null) }
+    var answerElapsedMs by rememberSaveable(demo.id) { mutableStateOf<Long?>(null) }
+    val randomizedChoices = remember(demo.id, blind) { demo.quizChoices.shuffled() }
 
-    fun playDemo() {
-        val waveform = demo.pattern.waveform(strength = strength)
-        play(demo.id, waveform.first, waveform.second, waveform.first.sum())
+    fun playPattern(id: String, pattern: HapticPattern, speed: Float = 1f) {
+        val waveform = pattern.waveform(speed = speed, strength = strength)
+        play(id, waveform.first, waveform.second, waveform.first.sum())
     }
 
-    PageHeading(demo.title)
-    Text(demo.summary, style = MaterialTheme.typography.titleMedium)
-    if (!blind || answer != null) {
+    val trialComplete = answer != null && confidence != null
+    PageHeading(if (blind && !trialComplete) "Blind trial" else demo.title)
+    if (!blind || trialComplete) Text(demo.summary, style = MaterialTheme.typography.titleMedium)
+    if (!blind || trialComplete) {
         Section("What it means") { Text(demo.meaning, style = MaterialTheme.typography.bodyLarge) }
-        Section("Pattern explanation") {
+        Section("Phrase parts") {
+            Text("Topic: ${demo.grammar.topic}")
+            Text("Payload: ${demo.grammar.payload}")
+            demo.grammar.modifier?.let { Text("Modifier: $it") }
+            demo.grammar.action?.let { Text("Action: $it") }
             PulseRail(demo)
             Text(demo.transcript, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = Signal)
             Text("Width shows duration and height reinforces strength. Rhythm still carries meaning without amplitude control.")
         }
+        demo.safetyNote?.let { note ->
+            Card(colors = CardDefaults.cardColors(containerColor = Mist)) {
+                Text(note, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp))
+            }
+        }
     }
     if (!blind) {
-        Button(onClick = ::playDemo, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(if (isPlaying) "Replay explained pattern" else "Play explained pattern") }
-        OutlinedButton(onClick = { blind = true; answer = null; playDemo() }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Start blind trial") }
+        demo.headlinePattern?.let { headline ->
+            OutlinedButton(onClick = { playPattern("${demo.id}-headline", headline) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                Text(if (playingId == "${demo.id}-headline") "Replay short headline" else "Play short headline")
+            }
+            Text("The headline gives only the topic. The full phrase adds the useful detail.")
+        }
+        Button(onClick = { playPattern(demo.id, demo.pattern) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            Text(if (playingId == demo.id) "Replay full phrase" else "Play full phrase")
+        }
+        OutlinedButton(onClick = { playPattern("${demo.id}-slow", demo.pattern, 1.35f) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            Text("Play full phrase slowly")
+        }
+        OutlinedButton(
+            onClick = {
+                blind = true
+                answer = null
+                confidence = null
+                replayCount = 1
+                trialStartedAt = SystemClock.elapsedRealtime()
+                answerElapsedMs = null
+                playPattern("${demo.id}-blind", demo.pattern)
+            },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+        ) { Text("Start blind trial") }
     } else {
         Section("Blind trial") {
-            Text("The meaning is hidden. Replay as often as you need, then choose what you felt.")
-            Button(onClick = ::playDemo, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Replay hidden pattern") }
-            demo.quizChoices.forEach { choice ->
+            Text("Pulse Lab hides the title and explanation. Replay as often as you need, then choose the closest meaning. Take all the time you need.")
+            Button(
+                onClick = { replayCount += 1; playPattern("${demo.id}-blind", demo.pattern) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            ) { Text("Replay hidden pattern") }
+            Text(demo.quizQuestion, fontWeight = FontWeight.Bold)
+            randomizedChoices.forEach { choice ->
                 FilterChip(
                     selected = answer == choice,
                     onClick = {
-                        answer = choice
-                        val result = if (choice == demo.quizAnswer) "correct" else "incorrect"
-                        recordTrial("Signal | ${demo.title} | $result | chose $choice | answer ${demo.quizAnswer} | strength ${(strength * 100).toInt()}%")
+                        if (answer == null) {
+                            answer = choice
+                            answerElapsedMs = trialStartedAt?.let { SystemClock.elapsedRealtime() - it }
+                        }
                     },
+                    enabled = answer == null,
                     label = { Text(choice) },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                 )
             }
             answer?.let { choice ->
-                Text((if (choice == demo.quizAnswer) "Correct. " else "The intended answer was ${demo.quizAnswer}. ") + demo.quizExplanation, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-                OutlinedButton(onClick = { blind = false }, modifier = Modifier.fillMaxWidth()) { Text("Review full explanation") }
+                if (confidence == null) {
+                    Text("How confident were you before seeing the answer?", fontWeight = FontWeight.Bold)
+                    listOf("Confident", "Unsure", "Guessing").forEach { level ->
+                        OutlinedButton(
+                            onClick = {
+                                confidence = level
+                                val result = if (choice == demo.quizAnswer) "correct" else "incorrect"
+                                recordTrial("Signal | ${demo.title} | $result | chose $choice | answer ${demo.quizAnswer} | confidence $level | replays $replayCount | total round ${answerElapsedMs ?: "unknown"}ms untimed | strength ${(strength * 100).toInt()}% | context $testContext")
+                            },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        ) { Text(level) }
+                    }
+                } else {
+                    Text(
+                        (if (choice == demo.quizAnswer) "Correct. " else "The intended answer was ${demo.quizAnswer}. ") + demo.quizExplanation,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    )
+                    OutlinedButton(onClick = { blind = false }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Review full explanation") }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun FeedbackScreen(trials: List<String>) = Page {
+private fun FeedbackScreen(
+    trials: List<String>,
+    testContext: String,
+    strength: Float,
+    capabilities: HapticCapabilities,
+) = Page {
     val context = LocalContext.current
     var felt by rememberSaveable { mutableStateOf("") }
     var meaning by rememberSaveable { mutableStateOf("") }
@@ -427,7 +551,7 @@ private fun FeedbackScreen(trials: List<String>) = Page {
     var accessNotes by rememberSaveable { mutableStateOf("") }
 
     PageHeading("Testing feedback")
-    Text("For blind and sighted testers: describe perception in your own words. Recorded blind-trial results are included automatically.")
+    Text("For blind and sighted testers: describe perception in your own words. The report includes your blind-trial results.")
     OutlinedTextField(felt, { felt = it }, label = { Text("What did the vibration feel like?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
     OutlinedTextField(meaning, { meaning = it }, label = { Text("What did you think it meant?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
     Text("How distinguishable was it?", fontWeight = FontWeight.Bold)
@@ -438,8 +562,12 @@ private fun FeedbackScreen(trials: List<String>) = Page {
         onClick = {
             val report = buildString {
                 appendLine("PulseTime signal test feedback")
+                appendLine("Pulse Lab: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                 appendLine("Date: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())}")
                 appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}; Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+                appendLine("Test context: $testContext")
+                appendLine("App strength: ${(strength * 100).toInt()}%")
+                appendLine("Haptics: amplitude ${capabilities.hasAmplitudeControl}; clear effects ${capabilities.supportsClearEffects}; primitives ${capabilities.supportsPrimitives}; envelopes ${capabilities.supportsEnvelopes}")
                 appendLine("Clarity: $clarity")
                 appendLine("What I felt: $felt")
                 appendLine("What I thought it meant: $meaning")
@@ -459,8 +587,8 @@ private fun FeedbackScreen(trials: List<String>) = Page {
 }
 
 @Composable
-private fun <T> ChoiceColumn(choices: List<Pair<String, T>>, selected: T, onSelect: (T) -> Unit) {
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+internal fun <T> ChoiceColumn(choices: List<Pair<String, T>>, selected: T, onSelect: (T) -> Unit) {
+    Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         choices.forEach { (label, value) ->
             FilterChip(selected == value, { onSelect(value) }, { Text(label) }, Modifier.fillMaxWidth().heightIn(min = 48.dp))
         }
@@ -485,22 +613,28 @@ private fun PulseRail(demo: HapticDemo) {
 }
 
 @Composable
-private fun Page(content: @Composable ColumnScope.() -> Unit) {
+internal fun Page(content: @Composable ColumnScope.() -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp), content = content)
 }
 
 @Composable
-private fun PageHeading(text: String) {
-    val requester = remember { FocusRequester() }
-    Text(text, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, modifier = Modifier.focusRequester(requester).focusable().semantics { heading() })
-    LaunchedEffect(text) { requester.requestFocus() }
+internal fun PageHeading(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.headlineLarge,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.semantics {
+            heading()
+            paneTitle = text
+        },
+    )
 }
 
 @Composable
 private fun SectionHeading(text: String) = Text(text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
 
 @Composable
-private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
         content()

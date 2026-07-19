@@ -13,12 +13,12 @@ package IDs, App Groups, or product coupling.
 
 PulseTime now includes six selectable haptic time languages:
 
-- **Terse Quarter** — hours, quarters, and optional leftover-minute ticks
-- **Five-Minute Ladder** — hours, five-minute steps, and leftover minutes
-- **Decimal Place Rhythm** — hours, minute tens, and minute ones
-- **Binary Clock** — four hour bits followed by six minute bits
-- **Nearest-Quarter Offset** — a quarter-hour landmark plus before/after minutes
-- **Morse Digits** — displayed digits as standard Morse numerals
+- **Terse Quarter:** hours, quarters, and optional leftover-minute ticks
+- **Five-Minute Ladder:** hours, five-minute steps, and leftover minutes
+- **Decimal Place Rhythm:** hours, minute tens, and minute ones
+- **Binary Clock:** four hour bits followed by six minute bits
+- **Nearest-Quarter Offset:** a quarter-hour landmark plus before/after minutes
+- **Morse Digits:** displayed digits as standard Morse numerals
 
 The original Terse Quarter system remains the default for existing installs.
 Settings also control playback speed and whether relative-strength layers are
@@ -38,17 +38,26 @@ Demonstrations never change saved watch settings and are never queued offline.
 ## Pulse Lab phone testing
 
 The separate `:hapticlab` app runs the same six PulseTime encoders through the
-phone's own vibrator, with practice times, playback speed, layered strength,
-exact-minute control, explanations, and untimed blind recognition tests. It
-also explores six offline scenarios covering markets, weather, sender identity,
-urgency, and acknowledgement requests.
+phone's vibrator. It includes practice times, speed and strength controls,
+exact-minute options, explanations, and untimed blind trials.
 
-Pulse Lab records blind-trial answers and the exact haptic settings for the
-current session. A structured feedback page lets blind and sighted testers
-describe what they felt, what they thought it meant, clarity, comfort, TalkBack,
-and navigation. Feedback leaves the app only when the tester chooses Android's
-standard share sheet. This makes it possible to compare recognition errors and
-refine signal duration, rhythm, strength, and layering.
+The signal library contains twelve fictional examples. They cover markets,
+weather, messages, calendar reminders, transit, exercise pace, home events,
+software status, and live games. Every example follows the same tactile phrase:
+topic, payload, optional modifier, and optional action. Several examples also
+compare a short headline with the full phrase.
+
+The perception lab reports the phone's haptic capabilities, checks comfortable
+strength, and compares direction, urgency, and field-boundary patterns. A
+personal pattern builder lets testers arrange short pulses, long pulses,
+strength levels, and pauses. Pulse Lab records answers, confidence, replays,
+test context, and untimed total round duration for the current session.
+
+The feedback page lets blind and sighted testers describe what they felt, what
+they thought it meant, comfort, TalkBack, and navigation. Feedback leaves the
+app only when the tester opens Android's share sheet and chooses a destination.
+The app explains its testing limits, safety boundaries, and phrase grammar on
+the **How Pulse Lab works** page.
 
 Pulse Lab uses the independent package `com.lukesteuber.pulsetime.hapticlab`,
 so it can be installed beside both PulseTime apps. It needs no watch, pairing,
@@ -56,10 +65,10 @@ network access, account, location, contacts, or notification permissions.
 
 ### Terse Quarter
 
-1. **Hours** 1–12 — 200 ms ON / 280 ms OFF
+1. **Hours** 1–12: 200 ms ON / 280 ms OFF
 2. **700 ms** silence
-3. **Quarters** 0–3 — 320 ms ON / 280 ms OFF
-4. Optional **exact minutes** (after training) — 80 ms ticks, separated by 120 ms, for the remainder inside the quarter
+3. **Quarters** 0–3: 320 ms ON / 280 ms OFF
+4. Optional **exact minutes** after training: 80 ms ticks, separated by 120 ms, for the remainder inside the quarter
 
 Example: **3:20** → 3 hour pulses, pause, 1 quarter pulse.
 
@@ -69,7 +78,7 @@ Base amplitude is 180/255 × your calibration scale.
 
 - JDK 21 (toolchain) / project compiles with Java 17 bytecode  
 - Android SDK with Wear OS (compileSdk 36, minSdk 30, targetSdk 35)  
-- A physical watch for haptic QA — **emulator vibration is not sufficient**
+- A physical watch for haptic QA. **Emulator vibration is not sufficient.**
 
 Gradle must run with JDK 21, and the Android SDK must be available through
 `ANDROID_HOME` or `sdk.dir` in the ignored `local.properties` file. JDK 26 is
@@ -124,7 +133,7 @@ Retap while a pattern is playing to **cancel**.
 
 ## Permissions
 
-- `VIBRATE` — haptic patterns  
+- `VIBRATE`: haptic patterns
 - Tile provider binding (system)  
 
 No network. No location.
@@ -144,4 +153,4 @@ No network. No location.
 ## Later work
 
 Complications, hourly ambient chimes, phone sync, watchOS
-(Core Haptics — only if meaningfully better than Apple Taptic Time).
+(Core Haptics, only if meaningfully better than Apple Taptic Time).
