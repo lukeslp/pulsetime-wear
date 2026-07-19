@@ -10,6 +10,7 @@
 - [x] 512 × 512 Play icon prepared
 - [x] Public privacy policy published
 - [ ] Upload keystore and Keychain password backed up securely
+- [ ] 1024 × 500 Play feature graphic prepared
 - [ ] Current 1:1 Wear OS screenshots captured from the Pixel Watch
 - [ ] Human haptic and TalkBack checklist completed on the watch
 
