@@ -62,7 +62,7 @@ not supported by this project's Kotlin/Gradle toolchain.
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ./gradlew :shared:testDebugUnitTest :mobile:assembleDebug
-./gradlew :app:bundleRelease   # AAB for internal Play track (human publish)
+scripts/build-play-release.sh  # signed phone + Wear AABs for closed testing
 ```
 
 Debug APK:
@@ -76,8 +76,9 @@ Companion debug APK:
 
 Release AAB:
 
-`app/build/outputs/bundle/release/app-release.aab`  
-(application id `com.lukesteuber.pulsetime.wear`)
+- `dist/play/pulsetime-phone-0.3.0-10000003.aab`
+- `dist/play/pulsetime-wear-0.3.0-20000003.aab`
+(application id `com.lukesteuber.pulsetime.wear`; human Play upload)
 
 ## Install on Pixel Watch 2 (adb)
 

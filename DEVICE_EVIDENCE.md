@@ -5,8 +5,18 @@
 | Artifact | Path | Built |
 |----------|------|-------|
 | Debug APK | `app/build/outputs/apk/debug/app-debug.apk` | 2026-07-16 — `assembleDebug` green |
-| Release AAB | `app/build/outputs/bundle/release/app-release.aab` | 2026-07-16 — `bundleRelease` green (debug signing for local stage only) |
-| Unit tests | `./gradlew :shared:testDebugUnitTest :app:testDebugUnitTest` | 38 tests, green (2026-07-18; JDK 21 + Android SDK configured) |
+| Phone release AAB | `dist/play/pulsetime-phone-0.3.0-10000003.aab` | 2026-07-18: signed with the protected upload key |
+| Wear release AAB | `dist/play/pulsetime-wear-0.3.0-20000003.aab` | 2026-07-18: signed with the same protected upload key |
+| Release validation | `scripts/build-play-release.sh` | Clean tests, release lint, signatures, certificate match, and SHA-256 checksums passed |
+
+## Device-tested phone companion
+
+| Field | Value |
+|-------|-------|
+| Model | Google Pixel 10 (`frankel`) |
+| Package | `com.lukesteuber.pulsetime.wear.debug` v0.3.0-debug |
+| Install | 2026-07-18: companion debug APK installed over the earlier watch build |
+| Evidence | `play/assets/phone/phone-home.png`, `phone-time-systems.png` |
 
 ## Device-tested (Pixel Watch 2)
 
@@ -34,4 +44,4 @@ Human checklist:
 - [ ] TalkBack: Tell time ≤2 swipes; training completable eyes-free
 - [ ] Tile tap plays time without hunting a small target
 
-Play Console upload remains a **human** gate (do not auto-publish).
+Play Console login, upload, tester management, and rollout remain **human** gates.
