@@ -3,6 +3,13 @@
 // I/O: Consumes Android SDK; emits debug/release Wear APKs for sideload.
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+val playStoreFile = providers.environmentVariable("PULSETIME_UPLOAD_STORE_FILE").orNull
+val playStorePassword = providers.environmentVariable("PULSETIME_UPLOAD_STORE_PASSWORD").orNull
+val playKeyAlias = providers.environmentVariable("PULSETIME_UPLOAD_KEY_ALIAS").orNull
+val playKeyPassword = providers.environmentVariable("PULSETIME_UPLOAD_KEY_PASSWORD").orNull
+val playSigningAvailable = listOf(playStoreFile, playStorePassword, playKeyAlias, playKeyPassword)
+    .all { !it.isNullOrBlank() }
+
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -17,9 +24,21 @@ android {
         applicationId = "com.lukesteuber.pulsetime.wear"
         minSdk = 30
         targetSdk = 35
-        versionCode = 3
+        // Play requires version codes to be unique across phone and Wear artifacts.
+        versionCode = 20_000_003
         versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("play") {
+            if (playSigningAvailable) {
+                storeFile = file(playStoreFile!!)
+                storePassword = playStorePassword
+                keyAlias = playKeyAlias
+                keyPassword = playKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -29,8 +48,9 @@ android {
         }
         release {
             isMinifyEnabled = false
-            // Local store-stage only; replace with upload keystore before human Play submit.
-            signingConfig = signingConfigs.getByName("debug")
+            if (playSigningAvailable) {
+                signingConfig = signingConfigs.getByName("play")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -56,6 +76,14 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+tasks.matching { it.name == "bundleRelease" || it.name == "assembleRelease" }.configureEach {
+    doFirst {
+        check(playSigningAvailable) {
+            "PulseTime Play signing is not configured. Run scripts/create-play-upload-key.sh, then scripts/build-play-release.sh."
         }
     }
 }

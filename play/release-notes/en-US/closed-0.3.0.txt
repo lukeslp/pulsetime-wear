@@ -1,0 +1,7 @@
+Initial closed test of PulseTime for Android phones and Wear OS watches.
+
+- Six selectable tactile time systems
+- Phone lessons, examples, demonstrations, and practice tests
+- Adjustable speed, pulse strength, and exact-minute detail
+- One-tap watch app and tile
+- Fully offline, with no account or tracking

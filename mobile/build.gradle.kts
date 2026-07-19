@@ -1,5 +1,12 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+val playStoreFile = providers.environmentVariable("PULSETIME_UPLOAD_STORE_FILE").orNull
+val playStorePassword = providers.environmentVariable("PULSETIME_UPLOAD_STORE_PASSWORD").orNull
+val playKeyAlias = providers.environmentVariable("PULSETIME_UPLOAD_KEY_ALIAS").orNull
+val playKeyPassword = providers.environmentVariable("PULSETIME_UPLOAD_KEY_PASSWORD").orNull
+val playSigningAvailable = listOf(playStoreFile, playStorePassword, playKeyAlias, playKeyPassword)
+    .all { !it.isNullOrBlank() }
+
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -12,10 +19,21 @@ android {
     defaultConfig {
         applicationId = "com.lukesteuber.pulsetime.wear"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 3
+        targetSdk = 36
+        // Phone and Wear artifacts share a package but use disjoint Play ranges.
+        versionCode = 10_000_003
         versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        create("play") {
+            if (playSigningAvailable) {
+                storeFile = file(playStoreFile!!)
+                storePassword = playStorePassword
+                keyAlias = playKeyAlias
+                keyPassword = playKeyPassword
+            }
+        }
     }
     buildTypes {
         debug {
@@ -24,7 +42,9 @@ android {
         }
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            if (playSigningAvailable) {
+                signingConfig = signingConfigs.getByName("play")
+            }
         }
     }
     buildFeatures { compose = true }
@@ -33,6 +53,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
+}
+
+tasks.matching { it.name == "bundleRelease" || it.name == "assembleRelease" }.configureEach {
+    doFirst {
+        check(playSigningAvailable) {
+            "PulseTime Play signing is not configured. Run scripts/create-play-upload-key.sh, then scripts/build-play-release.sh."
+        }
+    }
 }
 
 dependencies {

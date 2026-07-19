@@ -1,0 +1,9 @@
+PulseTime is an eyes-free clock for Wear OS. Tap the watch app or tile to feel the current time as a short vibration pattern.
+
+Choose from six tactile time systems, from simple hour-and-quarter patterns to exact minutes, binary, and Morse numerals. Adjust playback speed and pulse strength to find a pattern that feels clear on your watch.
+
+The Android companion teaches each system with plain-language explanations, worked examples, watch demonstrations, and replayable tests. Once you know your preferred system, the watch works independently.
+
+PulseTime works offline. It has no account, advertising, analytics, location access, or tracking.
+
+Accessibility features include eyes-free operation, TalkBack labels, large controls in the companion, untimed exercises, and patterns that never rely on vibration strength alone.
