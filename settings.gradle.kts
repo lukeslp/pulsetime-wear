@@ -18,4 +18,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "pulsetime-wear"
-include(":app", ":mobile", ":shared")
+include(":app", ":mobile", ":shared", ":hapticlab")

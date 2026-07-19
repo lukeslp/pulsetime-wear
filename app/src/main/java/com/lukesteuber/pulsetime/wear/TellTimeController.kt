@@ -4,8 +4,8 @@
 package com.lukesteuber.pulsetime.wear
 
 import android.content.Context
-import com.lukesteuber.pulsetime.wear.encoding.EncodingOptions
-import com.lukesteuber.pulsetime.wear.encoding.TimeEncoderRegistry
+import com.lukesteuber.pulsetime.shared.encoding.EncodingOptions
+import com.lukesteuber.pulsetime.shared.encoding.TimeEncoderRegistry
 import com.lukesteuber.pulsetime.wear.haptics.HapticPlayer
 import com.lukesteuber.pulsetime.wear.haptics.HapticPlayerHolder
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings

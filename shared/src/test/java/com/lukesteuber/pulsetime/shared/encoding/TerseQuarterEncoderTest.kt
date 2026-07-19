@@ -1,7 +1,7 @@
 // File purpose: JVM unit tests for terse-quarter encoding.
 // Primary components: hour/quarter/remainder fixtures and waveform shape checks.
 // I/O: Fixed clock values → expected pulse counts and timing invariants.
-package com.lukesteuber.pulsetime.wear.encoding
+package com.lukesteuber.pulsetime.shared.encoding
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

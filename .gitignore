@@ -3,6 +3,7 @@
 /app/build/
 /mobile/build/
 /shared/build/
+/hapticlab/build/
 /local.properties
 *.iml
 .idea/

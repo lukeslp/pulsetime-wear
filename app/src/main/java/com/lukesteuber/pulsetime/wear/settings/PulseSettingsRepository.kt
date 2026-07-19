@@ -11,8 +11,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.lukesteuber.pulsetime.wear.encoding.PlaybackSpeed
-import com.lukesteuber.pulsetime.wear.encoding.TimeSystem
+import com.lukesteuber.pulsetime.shared.encoding.PlaybackSpeed
+import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

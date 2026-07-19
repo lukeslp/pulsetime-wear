@@ -1,5 +1,5 @@
 // File purpose: Selectable haptic time languages and their pure encoders.
-package com.lukesteuber.pulsetime.wear.encoding
+package com.lukesteuber.pulsetime.shared.encoding
 
 import java.util.Calendar
 

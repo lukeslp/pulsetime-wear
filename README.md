@@ -35,6 +35,25 @@ playback request through the Wear OS Data Layer. The watch validates the request
 generates the pattern locally, starts the vibration, and acknowledges playback.
 Demonstrations never change saved watch settings and are never queued offline.
 
+## Pulse Lab phone testing
+
+The separate `:hapticlab` app runs the same six PulseTime encoders through the
+phone's own vibrator, with practice times, playback speed, layered strength,
+exact-minute control, explanations, and untimed blind recognition tests. It
+also explores six offline scenarios covering markets, weather, sender identity,
+urgency, and acknowledgement requests.
+
+Pulse Lab records blind-trial answers and the exact haptic settings for the
+current session. A structured feedback page lets blind and sighted testers
+describe what they felt, what they thought it meant, clarity, comfort, TalkBack,
+and navigation. Feedback leaves the app only when the tester chooses Android's
+standard share sheet. This makes it possible to compare recognition errors and
+refine signal duration, rhythm, strength, and layering.
+
+Pulse Lab uses the independent package `com.lukesteuber.pulsetime.hapticlab`,
+so it can be installed beside both PulseTime apps. It needs no watch, pairing,
+network access, account, location, contacts, or notification permissions.
+
 ### Terse Quarter
 
 1. **Hours** 1–12 — 200 ms ON / 280 ms OFF
@@ -62,6 +81,7 @@ not supported by this project's Kotlin/Gradle toolchain.
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ./gradlew :shared:testDebugUnitTest :mobile:assembleDebug
+./gradlew :hapticlab:testDebugUnitTest :hapticlab:lintDebug :hapticlab:assembleDebug
 scripts/build-play-release.sh  # signed phone + Wear AABs for closed testing
 ```
 
@@ -73,6 +93,10 @@ Debug APK:
 Companion debug APK:
 
 `mobile/build/outputs/apk/debug/mobile-debug.apk`
+
+Pulse Lab debug APK:
+
+`hapticlab/build/outputs/apk/debug/hapticlab-debug.apk`
 
 Release AAB:
 

@@ -13,10 +13,21 @@
 
 | Field | Value |
 |-------|-------|
-| Model | Google Pixel 10 (`frankel`) |
+| Model | Google Pixel 9a (`tegu`) |
 | Package | `com.lukesteuber.pulsetime.wear.debug` v0.3.0-debug |
 | Install | 2026-07-18: companion debug APK installed over the earlier watch build |
 | Evidence | `play/assets/phone/phone-home.png`, `phone-time-systems.png` |
+
+## Device-tested Pulse Lab
+
+| Field | Value |
+|-------|-------|
+| Model | Google Pixel 10 (`frankel`) |
+| Package | `com.lukesteuber.pulsetime.hapticlab` v0.1.0 |
+| Install | 2026-07-18: debug APK installed alongside PulseTime |
+| Vibration | General signal and shared PulseTime time-encoder waveforms appeared in `VibratorManagerService` under the separate Pulse Lab package |
+| Coverage | Six time systems, customization, blind recognition trials, six general signals, and structured feedback sharing |
+| Evidence | `hapticlab/device-evidence/home-full.png`, `time-systems.png`, `market-detail.png`, `market-playing.png` |
 
 ## Device-tested (Pixel Watch 2)
 

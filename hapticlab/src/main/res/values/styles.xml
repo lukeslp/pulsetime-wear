@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.PulseLab" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#087F8C</item>
+        <item name="android:navigationBarColor">#F8FCFC</item>
+        <item name="android:statusBarColor">#07121A</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

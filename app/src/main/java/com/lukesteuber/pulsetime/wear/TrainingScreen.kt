@@ -27,7 +27,7 @@ import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings
-import com.lukesteuber.pulsetime.wear.encoding.TimeSystem
+import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
 
 private data class Lesson(
     val title: String,

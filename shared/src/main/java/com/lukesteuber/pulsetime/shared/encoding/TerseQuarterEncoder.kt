@@ -1,7 +1,7 @@
 // File purpose: Pure terse-quarter haptic time encoding (no Android deps).
 // Primary components: TerseQuarterEncoder, PulseSegment, EncodedPattern.
 // I/O: hour/minute (or Calendar) → timed ON/OFF pulse segments.
-package com.lukesteuber.pulsetime.wear.encoding
+package com.lukesteuber.pulsetime.shared.encoding
 
 import java.util.Calendar
 

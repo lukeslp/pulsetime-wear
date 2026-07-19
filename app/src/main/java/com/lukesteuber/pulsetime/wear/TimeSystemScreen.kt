@@ -19,8 +19,8 @@ import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SwitchButton
 import androidx.wear.compose.material3.Text
-import com.lukesteuber.pulsetime.wear.encoding.PlaybackSpeed
-import com.lukesteuber.pulsetime.wear.encoding.TimeSystem
+import com.lukesteuber.pulsetime.shared.encoding.PlaybackSpeed
+import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings
 
 @Composable

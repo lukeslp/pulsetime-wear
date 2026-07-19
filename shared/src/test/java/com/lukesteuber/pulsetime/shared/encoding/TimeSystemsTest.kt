@@ -1,4 +1,4 @@
-package com.lukesteuber.pulsetime.wear.encoding
+package com.lukesteuber.pulsetime.shared.encoding
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals

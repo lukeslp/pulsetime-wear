@@ -8,8 +8,8 @@ import com.lukesteuber.pulsetime.shared.PlaybackResult
 import com.lukesteuber.pulsetime.shared.PlaybackResultCode
 import com.lukesteuber.pulsetime.shared.PulseTimePaths
 import com.lukesteuber.pulsetime.wear.TellTimeController
-import com.lukesteuber.pulsetime.wear.encoding.PlaybackSpeed
-import com.lukesteuber.pulsetime.wear.encoding.TimeSystem
+import com.lukesteuber.pulsetime.shared.encoding.PlaybackSpeed
+import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings
 
 class RemotePlaybackService : WearableListenerService() {

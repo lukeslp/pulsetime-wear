@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import com.lukesteuber.pulsetime.wear.encoding.EncodedPattern
+import com.lukesteuber.pulsetime.shared.encoding.EncodedPattern
 
 interface HapticPlayer {
     fun play(pattern: EncodedPattern)
