@@ -10,12 +10,13 @@
 - [x] 512 × 512 Play icon prepared
 - [x] Public privacy policy published
 - [ ] Upload keystore and Keychain password backed up securely
-- [ ] 1024 × 500 Play feature graphic prepared
+- [x] 1024 × 500 Play feature graphic prepared
 - [ ] Current 1:1 Wear OS screenshots captured from the Pixel Watch
 - [ ] Human haptic and TalkBack checklist completed on the watch
 
 ## Play Console
 
+- [ ] Sign in as `lucas.steuber@gmail.com`, the same developer account used for Alt Text Intelligence
 - [ ] Create or select the PulseTime app with package `com.lukesteuber.pulsetime.wear`
 - [ ] Enroll in Play App Signing and verify the upload certificate fingerprint
 - [ ] Complete the main listing and App content forms

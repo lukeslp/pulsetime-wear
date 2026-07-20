@@ -22,8 +22,10 @@ The validated bundles, hashes, version information, and upload certificate finge
 
 ## Human Play Console steps
 
-1. Create or select one app using package `com.lukesteuber.pulsetime.wear` and enroll it in Play App Signing.
-2. Complete the store listing, app access, ads, target audience, content rating, and Data safety forms. PulseTime collects and shares no data. Use `https://dr.eamer.dev/downloads/apps/pulse-time/privacy/` for the privacy policy.
+Sign in to Play Console as `lucas.steuber@gmail.com`, the same developer account used for Alt Text Intelligence.
+
+1. Under that account, create or select one app using package `com.lukesteuber.pulsetime.wear` and enroll it in Play App Signing.
+2. Complete the store listing, app access, ads, target audience, content rating, and Data safety forms using `app-content.md`, `content-rating.md`, and `data-safety.md`. PulseTime collects and shares no data. Use `https://dr.eamer.dev/downloads/apps/pulse-time/privacy/` for the privacy policy.
 3. Create a closed testing release for Android phones and upload `pulsetime-phone-0.3.0-10000003.aab`.
 4. Under Advanced settings, add the Wear OS form factor and accept its review terms.
 5. Create the Wear OS closed testing release and upload `pulsetime-wear-0.3.0-20000003.aab`.

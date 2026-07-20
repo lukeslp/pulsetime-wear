@@ -5,18 +5,21 @@
 | Artifact | Path | Built |
 |----------|------|-------|
 | Debug APK | `app/build/outputs/apk/debug/app-debug.apk` | 2026-07-16 — `assembleDebug` green |
-| Phone release AAB | `dist/play/pulsetime-phone-0.3.0-10000003.aab` | 2026-07-18: signed with the protected upload key |
-| Wear release AAB | `dist/play/pulsetime-wear-0.3.0-20000003.aab` | 2026-07-18: signed with the same protected upload key |
+| Phone release AAB | `dist/play/pulsetime-phone-0.3.0-10000003.aab` | 2026-07-19: clean-built and signed with the protected upload key |
+| Wear release AAB | `dist/play/pulsetime-wear-0.3.0-20000003.aab` | 2026-07-19: clean-built and signed with the same protected upload key |
 | Release validation | `scripts/build-play-release.sh` | Clean tests, release lint, signatures, certificate match, and SHA-256 checksums passed |
+| Bundle validation | bundletool 1.18.3 | Both bundles valid; phone version code 10000003, Wear version code 20000003, package `com.lukesteuber.pulsetime.wear` |
 
 ## Device-tested phone companion
 
 | Field | Value |
 |-------|-------|
-| Model | Google Pixel 9a (`tegu`) |
-| Package | `com.lukesteuber.pulsetime.wear.debug` v0.3.0-debug |
-| Install | 2026-07-18: companion debug APK installed over the earlier watch build |
-| Evidence | `play/assets/phone/phone-home.png`, `phone-time-systems.png` |
+| Model | Google Pixel 10 (`frankel`) |
+| Package | `com.lukesteuber.pulsetime.wear` v0.3.0, version code 10000003 |
+| Install | 2026-07-19: bundletool installed the device-specific APK set generated from the signed Play AAB |
+| Launch | Foreground activity verified as `com.lukesteuber.pulsetime.mobile.MainActivity` |
+| Accessibility inspection | Primary cards expose descriptive text in logical order and measure at least 123 dp high; the retry control measures 48 dp high |
+| Evidence | `play/assets/phone/phone-home.png`, `phone-time-systems.png`, `phone-terse-quarter.png`, `phone-watch-settings.png` |
 
 ## Device-tested Pulse Lab
 
@@ -32,6 +35,8 @@
 ## Device-tested (Pixel Watch 2)
 
 **Status: installed — haptic / TalkBack QA pending human.**
+
+The watch was not reachable during the 2026-07-19 release refresh. Its earlier debug install remains documented below, but current Wear screenshots and release-build checks must be completed before rollout.
 
 | Field | Value |
 |-------|-------|

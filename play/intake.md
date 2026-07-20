@@ -3,6 +3,7 @@
 - Product: PulseTime 0.3.0
 - Maintainer: Luke Steuber
 - License: MIT
+- Play Console account: `lucas.steuber@gmail.com`, the same developer account used for Alt Text Intelligence
 - Play package: `com.lukesteuber.pulsetime.wear`
 - Source: native Kotlin and Jetpack Compose modules for Android phones (`:mobile`) and Wear OS (`:app`), with shared encoding and playback code in `:shared`
 - Explicit targets: Android phones and Wear OS under one Play listing, using separate version-code ranges
