@@ -10,3 +10,8 @@
 .DS_Store
 /dist/
 /play/private/
+
+# Signed release binaries and their checksums live on the human-facing
+# release shelf, not in git history.
+artifacts/google-play/
+play/evidence/
