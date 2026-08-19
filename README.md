@@ -145,6 +145,33 @@ No network. No location.
 - [ ] Training completable without sight  
 - [ ] Tile content description announces the tell-time action  
 
+## Garmin and Pebble ports (2026-08-18)
+
+Play is blocked for now, so PulseTime also ships natively where the stores are
+open. Both ports run the same six systems from the same fixtures:
+
+- `appstores/garmin/pulsetime/` — a Connect IQ **widget** for the Venu 2S
+  (Attention.vibrate is unavailable to watch faces and takes at most eight
+  VibeProfiles per call, so patterns are chunked at silences and chained with
+  a timer; strength = duty cycle). Glance → tap → feel the time; tap/press
+  repeats, swipe/Up/Down cycles systems; settings in the Connect IQ phone
+  app. `appstores/garmin/pulsetime/README.md`.
+- `appstores/pebble/pulsetime/` — a C **watchapp** for basalt/chalk/diorite/
+  emery/flint/gabbro (`vibes_enqueue_custom_pattern`, no amplitude, so layered
+  strength does not exist there). Bind it to Quick Launch; Select repeats,
+  Up/Down cycles systems, a wrist flick repeats; Clay config page for system,
+  speed, exact minutes. `appstores/pebble/pulsetime/BUILD.md`.
+- `appstores/shared/pulsetime-patterns.mjs` is a reference port that writes
+  `appstores/shared/fixtures/patterns.{json,txt}` (420 cases);
+  `shared/src/test/.../PortFixturesTest.kt` proves those fixtures equal the
+  Kotlin encoders, and each port's harness reproduces them exactly (Pebble:
+  host C test; Garmin: simulator harness).
+
+Neither platform can vibrate from a background process. The nearest "no app to
+open" paths — a Garmin complication that launches the widget on tap, and a
+Pebble background worker that launches the app on a wrist flick (plus an
+optional PulseTime watchface) — are the next additions.
+
 ## Platforms track
 
 `scaffolded` → `built` → `validated` → `device-tested` → `store-staged` → **stop**  

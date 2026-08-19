@@ -1,0 +1,32 @@
+<settings>
+    <setting propertyKey="@Properties.system" title="@Strings.SystemTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.SystemTerseQuarter</listEntry>
+            <listEntry value="1">@Strings.SystemFiveMinuteLadder</listEntry>
+            <listEntry value="2">@Strings.SystemDecimalPlace</listEntry>
+            <listEntry value="3">@Strings.SystemBinaryClock</listEntry>
+            <listEntry value="4">@Strings.SystemNearestQuarter</listEntry>
+            <listEntry value="5">@Strings.SystemMorseDigits</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.speed" title="@Strings.SpeedTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.SpeedSlow</listEntry>
+            <listEntry value="1">@Strings.SpeedStandard</listEntry>
+            <listEntry value="2">@Strings.SpeedFast</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.strength" title="@Strings.StrengthTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.StrengthSoft</listEntry>
+            <listEntry value="1">@Strings.StrengthStandard</listEntry>
+            <listEntry value="2">@Strings.StrengthStrong</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.layered" title="@Strings.LayeredTitle">
+        <settingConfig type="boolean"/>
+    </setting>
+    <setting propertyKey="@Properties.exactMinutes" title="@Strings.ExactMinutesTitle">
+        <settingConfig type="boolean"/>
+    </setting>
+</settings>

@@ -1,0 +1,39 @@
+{
+  "name": "pulsetime",
+  "author": "Luke Steuber",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "PulseTime",
+    "uuid": "e69d82c1-73f1-4b29-a50f-06d17edd13b2",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "capabilities": [
+      "configurable"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": [
+      "SYSTEM",
+      "SPEED",
+      "EXACT_MINUTES",
+      "REQUEST"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}

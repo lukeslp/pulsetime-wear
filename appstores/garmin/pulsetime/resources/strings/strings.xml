@@ -1,0 +1,23 @@
+<strings>
+    <string id="AppName">PulseTime</string>
+    <string id="TapToRepeat">Tap or press to repeat</string>
+    <string id="VibrationOff">Vibration is off in watch settings</string>
+    <string id="ChangeSystemHint">Swipe or Up/Down: change system</string>
+    <string id="SystemTitle">Time system</string>
+    <string id="SystemTerseQuarter">Terse Quarter</string>
+    <string id="SystemFiveMinuteLadder">Five-Minute Ladder</string>
+    <string id="SystemDecimalPlace">Decimal Place Rhythm</string>
+    <string id="SystemBinaryClock">Binary Clock</string>
+    <string id="SystemNearestQuarter">Nearest-Quarter Offset</string>
+    <string id="SystemMorseDigits">Morse Digits</string>
+    <string id="SpeedTitle">Playback speed</string>
+    <string id="SpeedSlow">Slow</string>
+    <string id="SpeedStandard">Standard</string>
+    <string id="SpeedFast">Fast</string>
+    <string id="StrengthTitle">Vibration strength</string>
+    <string id="StrengthSoft">Soft</string>
+    <string id="StrengthStandard">Standard</string>
+    <string id="StrengthStrong">Strong</string>
+    <string id="LayeredTitle">Layered strength (softer pulses for finer fields)</string>
+    <string id="ExactMinutesTitle">Exact minutes (Terse Quarter only: leftover-minute ticks)</string>
+</strings>

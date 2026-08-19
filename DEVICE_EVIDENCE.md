@@ -61,3 +61,20 @@ Human checklist:
 - [ ] Tile tap plays time without hunting a small target
 
 Play Console login, upload, tester management, and rollout remain **human** gates.
+
+## Garmin Venu 2S — PulseTime widget (2026-08-18)
+
+- [x] `appstores/garmin/dist/pulsetime-venu2s.prg` sideloaded over MTP
+  (object id 16777987); imports when the watch disconnects.
+- [ ] Wrist: glance → tap plays the time; 3:20 → 3 + pause + 1 (Terse
+  Quarter); seams between 8-profile chunks imperceptible; Soft/Standard/Strong
+  duty differences felt; tap/press repeats; Up/Down cycles.
+
+## Pebble Time 2 — PulseTime watchapp (2026-08-18)
+
+- [x] `pulsetime.pbw` installed over the CloudPebble developer connection
+  ("App install succeeded"), final build sha256 952aaa01….
+- [ ] Wrist: launch vibrates immediately; Select repeats; Up/Down cycles;
+  flick repeats; Quick Launch binding; config page reachable from the phone
+  app; Pebble 2 SE install.
+

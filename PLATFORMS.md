@@ -12,3 +12,12 @@
 | closed-test | human gate | Add real Wear screenshots, upload both form-factor bundles, add testers, and start rollout in Play Console |
 
 Do not submit to Play from automation.
+
+## Garmin Venu 2S and Pebble (added 2026-08-18)
+
+| Port | Stage | Evidence |
+|------|-------|----------|
+| Garmin widget (`appstores/garmin/pulsetime`) | built · encoder validated · sideloaded | `monkeyc` clean; simulator harness `PASS 420/420` incl. chunker invariants; PRG sideloaded to the Venu 2S over MTP (imports on disconnect); wrist QA pending |
+| Pebble watchapp (`appstores/pebble/pulsetime`) | built · encoder validated · device-installed | host C test `420/420 match`; runs in basalt/diorite/chalk emulators; installed on the Pebble Time 2 via CloudPebble; wrist QA and Pebble 2 SE pending |
+| Store | not submitted | Connect IQ store and Pebble appstore are per-app human submissions |
+

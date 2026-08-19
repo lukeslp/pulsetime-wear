@@ -15,3 +15,9 @@
 # release shelf, not in git history.
 artifacts/google-play/
 play/evidence/
+
+# Wearable port artifacts (built by appstores/*/scripts, staged by stage-release.sh)
+/appstores/dist/
+/appstores/garmin/dist/
+/appstores/pebble/pulsetime/build/
+/appstores/pebble/pulsetime/tests/.build/

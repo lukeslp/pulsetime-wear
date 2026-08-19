@@ -1,0 +1,61 @@
+[
+  {
+    "type": "heading",
+    "defaultValue": "PulseTime"
+  },
+  {
+    "type": "text",
+    "defaultValue": "Feel the time as a vibration pattern. Bind PulseTime to Quick Launch (hold Up or Down) for a one-gesture time check. On the watch, Select repeats and Up/Down cycle the time system."
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Haptic language"
+      },
+      {
+        "type": "select",
+        "messageKey": "SYSTEM",
+        "label": "Time system",
+        "defaultValue": "terse_quarter",
+        "options": [
+          { "label": "Terse Quarter (hours, quarters)", "value": "terse_quarter" },
+          { "label": "Five-Minute Ladder", "value": "five_minute_ladder" },
+          { "label": "Decimal Place Rhythm", "value": "decimal_place" },
+          { "label": "Binary Clock", "value": "binary_clock" },
+          { "label": "Nearest-Quarter Offset", "value": "nearest_quarter" },
+          { "label": "Morse Digits", "value": "morse_digits" }
+        ],
+        "description": "Terse Quarter: hour pulses, a pause, then quarter-hour pulses. Five-Minute Ladder: hours, five-minute steps, leftover minutes. Decimal Place: hours, minute tens, minute ones. Binary Clock: four hour bits then six minute bits (short = 0, long = 1). Nearest-Quarter Offset: nearest quarter, a before/after marker, then the offset in minutes. Morse Digits: the displayed digits as Morse numerals."
+      },
+      {
+        "type": "select",
+        "messageKey": "SPEED",
+        "label": "Playback speed",
+        "defaultValue": "standard",
+        "options": [
+          { "label": "Slow", "value": "slow" },
+          { "label": "Standard", "value": "standard" },
+          { "label": "Fast", "value": "fast" }
+        ],
+        "description": "Slow stretches every pulse and pause by 25%; Fast shortens them by 22%."
+      },
+      {
+        "type": "toggle",
+        "messageKey": "EXACT_MINUTES",
+        "label": "Exact minutes (Terse Quarter only)",
+        "defaultValue": false,
+        "description": "Adds short ticks for the leftover minutes inside the quarter. Only Terse Quarter needs this; the other five systems are inherently exact to the minute."
+      }
+    ]
+  },
+  {
+    "type": "text",
+    "defaultValue": "Pebble motors have no strength control, so every system here relies on pulse length and rhythm only. No PulseTime system depends on strength alone."
+  },
+  {
+    "type": "submit",
+    "defaultValue": "Save to watch"
+  }
+]

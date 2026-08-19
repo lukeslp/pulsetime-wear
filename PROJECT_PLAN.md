@@ -28,6 +28,16 @@ coupling.
 | M5 | Device evidence + AAB stage | AAB staged; Pixel Watch 2 installed; haptic and TalkBack QA pending human review |
 | M6 | Companion learning and remote watch demos | built; paired-device QA pending |
 
+## Wearable ports (2026-08-18)
+
+| ID | Item | Status |
+|----|------|--------|
+| W1 | Reference encoder port + fixtures pinned to Kotlin (`PortFixturesTest`) | done |
+| W2 | Garmin Venu 2S widget with glance, 8-profile chunker, settings | built, harness 420/420, sideloaded |
+| W3 | Pebble watchapp, Clay config, host test | built, 420/420, on the Time 2 |
+| W4 | Garmin complication → launch on tap; Pebble worker flick-launch + face variant | next |
+| W5 | Store submissions (Connect IQ, Pebble appstore) | human gate |
+
 ## Outstanding
 
 1. Human haptic and TalkBack QA on the installed Pixel Watch 2
