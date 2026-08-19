@@ -167,8 +167,9 @@ open. Both ports run the same six systems from the same fixtures:
   Kotlin encoders, and each port's harness reproduces them exactly (Pebble:
   host C test; Garmin: simulator harness).
 
-Neither platform can vibrate from a background process. The nearest "no app to
-open" paths — a Garmin complication that launches the widget on tap, and a
+Neither platform can vibrate from a background process
+(`docs/invocation-paths.md` records the verified per-platform rules and the
+gesture paths that follow from them). The nearest "no app to open" paths — a Garmin complication that launches the widget on tap, and a
 Pebble background worker that launches the app on a wrist flick (plus an
 optional PulseTime watchface) — are the next additions.
 
