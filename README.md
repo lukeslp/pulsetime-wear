@@ -150,28 +150,31 @@ No network. No location.
 Play is blocked for now, so PulseTime also ships natively where the stores are
 open. Both ports run the same six systems from the same fixtures:
 
-- `appstores/garmin/pulsetime/` — a Connect IQ **widget** for the Venu 2S
-  (Attention.vibrate is unavailable to watch faces and takes at most eight
-  VibeProfiles per call, so patterns are chunked at silences and chained with
-  a timer; strength = duty cycle). Glance → tap → feel the time; tap/press
-  repeats, swipe/Up/Down cycles systems; settings in the Connect IQ phone
-  app. `appstores/garmin/pulsetime/README.md`.
+- `appstores/garmin/pulsetime/` — a Connect IQ **device app with a glance** for
+  the Venu 2S (`Attention.vibrate` is unavailable to watch faces and takes at
+  most eight VibeProfiles per call, so patterns are chunked at silences and
+  chained with a timer; strength = duty cycle). Glance → tap → feel the time,
+  or add the **PulseTime complication** to a watch face and tap that; tap/press
+  repeats, swipe/Up/Down cycles systems; settings in the Connect IQ phone app.
+  `appstores/garmin/pulsetime/README.md`.
 - `appstores/pebble/pulsetime/` — a C **watchapp** for basalt/chalk/diorite/
   emery/flint/gabbro (`vibes_enqueue_custom_pattern`, no amplitude, so layered
   strength does not exist there). Bind it to Quick Launch; Select repeats,
   Up/Down cycles systems, a wrist flick repeats; Clay config page for system,
-  speed, exact minutes. `appstores/pebble/pulsetime/BUILD.md`.
+  speed, exact minutes. An optional **background worker** (off by default) turns
+  a double wrist-tap from any watchface into: launch, buzz, exit.
+  `appstores/pebble/pulsetime/BUILD.md`.
 - `appstores/shared/pulsetime-patterns.mjs` is a reference port that writes
   `appstores/shared/fixtures/patterns.{json,txt}` (420 cases);
   `shared/src/test/.../PortFixturesTest.kt` proves those fixtures equal the
   Kotlin encoders, and each port's harness reproduces them exactly (Pebble:
   host C test; Garmin: simulator harness).
 
-Neither platform can vibrate from a background process
-(`docs/invocation-paths.md` records the verified per-platform rules and the
-gesture paths that follow from them). The nearest "no app to open" paths — a Garmin complication that launches the widget on tap, and a
-Pebble background worker that launches the app on a wrist flick (plus an
-optional PulseTime watchface) — are the next additions.
+Neither platform can vibrate from a background process, so both "no app to
+open" paths are launchers: the Garmin complication and the Pebble worker each
+foreground the app, which buzzes immediately. `docs/invocation-paths.md`
+records the verified per-platform rules, the gesture paths that follow, and the
+one real exception — a Pebble *watchface* can vibrate, which remains unbuilt.
 
 ## Platforms track
 

@@ -1,5 +1,5 @@
 // File purpose: Glance-loop preview: the app name and the current local time.
-// Tapping the glance opens the full widget, which vibrates the time at once.
+// Tapping the glance opens the full view, which vibrates the time at once.
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
@@ -22,6 +22,7 @@ class PulseTimeGlance extends WatchUi.GlanceView {
     }
 
     // Local time as "h:mm" or "HH:mm" following the watch's 12/24-hour setting.
+    // Shared with PulseTimeComplication, which publishes the same string.
     static function timeText() as String {
         var now = System.getClockTime();
         var hour = now.hour;

@@ -1,4 +1,5 @@
-// File purpose: Connect IQ entry point for PulseTime (widget with a glance).
+// File purpose: Connect IQ entry point for PulseTime (device app with a
+// glance and one published complication).
 import Toybox.Application;
 import Toybox.Lang;
 import Toybox.WatchUi;
@@ -11,6 +12,10 @@ class PulseTimeApp extends Application.AppBase {
         AppBase.initialize();
     }
 
+    // Deliberately does not publish the complication. AppBase.onStart also
+    // runs in the glance code space, which carries only (:glance) symbols, so
+    // a call to PulseTimeComplication from here would fail in the glance.
+    // PulseTimeView.playNow publishes instead - on every open and every replay.
     function onStart(state as Dictionary?) as Void {
     }
 

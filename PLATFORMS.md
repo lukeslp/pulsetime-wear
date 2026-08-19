@@ -17,7 +17,7 @@ Do not submit to Play from automation.
 
 | Port | Stage | Evidence |
 |------|-------|----------|
-| Garmin widget (`appstores/garmin/pulsetime`) | built · encoder validated · sideloaded | `monkeyc` clean; simulator harness `PASS 420/420` incl. chunker invariants; PRG sideloaded to the Venu 2S over MTP (imports on disconnect); wrist QA pending |
+| Garmin device app + glance + complication (`appstores/garmin/pulsetime`) | built · encoder validated · sideloaded | `monkeyc` clean; simulator harness `PASS 420/420` incl. chunker invariants; PRG sideloaded to the Venu 2S over MTP (imports on disconnect); complication publishes in the simulator but face-editor hosting and tap-to-launch are unverified off-device; wrist QA pending |
 | Pebble watchapp (`appstores/pebble/pulsetime`) | built · encoder validated · device-installed | host C test `420/420 match`; runs in basalt/diorite/chalk emulators; installed on the Pebble Time 2 via CloudPebble; wrist QA and Pebble 2 SE pending |
 | Store | not submitted | Connect IQ store and Pebble appstore are per-app human submissions |
 

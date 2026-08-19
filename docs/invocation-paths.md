@@ -33,7 +33,7 @@ target — PulseTime has no watchOS build.
 | Path | Gestures | Notes |
 |---|---|---|
 | Glance loop | swipe up, tap | The default. The app vibrates on `onShow`. |
-| Published complication on a watch face | one tap | The complication is a **launcher**: a face calls `Complications.exitTo(id)` and the system foregrounds PulseTime, which vibrates. Requires API 4.2.0; the Venu 2S is CIQ 5.0. |
+| Published complication on a watch face | one tap | Built. The complication is a **launcher**: a face calls `Complications.exitTo(id)` and the system foregrounds PulseTime, which vibrates. Requires API 4.2.0; the Venu 2S is CIQ 5.0. |
 | App list | more | Fallback. |
 
 Hard limits:
@@ -47,6 +47,17 @@ Hard limits:
 - `vibrate()` accepts **at most 8 `VibeProfile`s per call**, which is why
   patterns are chunked at silences and chained with a timer (see the port
   README). Strength is duty cycle (0–100), not amplitude.
+- **Widgets are gone on System 5.** `Devices/venu2s/compiler.json` lists no
+  `widget` app type at all (only audioContentProvider, background, datafield,
+  glance, watchApp, watchFace); `type="widget"` survives as a legacy alias.
+  Publishing is documented for device apps, so PulseTime is `type="watch-app"`
+  and keeps its glance via `getGlanceView`.
+- Publishing a complication needs `<iq:uses-permission id="ComplicationPublisher"/>`,
+  an **SVG** icon distinct from the launcher icon, and a `value` that is a
+  number or string-resource reference — each of those is a hard compiler error,
+  not a warning. `updateComplication` must not be called from `AppBase.onStart`:
+  that also runs in the glance code space, which carries only `(:glance)`
+  symbols.
 
 ## Pebble (Time 2, 2 SE — `appstores/pebble/pulsetime/`)
 

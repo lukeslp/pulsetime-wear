@@ -1,0 +1,12 @@
+<!-- Published complication: a watch face can host it, and tapping it launches
+     PulseTime, which vibrates the time as soon as the app comes to the front.
+     The id is the index passed to Complications.updateComplication(). -->
+<complications>
+    <complication id="0" access="public"
+                  icon="@Drawables.ComplicationIcon"
+                  longLabel="@Strings.ComplicationLongLabel"
+                  shortLabel="@Strings.ComplicationShortLabel"
+                  value="@Strings.ComplicationPlaceholder">
+        <faceIt defaultText="PULSE"/>
+    </complication>
+</complications>

@@ -1,4 +1,4 @@
-// File purpose: Input for the full widget view. Select/tap replays; Up/Down or
+// File purpose: Input for the full app view. Select/tap replays; Up/Down or
 // swipe cycles the time system; Back exits; Menu is a no-op.
 import Toybox.Lang;
 import Toybox.WatchUi;
@@ -29,7 +29,7 @@ class PulseTimeDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    // Let the system pop the widget; onHide cancels playback.
+    // Let the system pop the app; onHide cancels playback.
     function onBack() as Boolean {
         return false;
     }

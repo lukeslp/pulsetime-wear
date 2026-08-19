@@ -1,5 +1,6 @@
-// File purpose: Full widget view. Vibrates the current time when shown, draws
-// the time, the active system's short label, and the repeat hint.
+// File purpose: Full app view. Vibrates the current time when shown, draws the
+// time, the active system's short label, and the repeat hint, and refreshes the
+// published complication with the time it just played.
 import Toybox.Application;
 import Toybox.Graphics;
 import Toybox.Lang;
@@ -87,6 +88,8 @@ class PulseTimeView extends WatchUi.View {
         _lastMinute = now.min;
         var segments = PulseTimeEncoder.encode(_system, now.hour, now.min, _speed, _exactMinutes);
         _player.play(segments, baseDuty(), _layered);
+        // Keep the published complication showing the time that was just played.
+        PulseTimeComplication.publish();
         WatchUi.requestUpdate();
     }
 

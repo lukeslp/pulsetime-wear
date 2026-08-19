@@ -1,5 +1,8 @@
 <strings>
     <string id="AppName">PulseTime</string>
+    <string id="ComplicationLongLabel">PulseTime</string>
+    <string id="ComplicationShortLabel">Pulse</string>
+    <string id="ComplicationPlaceholder">--:--</string>
     <string id="TapToRepeat">Tap or press to repeat</string>
     <string id="VibrationOff">Vibration is off in watch settings</string>
     <string id="ChangeSystemHint">Swipe or Up/Down: change system</string>

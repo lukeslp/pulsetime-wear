@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the PulseTime Connect IQ widget for the Venu 2S.
+# Build the PulseTime Connect IQ app for the Venu 2S.
 #   scripts/build-venu2s.sh              # dist/pulsetime-venu2s.prg
 #   scripts/build-venu2s.sh --harness    # also dist/pulsetime-harness-venu2s.prg
 # Sideloading is a separate, human step (copy the PRG to GARMIN/APPS on the

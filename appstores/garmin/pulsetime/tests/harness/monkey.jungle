@@ -1,5 +1,5 @@
-# Encoder + player under test are pulled in by file from the widget's source
-# tree; nothing else from the widget is compiled here.
+# Encoder + player under test are pulled in by file from the app's source
+# tree; nothing else from the app is compiled here.
 project.manifest = manifest.xml
 base.sourcePath = source;../../source/PulseTimeEncoder.mc;../../source/PulsePlayer.mc
 base.resourcePath = resources;../../resources/drawables

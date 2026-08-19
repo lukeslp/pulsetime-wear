@@ -62,7 +62,7 @@ Human checklist:
 
 Play Console login, upload, tester management, and rollout remain **human** gates.
 
-## Garmin Venu 2S — PulseTime widget (2026-08-18)
+## Garmin Venu 2S — PulseTime app (2026-08-18)
 
 - [x] `appstores/garmin/dist/pulsetime-venu2s.prg` sideloaded over MTP
   (object id 16777987); imports when the watch disconnects.
@@ -77,4 +77,20 @@ Play Console login, upload, tester management, and rollout remain **human** gate
 - [ ] Wrist: launch vibrates immediately; Select repeats; Up/Down cycles;
   flick repeats; Quick Launch binding; config page reachable from the phone
   app; Pebble 2 SE install.
+
+## W4 invocation paths (2026-08-18)
+
+- [x] Garmin: app type changed `widget` → `watch-app` (System 5 retired
+  widgets; `compiler.json` for venu2s lists no widget type), `minSdkVersion`
+  4.2.0, `ComplicationPublisher` permission, one published complication
+  (`resources/complications/complications.xml`, SVG icon) updated with the
+  current time on every open. Re-sideloaded (object id 16777988).
+- [ ] Venu 2S: does the watch-face editor offer the PulseTime complication,
+  and does tapping it launch the app and buzz? `updateComplication` succeeding
+  in the simulator is as far as off-device evidence goes.
+- [x] Pebble: background worker installed on the Time 2; double-tap → launch →
+  vibrate → auto-exit verified in the basalt emulator.
+- [ ] Time 2: enable "Flick to tell time", then check false-trigger rate during
+  ordinary movement and whether the round trip reads as "no app". Tighten
+  `PT_TAP_WINDOW_MS` toward 800 ms if twitchy.
 
