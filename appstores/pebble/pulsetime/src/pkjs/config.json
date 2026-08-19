@@ -51,6 +51,22 @@
     ]
   },
   {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Flick to tell time"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "FLICK_LAUNCH",
+        "label": "Flick to tell time",
+        "defaultValue": false,
+        "description": "Double-tap your wrist twice in the same direction, within about a second, from any watchface and PulseTime tells you the time. Read the costs first: a background worker has to run continuously, which uses battery all day. A Pebble can run only ONE background worker at a time, so turning this on may ask you to take the slot from another app, and another app can take it back. Pebble cannot vibrate from the background at all, so PulseTime briefly opens on screen to buzz and then closes itself and returns you to your watchface. If you would rather spend no battery, leave this off and bind PulseTime to Quick Launch instead: hold Up or Down from any watchface."
+      }
+    ]
+  },
+  {
     "type": "text",
     "defaultValue": "Pebble motors have no strength control, so every system here relies on pulse length and rhythm only. No PulseTime system depends on strength alone."
   },

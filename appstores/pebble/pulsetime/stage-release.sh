@@ -2,8 +2,9 @@
 #
 # File purpose: Build and stage the PulseTime Pebble release artifact.
 # Primary operations: run the host encoder fixture test, activate SDK 4.33.1,
-# build the PBW for every target platform, copy it to the repo's dist shelf,
-# and write a SHA-256 checksum.
+# build the PBW for every target platform, verify the background worker binary
+# is present for each of them, copy it to the repo's dist shelf, and write a
+# SHA-256 checksum.
 # I/O: Consumes the C project and the installed Pebble SDK 4.33.1; emits
 # appstores/dist/pebble/pulsetime.pbw and SHA256SUMS.txt (this repo).
 
@@ -25,6 +26,25 @@ pebble clean >/dev/null 2>&1 || true
 pebble build
 
 test -f "$PBW"
+
+# The worker is built only because worker_src/ exists, and a silent miss would
+# ship a build where "Flick to tell time" can never start. Check every platform.
+# List once and match in-shell: piping unzip into grep -q trips SIGPIPE under
+# `set -o pipefail` and reports a false miss.
+listing="$(unzip -l "$PBW")"
+missing=()
+for platform in basalt chalk diorite emery flint gabbro; do
+  case "$listing" in
+    *"$platform/pebble-worker.bin"*) ;;
+    *) missing+=("$platform") ;;
+  esac
+done
+if (( ${#missing[@]} )); then
+  echo "ERROR: no worker binary in the PBW for: ${missing[*]}" >&2
+  echo "Check that worker_src/c/ exists and that wscript still builds it." >&2
+  exit 1
+fi
+
 mkdir -p "$OUT"
 rm -f "$OUT/pulsetime.pbw"
 cp "$PBW" "$OUT/pulsetime.pbw"

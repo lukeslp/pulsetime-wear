@@ -30,6 +30,7 @@
       "SYSTEM",
       "SPEED",
       "EXACT_MINUTES",
+      "FLICK_LAUNCH",
       "REQUEST"
     ],
     "resources": {

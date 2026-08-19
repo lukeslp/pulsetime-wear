@@ -53,7 +53,7 @@ Hard limits:
 | Path | Gestures | Notes |
 |---|---|---|
 | Quick Launch (long-press Up or Down) | one press | Zero background cost. The best default. |
-| Background worker + wrist gesture | one flick | The worker cannot vibrate (`pebble_worker.h` has no vibes API); it calls `worker_launch_app()`, and the app vibrates and auto-exits when `launch_reason() == APP_LAUNCH_WORKER`. |
+| Background worker + wrist gesture | one double-tap | The worker cannot vibrate (`pebble_worker.h` has no vibes API); it calls `worker_launch_app()`, and the app vibrates and auto-exits when `launch_reason() == APP_LAUNCH_WORKER`. Off by default. |
 | App list | more | Fallback. |
 
 Hard limits:
@@ -69,6 +69,12 @@ Hard limits:
   playing is a no-op, and `vibes_cancel()` stops it. **No amplitude control**,
   so layered strength does not exist on Pebble — which is why no time system may
   depend on amplitude alone.
+- **The motor re-triggers the tap sensor.** A vibrating watch shakes hard
+  enough to read as a fresh gesture, so a gesture-launched haptic app will
+  relaunch itself in a loop unless the playing app explicitly tells the worker
+  to stay deaf for the pattern's duration (PulseTime sends a suppress message
+  carrying the pattern length plus a margin). Any future gesture trigger on any
+  platform inherits this problem.
 - Unlike Garmin, a Pebble **watchface can vibrate** and receives accelerometer
   taps. A PulseTime watchface variant is therefore the only true "no app at all"
   haptic clock available to us on any platform — at the cost of being the
