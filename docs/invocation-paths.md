@@ -102,8 +102,9 @@ Hard limits:
   haptic clock available to us on any platform — at the cost of being the
   wearer's active face, and of a second store listing. **Built 2026-08-19**
   (`appstores/pebble/pulsetime-face/`, uuid `f9ee597e-…`), sharing the
-  watchapp's encoder by symlink. It is also the only place chimes can exist,
-  since no Pebble background context can vibrate.
+  watchapp's encoder by symlink. It is the only path where the time is felt with
+  no app launched at all — the wakeup chimes below still start the app for a few
+  seconds, they just do it without being asked.
 - **A watchface only runs while it is the foreground app.** Being the *selected*
   face is not enough: opening any app, or even the launcher, unloads it and its
   tick and tap subscriptions go with it. Verified on the emery emulator — with

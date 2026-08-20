@@ -5,7 +5,7 @@
   },
   {
     "type": "text",
-    "defaultValue": "The haptic clock as your watchface. Double-tap the watch and feel the time — nothing to launch, nothing to exit, no background worker holding the watch's only worker slot. It can also chime on its own, which no Pebble app can do: Pebble has no background vibration at all, so passive time awareness only exists on a watchface. The price is that this has to be your watchface. A watchface has no buttons either — Up and Down belong to the timeline and Select opens the launcher — so everything is set from this page."
+    "defaultValue": "The haptic clock as your watchface. Double-tap the watch and feel the time \u2014 nothing to launch, nothing to exit, no background worker holding the watch's only worker slot. This is the only way to feel the time without any app starting at all. The price is that it has to be your watchface, and that it only works while it is the one on screen: open any app, or even the launcher, and it stops until you come back. If you mainly want chimes, the PulseTime app does those better \u2014 it schedules them with the watch, so they arrive whatever face you are using. A watchface has no buttons either \u2014 Up and Down belong to the timeline and Select opens the launcher \u2014 so everything is set from this page."
   },
   {
     "type": "section",

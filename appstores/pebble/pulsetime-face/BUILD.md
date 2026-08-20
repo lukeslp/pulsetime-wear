@@ -1,7 +1,12 @@
 # PulseTime Face (.pbw)
 
-**The haptic clock as a watchface.** This is the only "no app at all" haptic
-time path available on any watch PulseTime ships to. Author: Luke Steuber.
+**The haptic clock as a watchface.** This is the only path on any watch
+PulseTime ships to where the time is felt with **no app starting at all**.
+Author: Luke Steuber.
+
+(The watchapp's `wakeup_schedule()` chimes also arrive without being asked, but
+they do start the app for a few seconds. If chimes are what you want, use those
+— they work whatever face you are on. See `../pulsetime/BUILD.md`.)
 
 Every other route foregrounds something first:
 
@@ -11,6 +16,7 @@ Every other route foregrounds something first:
 | Wear OS | tile → relay activity | a blank activity opens purely so it can vibrate |
 | Garmin | complication → app | `Complications.exitTo()` foregrounds PulseTime |
 | Pebble watchapp | Quick Launch / worker | `pebble_worker.h` has **no vibes API at all** |
+| Pebble watchapp chimes | `wakeup_schedule()` | nothing resident, but the app is launched for a few seconds |
 | **Pebble watchface** | **nothing** | **it is already running, and it can vibrate** |
 
 A Connect IQ watch face is barred from `Attention.vibrate()`. A Pebble
@@ -20,8 +26,9 @@ the whole reason this project exists.
 ## What it buys, and what it costs
 
 - **Double-tap and feel the time.** No launch, no latency, nothing to exit.
-- **Chimes.** A watchapp can *never* do this — Pebble has no background
-  vibration — so passive time awareness exists only here.
+- **Chimes**, without scheduling anything. Note the watchapp can chime too, via
+  `wakeup_schedule()`, and its version keeps working when the wearer is in
+  another app — so prefer that one unless the face is already your clock.
 - **No background worker**, so no worker slot taken from another app (a Pebble
   runs exactly one, watch-wide) and no second process resident all day.
 - **It has to be your watchface.** That is the entire price, and it is why this

@@ -1,17 +1,21 @@
 // PulseTime Face — the haptic clock as a watchface.
 //
-// This is the only "no app at all" haptic time path available on any watch
-// PulseTime ships to. Every other route foregrounds something first: the Wear
-// tile opens a relay activity, the Garmin complication launches the app, and the
-// Pebble watchapp has to be opened by Quick Launch or by a background worker
-// that cannot vibrate on its own. A Pebble WATCHFACE can vibrate, and it is
-// already on screen, so the gesture count drops to zero.
+// This is the only path on any watch PulseTime ships to where the time is felt
+// with NO app starting at all. Every other route foregrounds something first:
+// the Wear tile opens a relay activity, the Garmin complication launches the
+// app, and the Pebble watchapp has to be opened by Quick Launch, by a worker
+// that cannot vibrate on its own, or by a scheduled wakeup. A Pebble WATCHFACE
+// can vibrate, and it is already on screen, so the gesture count drops to zero.
+//
+// For CHIMES specifically the watchapp is the better answer: wakeup_schedule()
+// arrives whatever face the wearer is on, whereas this face only runs while it
+// is the foreground app -- open any app, or the launcher, and it is unloaded.
 //
 // What that buys, and what it costs:
 //
 //   + Tap the watch and feel the time. No launch, no latency, nothing to exit.
-//   + Chimes. A watchapp can never do this -- Pebble has no background vibration
-//     API -- so passive time awareness only exists here.
+//   + Chimes, with nothing scheduled at all. (The watchapp chimes too, and its
+//     version survives the wearer being in another app.)
 //   + No background worker, so no worker slot taken from another app and no
 //     second process resident all day.
 //   - It has to be your watchface. That is the whole price.
