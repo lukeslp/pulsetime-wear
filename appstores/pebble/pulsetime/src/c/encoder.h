@@ -80,6 +80,24 @@ size_t pt_encode_scoped(PtSystem system, PtSpeed speed, bool exact_minutes,
                         int hour, int minute, PtScope scope,
                         PtSegment *out, size_t cap);
 
+// The relative strength of a pulse, as a MIDI note.
+//
+// Pebble's motor has no amplitude control, so the encoder's `layer` -- the third
+// dimension several systems use to separate hours from five-minute steps from
+// leftover minutes -- is simply lost on the vibration channel. On the watches
+// with a speaker it comes back as PITCH, which is if anything easier to read
+// than strength ever was. The four layers map to a spread C major triad, so the
+// systems that interleave them stay consonant in any order:
+//
+//   100 -> C5 (72)   72 -> G4 (67)   50 -> E4 (64)   45 -> C4 (60)
+//
+// Silence (layer 0) maps to 0, which SpeakerNote treats as a rest.
+uint8_t pt_layer_midi_note(uint8_t layer);
+
+// The cue's own pitch, above every layer so a confirmation cue is as distinct by
+// ear as it is by touch.
+#define PT_CUE_MIDI_NOTE 76 // E5
+
 // Storage ids match Kotlin TimeScope.storageId ("full" / "hours" / "minutes").
 const char *pt_scope_storage_id(PtScope scope);
 const char *pt_scope_label(PtScope scope);

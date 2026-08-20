@@ -75,6 +75,39 @@ double-length pulse.
 Once the app is open, **any button press drops back to the whole time**, so a
 scoped launch always has a way to the full answer without leaving.
 
+### Sound: the dimension the motor cannot carry
+
+`PBL_SPEAKER` is defined for **emery (Pebble Time 2)** and **flint (Pebble 2
+Duo)** only — *not* gabbro, despite it being new hardware. Verify with
+`nm build/<platform>/pebble-app.elf | grep -i speaker` after a build: the
+speaker path links on emery and flint and nowhere else, so the `#ifdef` is doing
+real work rather than compiling the feature out everywhere unnoticed.
+
+The point is not that a clock can beep. Four of the six systems separate their
+fields by **relative strength** (`layer` 100 / 72 / 50 / 45) and a Pebble motor
+has **no amplitude control at all**, so that whole dimension is lost on the
+vibration channel. `pt_layer_midi_note()` gives it back as **pitch**:
+
+| Layer | Note | Used for |
+|---|---|---|
+| 100 | C5 (72) | hours, binary ones, Morse dashes |
+| 72 | G4 (67) | five-minute steps, minute tens |
+| 50 | E4 (64) | Morse dots |
+| 45 | C4 (60) | leftover minutes, binary zeros |
+
+A spread C major triad, so systems that interleave layers stay consonant in any
+order. The confirmation cue sits above all of them at E5 (76), staying as
+distinct by ear as it is by touch.
+
+Notes are built from the **segments**, not from the vibe durations, because
+`pt_to_vibe` merges silences and discards the layer — precisely the information
+the speaker exists to carry. `SPEAKER_MAX_NOTES` is 256 and the worst case here
+is 140.
+
+`SOUND` is off / with vibration / instead of vibration, `VOLUME` is 30/65/100 %.
+Off by default — a watch that starts making noise by itself in a meeting is a
+worse product than a quiet one — and `speaker_is_muted()` is always obeyed.
+
 ### Confirmation cues — operable without the screen
 
 The app is for people who cannot see the screen, so no setting may be confirmed
@@ -105,9 +138,10 @@ test covers it and the watchface variant can reuse it.
   (or "Playing h:mm" while the pattern runs), and two hint lines. Works in
   1-bit on diorite/flint, centres inside the chalk circle, and scales up on
   emery/gabbro (`big` = unobstructed height >= 200).
-- Settings (`persist_*` keys 1–6): time system, playback speed, exact minutes,
-  flick to tell time, and what each Quick Launch button plays. Defaults: Terse
-  Quarter, Standard, off, off, whole time, whole time.
+- Settings (`persist_*` keys 1–8): time system, playback speed, exact minutes,
+  flick to tell time, what each Quick Launch button plays, sound mode, and
+  volume. Defaults: Terse Quarter, Standard, off, off, whole time, whole time,
+  sound off, medium.
 
 Pebble motors have **no amplitude control**, so the encoder's relative
 `layer` (100/72/50/45) is carried for the host test but ignored on the watch.

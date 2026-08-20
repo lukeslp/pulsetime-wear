@@ -391,3 +391,11 @@ size_t pt_cue_durations(PtCueKind kind, int count, uint32_t *durations, size_t c
   }
   return slot;
 }
+
+uint8_t pt_layer_midi_note(uint8_t layer) {
+  if (layer == 0) return 0; // rest
+  if (layer >= LAYER_FULL) return 72; // C5
+  if (layer >= LAYER_MID) return 67;  // G4
+  if (layer >= LAYER_HALF) return 64; // E4
+  return 60;                          // C4
+}

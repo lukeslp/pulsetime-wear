@@ -67,6 +67,23 @@ static int check_cue_shape(void) {
     }
   }
 
+  // Pitch must separate the layers the motor cannot: four distinct notes, and
+  // each stronger layer strictly higher than the one below it.
+  const uint8_t layers[] = { 100, 72, 50, 45 };
+  uint8_t last = 255;
+  for (size_t i = 0; i < sizeof layers / sizeof layers[0]; i++) {
+    uint8_t note = pt_layer_midi_note(layers[i]);
+    if (note == 0 || note >= last) {
+      printf("CUE-INVALID layer %u -> note %u is not below %u\n", layers[i], note, last);
+      bad++;
+    }
+    last = note;
+  }
+  if (pt_layer_midi_note(0) != 0) { printf("CUE-INVALID silence is not a rest\n"); bad++; }
+  if (PT_CUE_MIDI_NOTE <= pt_layer_midi_note(100)) {
+    printf("CUE-INVALID cue pitch does not sit above every layer\n"); bad++;
+  }
+
   // A count of one must not read the same either way round.
   if (PT_CUE_LONG_MS < PT_CUE_SHORT_MS * 3) {
     printf("CUE-INVALID long pulse %d is not clearly longer than short %d\n",

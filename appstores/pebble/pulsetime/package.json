@@ -33,6 +33,8 @@
       "FLICK_LAUNCH",
       "QL_UP",
       "QL_DOWN",
+      "SOUND",
+      "VOLUME",
       "REQUEST"
     ],
     "resources": {

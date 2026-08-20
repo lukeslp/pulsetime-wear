@@ -33,6 +33,8 @@
 #define PERSIST_FLICK 4
 #define PERSIST_QL_UP 5
 #define PERSIST_QL_DOWN 6
+#define PERSIST_SOUND 7
+#define PERSIST_VOLUME 8
 
 // Message type shared with worker_src/c/worker.c — keep the two in sync.
 #define PT_WORKER_MSG_SUPPRESS 1
@@ -66,6 +68,40 @@ static PtScope s_ql_down = PT_SCOPE_FULL;
 // The scope this particular launch asked for; button presses afterwards always
 // play the whole time, so there is always a way back to it.
 static PtScope s_launch_scope = PT_SCOPE_FULL;
+
+// Sound. The Pebble Time 2 and Pebble 2 Duo have a speaker (PBL_SPEAKER), and
+// for an eyes-free clock a second channel is not a garnish -- for many wearers
+// audio is the primary one. It also restores what the motor cannot express:
+// the encoder's relative `layer` becomes pitch (see pt_layer_midi_note).
+//
+// Default off. A watch that starts making noise on its own in a meeting is a
+// worse product than a quiet one, so this is opt-in, and the watch's own mute
+// switch is always obeyed.
+typedef enum {
+  PT_SOUND_OFF = 0,
+  PT_SOUND_WITH,  // sound and vibration together
+  PT_SOUND_ONLY,  // sound instead of vibration
+  PT_SOUND_COUNT,
+} PtSound;
+
+static PtSound s_sound = PT_SOUND_OFF;
+static uint8_t s_volume_choice = 1; // 0 low, 1 medium, 2 high
+
+static const char *sound_id_of(int i) {
+  switch (i) {
+    case PT_SOUND_WITH: return "with";
+    case PT_SOUND_ONLY: return "only";
+    default: return "off";
+  }
+}
+
+static uint8_t volume_percent(void) {
+  switch (s_volume_choice) {
+    case 0: return 30;
+    case 2: return 100;
+    default: return 65;
+  }
+}
 
 // What we can honestly say about the one worker slot on this watch.
 typedef enum {
@@ -110,6 +146,14 @@ static void load_settings(void) {
     int32_t v = persist_read_int(PERSIST_QL_DOWN);
     if (v >= 0 && v <= PT_SCOPE_MINUTES) s_ql_down = (PtScope)v;
   }
+  if (persist_exists(PERSIST_SOUND)) {
+    int32_t v = persist_read_int(PERSIST_SOUND);
+    if (v >= 0 && v < PT_SOUND_COUNT) s_sound = (PtSound)v;
+  }
+  if (persist_exists(PERSIST_VOLUME)) {
+    int32_t v = persist_read_int(PERSIST_VOLUME);
+    if (v >= 0 && v <= 2) s_volume_choice = (uint8_t)v;
+  }
 }
 
 static void save_settings(void) {
@@ -119,6 +163,8 @@ static void save_settings(void) {
   persist_write_bool(PERSIST_FLICK, s_flick);
   persist_write_int(PERSIST_QL_UP, (int32_t)s_ql_up);
   persist_write_int(PERSIST_QL_DOWN, (int32_t)s_ql_down);
+  persist_write_int(PERSIST_SOUND, (int32_t)s_sound);
+  persist_write_int(PERSIST_VOLUME, (int32_t)s_volume_choice);
 }
 
 // Tell the phone what the watch currently uses so the Clay page stays in step
@@ -132,6 +178,8 @@ static void send_settings_to_phone(void) {
   dict_write_uint8(iter, MESSAGE_KEY_FLICK_LAUNCH, s_flick ? 1 : 0);
   dict_write_cstring(iter, MESSAGE_KEY_QL_UP, pt_scope_storage_id(s_ql_up));
   dict_write_cstring(iter, MESSAGE_KEY_QL_DOWN, pt_scope_storage_id(s_ql_down));
+  dict_write_cstring(iter, MESSAGE_KEY_SOUND, sound_id_of((int)s_sound));
+  dict_write_uint8(iter, MESSAGE_KEY_VOLUME, s_volume_choice);
   app_message_outbox_send();
 }
 
@@ -240,6 +288,51 @@ static void playback_done(void *data) {
   if (s_canvas) layer_mark_dirty(s_canvas);
 }
 
+#ifdef PBL_SPEAKER
+// The same rhythm, on the speaker. Notes are built from the SEGMENTS rather than
+// from the vibe durations, because pt_to_vibe merges silences and throws away
+// the layer -- and the layer is exactly what the speaker can express and the
+// motor cannot.
+static SpeakerNote s_notes[PT_MAX_SEGMENTS * 2 + 16];
+
+static size_t build_notes(PtCueKind cue_kind, int cue_count, const PtSegment *segs, size_t n) {
+  size_t k = 0;
+  const uint32_t cue_on = (cue_kind == PT_CUE_SPEED) ? PT_CUE_LONG_MS : PT_CUE_SHORT_MS;
+  if (cue_kind != PT_CUE_NONE) {
+    for (int i = 0; i < cue_count && k + 2 < ARRAY_LENGTH(s_notes); i++) {
+      const uint32_t gap = (i == cue_count - 1) ? PT_CUE_LEAD_MS : PT_CUE_GAP_MS;
+      s_notes[k++] = (SpeakerNote){ .midi_note = PT_CUE_MIDI_NOTE, .waveform = SpeakerWaveformSine,
+                                    .duration_ms = (uint16_t)cue_on, .velocity = 0, .reserved = 0 };
+      s_notes[k++] = (SpeakerNote){ .midi_note = 0, .waveform = SpeakerWaveformSine,
+                                    .duration_ms = (uint16_t)gap, .velocity = 0, .reserved = 0 };
+    }
+  }
+  for (size_t i = 0; i < n && k + 2 <= ARRAY_LENGTH(s_notes) && k + 2 <= SPEAKER_MAX_NOTES; i++) {
+    if (segs[i].on_ms > 0) {
+      s_notes[k++] = (SpeakerNote){ .midi_note = pt_layer_midi_note(segs[i].layer),
+                                    .waveform = SpeakerWaveformSine,
+                                    .duration_ms = segs[i].on_ms, .velocity = 0, .reserved = 0 };
+    }
+    if (segs[i].off_ms > 0) {
+      s_notes[k++] = (SpeakerNote){ .midi_note = 0, .waveform = SpeakerWaveformSine,
+                                    .duration_ms = segs[i].off_ms, .velocity = 0, .reserved = 0 };
+    }
+  }
+  return k;
+}
+#endif
+
+// True when this play should make a sound: the wearer asked for it, the watch
+// has a speaker, and the watch is not muted. Muting is the wearer's decision and
+// is never second-guessed.
+static bool wants_sound(void) {
+#ifdef PBL_SPEAKER
+  return s_sound != PT_SOUND_OFF && !speaker_is_muted();
+#else
+  return false;
+#endif
+}
+
 // Play the current local time, optionally preceded by a confirmation cue.
 // Cue and time go into ONE vibe pattern on purpose: vibes_enqueue_custom_pattern
 // is a no-op while a pattern is playing, so two calls would drop the second.
@@ -263,16 +356,30 @@ static void play_time_scoped(PtCueKind cue_kind, int cue_count, PtScope scope) {
     if (s_durations[i] > 10000) s_durations[i] = 10000; // API maximum per segment
   }
 
-  vibes_cancel(); // an enqueue while a pattern plays would be a no-op
-  VibePattern pattern = { .durations = s_durations, .num_segments = (uint32_t)total_slots };
-  vibes_enqueue_custom_pattern(pattern);
+  const bool sound = wants_sound();
+  const bool vibrate = !(sound && s_sound == PT_SOUND_ONLY);
+
+  if (vibrate) {
+    vibes_cancel(); // an enqueue while a pattern plays would be a no-op
+    VibePattern pattern = { .durations = s_durations, .num_segments = (uint32_t)total_slots };
+    vibes_enqueue_custom_pattern(pattern);
+  }
+#ifdef PBL_SPEAKER
+  if (sound) {
+    speaker_stop(); // same rule as vibes: a second call mid-playback would be lost
+    size_t note_count = build_notes(cue_kind, cue_count, s_segments, n);
+    if (note_count > 0) speaker_play_notes(s_notes, (uint32_t)note_count, volume_percent());
+  }
+#endif
 
   s_playing = true;
   s_played_hour = hour;
   s_played_minute = minute;
   if (s_done_timer) app_timer_cancel(s_done_timer);
   const uint32_t total_ms = cue_ms + pt_duration_ms(s_segments, n);
-  quiet_worker(total_ms + PT_WORKER_QUIET_MARGIN_MS);
+  // Only a vibration can shake the watch into a false gesture; a silent-motor
+  // play needs no quiet window.
+  if (vibrate) quiet_worker(total_ms + PT_WORKER_QUIET_MARGIN_MS);
   s_done_timer = app_timer_register(total_ms + 150, playback_done, NULL);
   APP_LOG(APP_LOG_LEVEL_INFO, "PulseTime: %s %s %s exact=%d %d:%02d -> %u seg, %u slots (cue %d x%d)",
           pt_system_storage_id(s_system), pt_speed_storage_id(s_speed), pt_scope_storage_id(scope),
@@ -523,6 +630,7 @@ static const char *scope_id_of(int i) { return pt_scope_storage_id((PtScope)i); 
 static void inbox_received(DictionaryIterator *iter, void *context) {
   bool changed = false;
   int v;
+  int32_t vol;
   bool f;
   if (read_choice(dict_find(iter, MESSAGE_KEY_SYSTEM), system_id_of, PT_SYSTEM_COUNT, &v) && v != (int)s_system) {
     s_system = (PtSystem)v; changed = true;
@@ -538,6 +646,14 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     s_exact = f; changed = true;
   }
   bool scopes_changed = false;
+  if (read_choice(dict_find(iter, MESSAGE_KEY_SOUND), sound_id_of, PT_SOUND_COUNT, &v) &&
+      v != (int)s_sound) {
+    s_sound = (PtSound)v; changed = true;
+  }
+  if (read_int(dict_find(iter, MESSAGE_KEY_VOLUME), &vol) && vol >= 0 && vol <= 2 &&
+      (uint8_t)vol != s_volume_choice) {
+    s_volume_choice = (uint8_t)vol; changed = true;
+  }
   if (read_choice(dict_find(iter, MESSAGE_KEY_QL_UP), scope_id_of, PT_SCOPE_MINUTES + 1, &v) &&
       v != (int)s_ql_up) {
     s_ql_up = (PtScope)v; scopes_changed = true;
@@ -614,6 +730,9 @@ static void init(void) {
 }
 
 static void deinit(void) {
+#ifdef PBL_SPEAKER
+  speaker_stop(); // never leave a note ringing after the app is gone
+#endif
   if (s_worker_check_timer) app_timer_cancel(s_worker_check_timer);
   if (s_done_timer) app_timer_cancel(s_done_timer);
   accel_tap_service_unsubscribe();

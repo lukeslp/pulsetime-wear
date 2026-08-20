@@ -94,6 +94,45 @@
     "items": [
       {
         "type": "heading",
+        "defaultValue": "Sound"
+      },
+      {
+        "type": "text",
+        "defaultValue": "The Pebble Time 2 and Pebble 2 Duo have a speaker, and PulseTime can play the same rhythm as notes. This is not decoration: several time systems separate hours from five-minute steps from leftover minutes by STRENGTH, and a Pebble motor has no strength control at all, so that dimension is simply lost when you feel it. On the speaker it comes back as pitch \u2014 stronger means higher \u2014 which is often easier to read than strength ever was. Sound is off by default, and the watch's own mute setting is always obeyed."
+      },
+      {
+        "type": "select",
+        "messageKey": "SOUND",
+        "label": "Play sound",
+        "defaultValue": "off",
+        "options": [
+          { "label": "Off", "value": "off" },
+          { "label": "Sound and vibration", "value": "with" },
+          { "label": "Sound instead of vibration", "value": "only" }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "VOLUME",
+        "label": "Volume",
+        "defaultValue": "1",
+        "options": [
+          { "label": "Low", "value": "0" },
+          { "label": "Medium", "value": "1" },
+          { "label": "High", "value": "2" }
+        ]
+      },
+      {
+        "type": "text",
+        "defaultValue": "Needs a watch with a speaker: Pebble Time 2 or Pebble 2 Duo. On every other Pebble, including Pebble Round 2, these settings do nothing."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
         "defaultValue": "Flick to tell time"
       },
       {
