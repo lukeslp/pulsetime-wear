@@ -139,3 +139,8 @@ Emulator evidence, all on the emery (Pebble Time 2) profile unless noted:
   against the watchapp + worker for comparison.
 - [ ] **Wrist:** is an hourly chime welcome or irritating in practice, and are
   the default quiet hours (22:00–07:00) the right ones?
+- [x] **The face only runs while it is the foreground app.** Being the selected
+  face is not enough. With PulseTime Face selected but the launcher open,
+  crossing 15:00 fired no chime; the same crossing with the face on screen fired
+  at 14:00. It resumes by itself on the way back. Chimes that survive this need
+  `wakeup_schedule()` in the watchapp (W9) - see `docs/invocation-paths.md`.
