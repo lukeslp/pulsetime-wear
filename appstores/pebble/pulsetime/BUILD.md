@@ -26,9 +26,49 @@ binary included on every platform), runs in the `basalt`, `diorite`, and
 - **Select** repeats with a fresh time (`vibes_cancel()` first).
 - **Up / Down** cycle the six time systems; the choice is persisted, redrawn,
   and played straight away. **Back** exits.
-- **Hold Up / Down** cycles the playback speed, and **hold Select** toggles
-  exact minutes (on the systems that have it; the rest repeat the time instead
-  of doing nothing silently). Every setting is now reachable without the phone.
+- **Hold Up / Down** cycles the playback speed. **Hold Select** opens Practice.
+  Every setting is reachable without the phone, and without a gesture anyone has
+  to be told about.
+
+**BACK is left entirely alone.** A long press on it is swallowed by the system's
+own back-out before any handler runs — verified on the emery emulator, where the
+app simply exits — and subscribing to BACK at all risks a screen the wearer
+cannot leave. That is why Practice sits on hold-Select.
+
+### The system cycle has seven rungs, not six
+
+Terse Quarter appears twice, with and without exact minutes, because it
+genuinely feels like two different systems and a hidden toggle is a setting
+nobody finds:
+
+| Rung | System | Cue |
+|---|---|---|
+| 1 | Terse Quarter | 1 short pulse |
+| 2 | Terse Quarter + exact minutes | 2 |
+| 3 | Five-Minute Ladder | 3 |
+| 4 | Decimal Place Rhythm | 4 |
+| 5 | Binary Clock | 5 |
+| 6 | Nearest-Quarter Offset | 6 |
+| 7 | Morse Digits | 7 |
+
+`s_system` and `s_exact` stay separate settings — only the *cycle* treats them
+as one sequence, and the phone's Clay page still sets either independently.
+
+### Practice
+
+`Hold Select`. A haptic clock is only useful once its patterns are legible, and
+"now" is the worst possible teacher: you cannot choose it and it moves. Practice
+plays a **chosen** time from a 22-rung ladder ordered easiest to hardest, so the
+wearer knows the answer before the pattern starts and can attend to its shape.
+
+This works **without sight**, which matters because the app is for people who
+cannot read the screen: you know the answer because you stepped to it. One press
+up is one rung up.
+
+The ladder walks bare hours → the quarters → minutes inside a quarter → then the
+boundaries that catch every system out: the 12/0 wrap at midnight and noon, and
+11:59 → 12:00 → 12:01, where Nearest-Quarter has to roll its landmark into the
+next hour. Up/Down step, Select replays, Back returns to the clock.
 
 ### Two Quick Launch buttons, two questions
 

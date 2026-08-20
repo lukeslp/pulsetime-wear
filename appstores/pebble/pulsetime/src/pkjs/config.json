@@ -5,7 +5,7 @@
   },
   {
     "type": "text",
-    "defaultValue": "Feel the time as a vibration pattern. Bind PulseTime to Quick Launch (hold Up or Down) for a one-gesture time check. Everything here can also be set on the watch without looking at it: Select repeats, Up/Down cycle the time system, holding Up/Down cycles the speed, and holding Select toggles exact minutes. Each change answers with a short count of pulses before the time \u2014 short pulses count the time system, long pulses count the speed."
+    "defaultValue": "Feel the time as a vibration pattern. Bind PulseTime to Quick Launch (hold Up or Down) for a one-gesture time check. Everything here can also be set on the watch without looking at it: Select repeats, Up/Down step through the seven rungs of the system cycle, holding Up/Down cycles the speed, and holding Select opens Practice. Each change answers with a short count of pulses before the time \u2014 short pulses count the rung, long pulses count the speed."
   },
   {
     "type": "section",
@@ -46,7 +46,7 @@
         "messageKey": "EXACT_MINUTES",
         "label": "Exact minutes (Terse Quarter only)",
         "defaultValue": false,
-        "description": "Adds short ticks for the leftover minutes inside the quarter. Only Terse Quarter needs this; the other five systems are inherently exact to the minute."
+        "description": "Adds short ticks for the leftover minutes inside the quarter. Only Terse Quarter needs this; the other five systems are inherently exact to the minute. On the watch this is rung 2 of the Up/Down cycle rather than a separate control."
       }
     ]
   },

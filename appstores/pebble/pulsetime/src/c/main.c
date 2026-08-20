@@ -4,9 +4,10 @@
 // Launch (bind to Quick Launch for a one-gesture "tell time"): the app encodes
 // the local time with the saved time system / speed / exact-minutes settings
 // and vibrates at once. Select repeats with a fresh time; Up/Down cycle the six
-// time systems and a HOLD on Up/Down cycles the playback speed; holding Select
-// toggles exact minutes where the system has them. A wrist flick repeats; Back
-// exits. Settings also arrive from the phone's Clay config page over
+// steps through the seven rungs of the system cycle (the six systems, with terse
+// quarter appearing twice, with and without exact minutes). A HOLD on Up/Down
+// cycles the playback speed and a HOLD on Select opens practice. A wrist flick
+// repeats; Back exits. Settings also arrive from the phone's Clay config page over
 // AppMessage and are applied immediately.
 //
 // Every setting change answers with a haptic confirmation cue before the time
@@ -336,11 +337,9 @@ static bool wants_sound(void) {
 // Play the current local time, optionally preceded by a confirmation cue.
 // Cue and time go into ONE vibe pattern on purpose: vibes_enqueue_custom_pattern
 // is a no-op while a pattern is playing, so two calls would drop the second.
-static void play_time_scoped(PtCueKind cue_kind, int cue_count, PtScope scope) {
-  time_t now = time(NULL);
-  struct tm *tm = localtime(&now);
-  int hour = tm->tm_hour, minute = tm->tm_min;
-
+// Play a specific time. play_time_scoped() supplies "now"; practice mode
+// supplies a chosen one.
+static void play_at(int hour, int minute, PtCueKind cue_kind, int cue_count, PtScope scope) {
   size_t n = pt_encode_scoped(s_system, s_speed, s_exact, hour, minute, scope,
                               s_segments, PT_MAX_SEGMENTS);
   uint32_t cue_ms = 0;
@@ -387,6 +386,12 @@ static void play_time_scoped(PtCueKind cue_kind, int cue_count, PtScope scope) {
   if (s_canvas) layer_mark_dirty(s_canvas);
 }
 
+static void play_time_scoped(PtCueKind cue_kind, int cue_count, PtScope scope) {
+  time_t now = time(NULL);
+  struct tm *tm = localtime(&now);
+  play_at(tm->tm_hour, tm->tm_min, cue_kind, cue_count, scope);
+}
+
 static void play_time_cued(PtCueKind cue_kind, int cue_count) {
   play_time_scoped(cue_kind, cue_count, PT_SCOPE_FULL);
 }
@@ -405,13 +410,44 @@ static PtScope launch_scope(void) {
   }
 }
 
+// The Up/Down cycle, as the wearer experiences it. Terse Quarter with exact
+// minutes is its own rung rather than a hidden toggle: it genuinely feels like a
+// different system, and putting it here means every choice the app offers is
+// reachable by pressing one button repeatedly -- no gesture to discover, and one
+// fewer thing that can only be set from the phone.
+typedef struct {
+  PtSystem system;
+  bool exact;
+} CycleStep;
+
+static const CycleStep CYCLE[] = {
+  { PT_SYSTEM_TERSE_QUARTER, false },
+  { PT_SYSTEM_TERSE_QUARTER, true },
+  { PT_SYSTEM_FIVE_MINUTE_LADDER, false },
+  { PT_SYSTEM_DECIMAL_PLACE, false },
+  { PT_SYSTEM_BINARY_CLOCK, false },
+  { PT_SYSTEM_NEAREST_QUARTER, false },
+  { PT_SYSTEM_MORSE_DIGITS, false },
+};
+#define CYCLE_COUNT ((int)(sizeof CYCLE / sizeof CYCLE[0]))
+
+static int current_cycle_index(void) {
+  for (int i = 0; i < CYCLE_COUNT; i++) {
+    if (CYCLE[i].system == s_system && CYCLE[i].exact == (s_exact && !pt_system_inherently_exact(s_system))) {
+      return i;
+    }
+  }
+  return 0;
+}
+
 static void cycle_system(int delta) {
-  int next = ((int)s_system + delta + PT_SYSTEM_COUNT) % PT_SYSTEM_COUNT;
-  s_system = (PtSystem)next;
+  int next = (current_cycle_index() + delta + CYCLE_COUNT) % CYCLE_COUNT;
+  s_system = CYCLE[next].system;
+  s_exact = CYCLE[next].exact;
   save_settings();
   send_settings_to_phone();
   if (s_canvas) layer_mark_dirty(s_canvas);
-  // N short pulses = "you are on system N", then the time in that system.
+  // N short pulses = "you are on rung N", then the time as that rung plays it.
   play_time_cued(PT_CUE_SYSTEM, next + 1);
 }
 
@@ -425,19 +461,143 @@ static void cycle_speed(int delta) {
   play_time_cued(PT_CUE_SPEED, next + 1);
 }
 
-// Exact minutes only exists for Terse Quarter; the other five systems are
-// already exact to the minute. No cue is needed here because the toggle
-// changes the time pattern itself — the extra minute ticks ARE the feedback.
-static void toggle_exact(void) {
-  if (pt_system_inherently_exact(s_system)) {
-    play_time(); // nothing to toggle; just repeat so the press is never silent
-    return;
+// ---- practice ----------------------------------------------------------------
+//
+// A haptic clock is only useful once its patterns are legible, and "now" is the
+// worst possible teacher: you cannot choose it, and it moves. Practice plays a
+// CHOSEN time from a ladder ordered easiest to hardest, so the wearer always
+// knows the answer before the pattern starts and can attend to the shape of it.
+//
+// This works without sight, which matters because the app is for people who
+// cannot read the screen: you know the answer because you stepped to it. One
+// press up is one rung up, and the pattern you feel is what that rung sounds
+// like in your chosen system.
+//
+// The ladder walks: bare hours, then the quarters, then minutes inside a
+// quarter, then the boundaries that catch every system out -- the 12/0 wrap at
+// midnight and noon, and 11:59 -> 12:00 -> 12:01, where nearest-quarter has to
+// roll its landmark into the next hour.
+typedef struct {
+  uint8_t hour;
+  uint8_t minute;
+} PracticeStep;
+
+static const PracticeStep PRACTICE_LADDER[] = {
+  { 1, 0 }, { 2, 0 }, { 3, 0 }, { 6, 0 }, { 9, 0 }, { 12, 0 }, // hours alone
+  { 3, 15 }, { 3, 30 }, { 3, 45 },                             // the quarters
+  { 3, 5 }, { 3, 20 }, { 3, 38 }, { 3, 47 },                   // minutes within
+  { 0, 0 }, { 12, 0 }, { 0, 30 },                              // midnight / noon wrap
+  { 11, 59 }, { 12, 0 }, { 12, 1 },                            // landmark roll-over
+  { 23, 58 }, { 10, 49 }, { 16, 52 },                          // awkward on purpose
+};
+#define PRACTICE_COUNT ((int)(sizeof PRACTICE_LADDER / sizeof PRACTICE_LADDER[0]))
+
+static Window *s_practice_window;
+static Layer *s_practice_canvas;
+static int s_practice_index = 0;
+
+static void practice_play(void) {
+  const PracticeStep step = PRACTICE_LADDER[s_practice_index];
+  if (s_practice_canvas) layer_mark_dirty(s_practice_canvas);
+  play_at(step.hour, step.minute, PT_CUE_NONE, 0, PT_SCOPE_FULL);
+}
+
+static void practice_step(int delta) {
+  s_practice_index = (s_practice_index + delta + PRACTICE_COUNT) % PRACTICE_COUNT;
+  practice_play();
+}
+
+static void practice_draw(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_unobstructed_bounds(layer);
+  const int w = bounds.size.w, h = bounds.size.h;
+  const bool big = h >= 200;
+  const bool round = PBL_IF_ROUND_ELSE(true, false);
+  const int inset = round ? 14 : 0;
+  const GColor accent = PBL_IF_COLOR_ELSE(GColorCyan, GColorWhite);
+  const GColor muted = PBL_IF_COLOR_ELSE(GColorLightGray, GColorWhite);
+
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+
+  const PracticeStep step = PRACTICE_LADDER[s_practice_index];
+  int display_hour = step.hour;
+  char time_text[8];
+  if (!clock_is_24h_style()) {
+    display_hour %= 12;
+    if (display_hour == 0) display_hour = 12;
+    snprintf(time_text, sizeof time_text, "%d:%02d", display_hour, step.minute);
+  } else {
+    snprintf(time_text, sizeof time_text, "%02d:%02d", display_hour, step.minute);
   }
-  s_exact = !s_exact;
-  save_settings();
-  send_settings_to_phone();
-  if (s_canvas) layer_mark_dirty(s_canvas);
-  play_time();
+
+  int y = round ? (big ? 34 : 18) : (big ? 22 : 10);
+  graphics_context_set_text_color(ctx, GColorWhite);
+  graphics_draw_text(ctx, time_text,
+                     fonts_get_system_font(big ? FONT_KEY_LECO_42_NUMBERS : FONT_KEY_LECO_36_BOLD_NUMBERS),
+                     GRect(0, y, w, (big ? 42 : 36) + 10),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+  y += (big ? 42 : 36) + (big ? 16 : 6);
+
+  graphics_context_set_text_color(ctx, accent);
+  graphics_draw_text(ctx, "Practice",
+                     fonts_get_system_font(big ? FONT_KEY_GOTHIC_28_BOLD : FONT_KEY_GOTHIC_24_BOLD),
+                     GRect(inset, y, w - 2 * inset, big ? 32 : 28),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+  y += big ? 32 : 28;
+
+  GFont sub_font = fonts_get_system_font(big ? FONT_KEY_GOTHIC_18 : FONT_KEY_GOTHIC_14);
+  char sub[40];
+  snprintf(sub, sizeof sub, "%d of %d \u00b7 %s", s_practice_index + 1, PRACTICE_COUNT,
+           pt_system_short_label(s_system));
+  graphics_context_set_text_color(ctx, muted);
+  graphics_draw_text(ctx, sub, sub_font, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+
+  const int hint_h = big ? 22 : 16;
+  const int hint_y = h - (round ? 2 * hint_h + 22 : 2 * hint_h + 4);
+  graphics_draw_text(ctx, "Sel replay \u00b7 Up/Dn step", sub_font,
+                     GRect(inset, hint_y, w - 2 * inset, hint_h),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+  graphics_draw_text(ctx, "Back: the clock", sub_font,
+                     GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+}
+
+static void practice_select(ClickRecognizerRef r, void *c) { practice_play(); }
+static void practice_up(ClickRecognizerRef r, void *c) { practice_step(-1); }
+static void practice_down(ClickRecognizerRef r, void *c) { practice_step(+1); }
+
+static void practice_click_config(void *context) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, practice_select);
+  window_single_click_subscribe(BUTTON_ID_UP, practice_up);
+  window_single_click_subscribe(BUTTON_ID_DOWN, practice_down);
+  // BACK keeps its default: pop back to the clock.
+}
+
+static void practice_load(Window *window) {
+  Layer *root = window_get_root_layer(window);
+  s_practice_canvas = layer_create(layer_get_bounds(root));
+  layer_set_update_proc(s_practice_canvas, practice_draw);
+  layer_add_child(root, s_practice_canvas);
+}
+
+static void practice_unload(Window *window) {
+  layer_destroy(s_practice_canvas);
+  s_practice_canvas = NULL;
+}
+
+static void open_practice(void) {
+  if (!s_practice_window) {
+    s_practice_window = window_create();
+    window_set_background_color(s_practice_window, GColorBlack);
+    window_set_click_config_provider(s_practice_window, practice_click_config);
+    window_set_window_handlers(s_practice_window, (WindowHandlers){
+      .load = practice_load,
+      .unload = practice_unload,
+    });
+  }
+  window_stack_push(s_practice_window, true);
+  practice_play();
 }
 
 // ---- drawing ------------------------------------------------------------------
@@ -524,7 +684,7 @@ static void draw(Layer *layer, GContext *ctx) {
     // and an ellipsised hint teaches nothing.
     graphics_draw_text(ctx, "Sel play \u00b7 Up/Dn sys", hint_font, GRect(inset, hint_y, w - 2 * inset, hint_h),
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-    graphics_draw_text(ctx, "Hold: speed, exact", hint_font, GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
+    graphics_draw_text(ctx, "Hold: speed, practice", hint_font, GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
   }
 }
@@ -541,7 +701,7 @@ static void up_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit
 static void down_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(+1); }
 static void up_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_speed(-1); }
 static void down_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_speed(+1); }
-static void select_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; toggle_exact(); }
+static void select_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; open_practice(); }
 
 static void click_config(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click);
@@ -552,7 +712,10 @@ static void click_config(void *context) {
   window_long_click_subscribe(BUTTON_ID_UP, 0, up_long, NULL);
   window_long_click_subscribe(BUTTON_ID_DOWN, 0, down_long, NULL);
   window_long_click_subscribe(BUTTON_ID_SELECT, 0, select_long, NULL);
-  // BACK keeps its default: pop the window and exit.
+  // BACK is left entirely alone. A long press on it is swallowed by the system's
+  // own back-out before any handler runs (verified on the emery emulator: the
+  // app simply exits), and subscribing to BACK at all risks a screen the wearer
+  // cannot leave. Practice lives on hold-Select instead.
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
@@ -738,6 +901,7 @@ static void deinit(void) {
   accel_tap_service_unsubscribe();
   tick_timer_service_unsubscribe();
   window_destroy(s_window);
+  if (s_practice_window) window_destroy(s_practice_window);
 }
 
 int main(void) {
