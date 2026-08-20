@@ -29,6 +29,19 @@ data class EncodedPattern(
     val hour12: Int,
     val quarterIndex: Int,
     val minuteRemainder: Int,
+    /**
+     * How many leading segments carry the hour. Equivalently, the index of the
+     * single silence segment that separates the hour field from the minute
+     * field; every one of the six systems has exactly one such boundary.
+     *
+     * It has to be recorded rather than re-derived, because "the first silence
+     * segment" is not the boundary: once the hour count passes five, the hour
+     * field contains group-gap silences of its own.
+     *
+     * -1 means the encoder did not record one, and [scoped] then refuses to
+     * split rather than guessing.
+     */
+    val hourFieldSegments: Int = -1,
 ) {
     /**
      * Flatten to VibrationEffect.createWaveform(timings, amplitudes) slots.
@@ -160,7 +173,7 @@ object TerseQuarterEncoder {
             }
         }
 
-        return EncodedPattern(segments, h, q, rem)
+        return EncodedPattern(segments, h, q, rem, hourFieldSegments = h)
     }
 
     fun encodeNow(

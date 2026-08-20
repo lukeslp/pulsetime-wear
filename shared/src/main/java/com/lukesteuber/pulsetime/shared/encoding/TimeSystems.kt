@@ -14,6 +14,26 @@ enum class PlaybackSpeed(val storageId: String, val label: String, val multiplie
     }
 }
 
+/**
+ * Which half of the time to play. PulseTime can be reached from more than one
+ * gesture (on Pebble, Quick Launch reports which button was held), and a wearer
+ * who only wants "is it half past yet" should not have to sit through the hour.
+ *
+ * A scope is a projection of the full pattern, never a new haptic vocabulary:
+ * [HoursOnly] is exactly the hour phrase the wearer already knows, and
+ * [MinutesOnly] is exactly the minute phrase. Nothing new has to be learned.
+ */
+enum class TimeScope(val storageId: String, val label: String) {
+    Full("full", "Whole time"),
+    HoursOnly("hours", "Hours only"),
+    MinutesOnly("minutes", "Minutes only"),
+    ;
+
+    companion object {
+        fun fromStorage(value: String?): TimeScope = entries.firstOrNull { it.storageId == value } ?: Full
+    }
+}
+
 enum class TimeSystem(
     val storageId: String,
     val title: String,
@@ -87,6 +107,7 @@ object TimeEncoderRegistry {
         hourOfDay: Int,
         minute: Int,
         options: EncodingOptions,
+        scope: TimeScope = TimeScope.Full,
     ): EncodedPattern {
         require(hourOfDay in 0..23)
         require(minute in 0..59)
@@ -104,14 +125,19 @@ object TimeEncoderRegistry {
             TimeSystem.NearestQuarter -> NearestQuarterEncoder.encode(hourOfDay, minute, options)
             TimeSystem.MorseDigits -> MorseDigitsEncoder.encode(hourOfDay, minute, options)
         }
-        return if (system == TimeSystem.TerseQuarter) raw.withSpeed(options.playbackSpeed) else raw
+        val full = if (system == TimeSystem.TerseQuarter) raw.withSpeed(options.playbackSpeed) else raw
+        // Scope last, so the zero marker is built against already-scaled timings
+        // and no pattern is scaled twice.
+        return full.scoped(scope, options.playbackSpeed)
     }
 
     fun encodeNow(
         system: TimeSystem,
         calendar: Calendar = Calendar.getInstance(),
         options: EncodingOptions,
-    ): EncodedPattern = encode(system, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), options)
+        scope: TimeScope = TimeScope.Full,
+    ): EncodedPattern =
+        encode(system, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), options, scope)
 }
 
 private const val FIELD_GAP = 700L
@@ -147,12 +173,62 @@ private fun ArrayList<PulseSegment>.counted(
     }
 }
 
-private fun pattern(hourOfDay: Int, minute: Int, segments: List<PulseSegment>) = EncodedPattern(
+private fun pattern(
+    hourOfDay: Int,
+    minute: Int,
+    segments: List<PulseSegment>,
+    hourFieldSegments: Int = -1,
+) = EncodedPattern(
     segments = segments,
     hour12 = TerseQuarterEncoder.hour12(hourOfDay),
     quarterIndex = minute / 15,
     minuteRemainder = minute % 15,
+    hourFieldSegments = hourFieldSegments,
 )
+
+/**
+ * A field can come out empty — five-minute ladder at :00 has no five-minute
+ * steps, terse quarter before :15 has no quarters. Silence is the worst possible
+ * answer, because it is indistinguishable from a broken app, so an empty field
+ * plays one long pulse meaning "none". That reuses the decimal-place
+ * convention, where the digit zero is already a single double-length pulse.
+ */
+internal const val ZERO_FIELD_ON_MS = 300L
+
+/**
+ * Project the pattern down to one field. Returns the pattern unchanged for
+ * [TimeScope.Full], or when the encoder recorded no boundary.
+ */
+internal fun EncodedPattern.scoped(scope: TimeScope, speed: PlaybackSpeed): EncodedPattern {
+    if (scope == TimeScope.Full) return this
+    val boundary = hourFieldSegments
+    if (boundary < 0 || boundary >= segments.size) return this
+
+    val picked = when (scope) {
+        TimeScope.HoursOnly -> segments.subList(0, boundary)
+        // Skip the boundary gap itself, then any silence the field opens with —
+        // terse quarter's remainder ticks start behind one.
+        TimeScope.MinutesOnly -> segments.subList(boundary + 1, segments.size).dropWhile { it.onMs == 0L }
+        TimeScope.Full -> segments
+    }
+
+    val kept = if (picked.any { it.onMs > 0L }) {
+        // The last segment of a field trails no silence: it is the end now.
+        picked.toMutableList().also { it[it.lastIndex] = it.last().copy(offMs = 0L) }
+    } else {
+        val amp = segments.firstOrNull { it.onMs > 0L }?.amplitude ?: PulseSegment.BASE_AMPLITUDE
+        listOf(PulseSegment(onMs = scaleMs(ZERO_FIELD_ON_MS, speed), offMs = 0L, amplitude = amp))
+    }
+    return copy(segments = kept, hourFieldSegments = if (scope == TimeScope.HoursOnly) kept.size else -1)
+}
+
+/**
+ * The single-precision multiply the whole codebase depends on: Kotlin promotes
+ * `Long * Float` to Float, then truncates. The C and JS ports reproduce exactly
+ * this, so it must not quietly become a double multiply or a rounding one.
+ */
+internal fun scaleMs(ms: Long, speed: PlaybackSpeed): Long =
+    (ms * speed.multiplier).toLong().coerceAtLeast(1L)
 
 private fun EncodedPattern.withSpeed(speed: PlaybackSpeed): EncodedPattern {
     if (speed == PlaybackSpeed.Standard) return this
@@ -168,13 +244,14 @@ object FiveMinuteLadderEncoder : TimeEncoder {
     override fun encode(hourOfDay: Int, minute: Int, options: EncodingOptions): EncodedPattern {
         val segments = arrayListOf<PulseSegment>()
         segments.counted(TerseQuarterEncoder.hour12(hourOfDay), 240, 190, options, 1f, 5)
+        val boundary = segments.size
         segments.add(gap(FIELD_GAP, options))
         segments.counted(minute / 5, 145, 145, options, .72f, 5)
         if (minute % 5 > 0) {
             segments.add(gap(GROUP_GAP, options))
             segments.counted(minute % 5, 75, 110, options, .45f)
         }
-        return pattern(hourOfDay, minute, segments)
+        return pattern(hourOfDay, minute, segments, boundary)
     }
 }
 
@@ -182,11 +259,12 @@ object DecimalPlaceEncoder : TimeEncoder {
     override fun encode(hourOfDay: Int, minute: Int, options: EncodingOptions): EncodedPattern {
         val segments = arrayListOf<PulseSegment>()
         segments.counted(TerseQuarterEncoder.hour12(hourOfDay), 230, 180, options, 1f, 5)
+        val boundary = segments.size
         segments.add(gap(FIELD_GAP, options))
         addDigit(segments, minute / 10, options, 155, .72f)
         segments.add(gap(GROUP_GAP, options))
         addDigit(segments, minute % 10, options, 80, .45f)
-        return pattern(hourOfDay, minute, segments)
+        return pattern(hourOfDay, minute, segments, boundary)
     }
 
     private fun addDigit(out: ArrayList<PulseSegment>, digit: Int, options: EncodingOptions, on: Long, layer: Float) {
@@ -199,9 +277,10 @@ object BinaryClockEncoder : TimeEncoder {
     override fun encode(hourOfDay: Int, minute: Int, options: EncodingOptions): EncodedPattern {
         val segments = arrayListOf<PulseSegment>()
         addBits(segments, TerseQuarterEncoder.hour12(hourOfDay), 4, options)
+        val boundary = segments.size
         segments.add(gap(FIELD_GAP, options))
         addBits(segments, minute, 6, options)
-        return pattern(hourOfDay, minute, segments)
+        return pattern(hourOfDay, minute, segments, boundary)
     }
 
     private fun addBits(out: ArrayList<PulseSegment>, value: Int, width: Int, options: EncodingOptions) {
@@ -226,6 +305,7 @@ object NearestQuarterEncoder : TimeEncoder {
         val offset = absoluteNow - absoluteLandmark
         val segments = arrayListOf<PulseSegment>()
         segments.counted(TerseQuarterEncoder.hour12(landmarkHour), 230, 180, options, 1f, 5)
+        val boundary = segments.size
         segments.add(gap(FIELD_GAP, options))
         val landmarkCount = if (landmark == 0) 1 else landmark / 15 + 1
         segments.counted(landmarkCount, 150, 140, options, .72f)
@@ -241,7 +321,7 @@ object NearestQuarterEncoder : TimeEncoder {
             segments.add(gap(GROUP_GAP, options))
             segments.counted(kotlin.math.abs(offset), 70, 105, options, .45f, 5)
         }
-        return pattern(hourOfDay, minute, segments)
+        return pattern(hourOfDay, minute, segments, boundary)
     }
 }
 
@@ -256,12 +336,13 @@ object MorseDigitsEncoder : TimeEncoder {
             addCode(segments, c.digitToInt(), options)
             if (index < hour.lastIndex) segments.add(gap(GROUP_GAP, options))
         }
+        val boundary = segments.size
         segments.add(gap(FIELD_GAP, options))
         minutes.forEachIndexed { index, c ->
             addCode(segments, c.digitToInt(), options)
             if (index < minutes.lastIndex) segments.add(gap(GROUP_GAP, options))
         }
-        return pattern(hourOfDay, minute, segments)
+        return pattern(hourOfDay, minute, segments, boundary)
     }
 
     private fun addCode(out: ArrayList<PulseSegment>, digit: Int, options: EncodingOptions) {

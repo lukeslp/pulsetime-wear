@@ -6,9 +6,11 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../../../.." && pwd)"
 FIXTURES="$REPO/appstores/shared/fixtures/patterns.json"
+SCOPED="$REPO/appstores/shared/fixtures/patterns-scoped.json"
 BUILD="$HERE/.build"
 mkdir -p "$BUILD"
 node "$HERE/flatten-fixtures.mjs" "$FIXTURES" "$BUILD/patterns.txt"
+node "$HERE/flatten-fixtures.mjs" "$SCOPED" "$BUILD/patterns-scoped.txt"
 cc -std=c11 -Wall -Wextra -Werror -O1 -o "$BUILD/check_fixtures" \
   "$HERE/../src/c/encoder.c" "$HERE/check_fixtures.c"
-"$BUILD/check_fixtures" "$BUILD/patterns.txt"
+"$BUILD/check_fixtures" "$BUILD/patterns.txt" "$BUILD/patterns-scoped.txt"

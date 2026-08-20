@@ -31,6 +31,8 @@
       "SPEED",
       "EXACT_MINUTES",
       "FLICK_LAUNCH",
+      "QL_UP",
+      "QL_DOWN",
       "REQUEST"
     ],
     "resources": {

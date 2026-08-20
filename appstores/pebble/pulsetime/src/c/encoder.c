@@ -33,7 +33,14 @@ typedef struct {
   size_t count;
   bool overflow;
   float mult;
+  // Index of the single silence segment separating the hour field from the
+  // minute field; PT_NO_BOUNDARY until an encoder records it. It has to be
+  // recorded rather than re-derived, because "the first silence segment" is not
+  // the boundary: past five hours the hour field carries group gaps of its own.
+  size_t boundary;
 } Builder;
+
+#define PT_NO_BOUNDARY ((size_t)-1)
 
 static float speed_multiplier(PtSpeed speed) {
   switch (speed) {
@@ -91,6 +98,7 @@ static int hour12(int hour) {
 static void terse_quarter(Builder *b, int hour, int minute, bool exact) {
   int h = hour12(hour), q = minute / 15, rem = minute % 15;
   for (int i = 0; i < h; i++) push(b, TQ_HOUR_ON, i < h - 1 ? TQ_HOUR_OFF : 0, LAYER_FULL);
+  b->boundary = b->count;
   push(b, 0, TQ_GAP, 0);
   for (int i = 0; i < q; i++) push(b, TQ_QUARTER_ON, i < q - 1 ? TQ_QUARTER_OFF : 0, LAYER_FULL);
   if (exact && rem > 0) {
@@ -109,6 +117,7 @@ static void terse_quarter(Builder *b, int hour, int minute, bool exact) {
 // ---- Five-Minute Ladder --------------------------------------------------
 static void five_minute_ladder(Builder *b, int hour, int minute) {
   counted(b, hour12(hour), 240, 190, LAYER_FULL, 5);
+  b->boundary = b->count;
   gap(b, FIELD_GAP);
   counted(b, minute / 5, 145, 145, LAYER_MID, 5);
   if (minute % 5 > 0) {
@@ -125,6 +134,7 @@ static void add_digit(Builder *b, int digit, uint32_t on, uint8_t layer) {
 
 static void decimal_place(Builder *b, int hour, int minute) {
   counted(b, hour12(hour), 230, 180, LAYER_FULL, 5);
+  b->boundary = b->count;
   gap(b, FIELD_GAP);
   add_digit(b, minute / 10, 155, LAYER_MID);
   gap(b, GROUP_GAP);
@@ -141,6 +151,7 @@ static void add_bits(Builder *b, int value, int width) {
 
 static void binary_clock(Builder *b, int hour, int minute) {
   add_bits(b, hour12(hour), 4);
+  b->boundary = b->count;
   gap(b, FIELD_GAP);
   add_bits(b, minute, 6);
 }
@@ -156,6 +167,7 @@ static void nearest_quarter(Builder *b, int hour, int minute) {
   int offset = absolute_now - absolute_landmark;
 
   counted(b, hour12(landmark_hour), 230, 180, LAYER_FULL, 5);
+  b->boundary = b->count;
   gap(b, FIELD_GAP);
   int landmark_count = landmark == 0 ? 1 : landmark / 15 + 1;
   counted(b, landmark_count, 150, 140, LAYER_MID, 0);
@@ -198,6 +210,7 @@ static void morse_digits(Builder *b, int hour, int minute) {
     add_code(b, hour_text[i] - '0');
     if (i + 1 < hlen) gap(b, GROUP_GAP);
   }
+  b->boundary = b->count;
   gap(b, FIELD_GAP);
   for (size_t i = 0; i < 2; i++) {
     add_code(b, min_text[i] - '0');
@@ -206,15 +219,65 @@ static void morse_digits(Builder *b, int hour, int minute) {
 }
 
 // ---- Public API ------------------------------------------------------------
+// Project the built pattern down to one field, in place. Mirrors
+// EncodedPattern.scoped() in TimeSystems.kt exactly.
+static size_t apply_scope(Builder *b, PtScope scope) {
+  if (scope == PT_SCOPE_FULL) return b->count;
+  if (b->boundary == PT_NO_BOUNDARY || b->boundary >= b->count) return b->count;
+
+  // The zero marker inherits the strength of the pattern's first real pulse.
+  uint8_t first_layer = LAYER_FULL;
+  for (size_t i = 0; i < b->count; i++) {
+    if (b->out[i].on_ms > 0) { first_layer = b->out[i].layer; break; }
+  }
+
+  size_t start, end;
+  if (scope == PT_SCOPE_HOURS) {
+    start = 0;
+    end = b->boundary;
+  } else {
+    start = b->boundary + 1; // skip the boundary gap itself
+    // Terse quarter's remainder ticks sit behind a silence; a field never opens
+    // with one once it stands alone.
+    while (start < b->count && b->out[start].on_ms == 0) start++;
+    end = b->count;
+  }
+
+  size_t kept = 0;
+  bool has_pulse = false;
+  for (size_t i = start; i < end; i++) {
+    if (b->out[i].on_ms > 0) { has_pulse = true; break; }
+  }
+  if (has_pulse) {
+    kept = end - start;
+    if (start > 0) memmove(b->out, b->out + start, kept * sizeof(PtSegment));
+    b->out[kept - 1].off_ms = 0; // the field ends here now: no trailing silence
+  } else {
+    b->out[0].on_ms = (uint16_t)at_least(scale_ms(PT_ZERO_FIELD_ON_MS, b->mult), 1);
+    b->out[0].off_ms = 0;
+    b->out[0].layer = first_layer;
+    kept = 1;
+  }
+  b->count = kept;
+  return kept;
+}
+
 size_t pt_encode(PtSystem system, PtSpeed speed, bool exact_minutes,
                  int hour, int minute, PtSegment *out, size_t cap) {
+  return pt_encode_scoped(system, speed, exact_minutes, hour, minute, PT_SCOPE_FULL, out, cap);
+}
+
+size_t pt_encode_scoped(PtSystem system, PtSpeed speed, bool exact_minutes,
+                        int hour, int minute, PtScope scope,
+                        PtSegment *out, size_t cap) {
   if (!out || cap == 0) return 0;
   if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return 0;
   if ((unsigned)system >= PT_SYSTEM_COUNT) system = PT_SYSTEM_TERSE_QUARTER;
   if ((unsigned)speed >= PT_SPEED_COUNT) speed = PT_SPEED_STANDARD;
+  if ((unsigned)scope > PT_SCOPE_MINUTES) scope = PT_SCOPE_FULL;
 
   Builder b = { .out = out, .cap = cap, .count = 0, .overflow = false,
-                .mult = speed_multiplier(speed) };
+                .mult = speed_multiplier(speed), .boundary = PT_NO_BOUNDARY };
   switch (system) {
     case PT_SYSTEM_TERSE_QUARTER: terse_quarter(&b, hour, minute, exact_minutes); break;
     case PT_SYSTEM_FIVE_MINUTE_LADDER: five_minute_ladder(&b, hour, minute); break;
@@ -224,7 +287,33 @@ size_t pt_encode(PtSystem system, PtSpeed speed, bool exact_minutes,
     case PT_SYSTEM_MORSE_DIGITS: morse_digits(&b, hour, minute); break;
     default: break;
   }
-  return b.overflow ? 0 : b.count;
+  if (b.overflow) return 0;
+  return apply_scope(&b, scope);
+}
+
+// ---- scope names -----------------------------------------------------------
+const char *pt_scope_storage_id(PtScope scope) {
+  switch (scope) {
+    case PT_SCOPE_HOURS: return "hours";
+    case PT_SCOPE_MINUTES: return "minutes";
+    default: return "full";
+  }
+}
+
+const char *pt_scope_label(PtScope scope) {
+  switch (scope) {
+    case PT_SCOPE_HOURS: return "Hours only";
+    case PT_SCOPE_MINUTES: return "Minutes only";
+    default: return "Whole time";
+  }
+}
+
+PtScope pt_scope_from_storage(const char *id) {
+  if (id) {
+    if (strcmp(id, "hours") == 0) return PT_SCOPE_HOURS;
+    if (strcmp(id, "minutes") == 0) return PT_SCOPE_MINUTES;
+  }
+  return PT_SCOPE_FULL;
 }
 
 size_t pt_to_vibe(const PtSegment *segs, size_t count, uint32_t *durations, size_t cap) {

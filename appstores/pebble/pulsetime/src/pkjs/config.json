@@ -55,6 +55,45 @@
     "items": [
       {
         "type": "heading",
+        "defaultValue": "Quick Launch buttons"
+      },
+      {
+        "type": "text",
+        "defaultValue": "Bind PulseTime to both Quick Launch buttons (Settings > Quick Launch on the watch) and each one can answer a different question. Holding Up can give you just the hour while holding Down gives just the minutes, so a glance-sized question takes a glance-sized pattern. Hours only and minutes only are not a new code to learn: each is exactly the half of your chosen time system you already know. If a half is empty \u2014 no five-minute steps at the top of the hour \u2014 you get one long pulse meaning none, because silence would just look broken. Once the app is open, any button press plays the whole time again."
+      },
+      {
+        "type": "select",
+        "messageKey": "QL_UP",
+        "label": "Hold Up plays",
+        "defaultValue": "full",
+        "options": [
+          { "label": "The whole time", "value": "full" },
+          { "label": "Hours only", "value": "hours" },
+          { "label": "Minutes only", "value": "minutes" }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "QL_DOWN",
+        "label": "Hold Down plays",
+        "defaultValue": "full",
+        "options": [
+          { "label": "The whole time", "value": "full" },
+          { "label": "Hours only", "value": "hours" },
+          { "label": "Minutes only", "value": "minutes" }
+        ]
+      },
+      {
+        "type": "text",
+        "defaultValue": "Needs a watch that reports which button launched the app: Pebble Time 2, Pebble 2 Duo, or Pebble Round 2. On older Pebbles both settings are ignored and every launch plays the whole time."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
         "defaultValue": "Flick to tell time"
       },
       {

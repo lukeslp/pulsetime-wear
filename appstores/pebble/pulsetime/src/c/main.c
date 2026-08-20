@@ -31,6 +31,8 @@
 #define PERSIST_SPEED 2
 #define PERSIST_EXACT 3
 #define PERSIST_FLICK 4
+#define PERSIST_QL_UP 5
+#define PERSIST_QL_DOWN 6
 
 // Message type shared with worker_src/c/worker.c — keep the two in sync.
 #define PT_WORKER_MSG_SUPPRESS 1
@@ -48,6 +50,22 @@ static PtSystem s_system = PT_SYSTEM_TERSE_QUARTER;
 static PtSpeed s_speed = PT_SPEED_STANDARD;
 static bool s_exact = false;
 static bool s_flick = false; // "Flick to tell time": run the background worker
+
+// What each Quick Launch button says. Pebble reports which button was held
+// (launch_button()), so one install can answer two different questions: hold Up
+// for the hour, hold Down for the minutes. Both default to the whole time, so
+// nobody's existing binding changes behaviour under them.
+//
+// launch_button() exists only on emery (Pebble Time 2), flint (Pebble 2 Duo)
+// and gabbro (Pebble Round 2). On the frozen platforms the SDK defines it as
+// `(0)` -- BUTTON_ID_BACK -- so these settings simply never match and every
+// launch plays the whole time. That degradation needs no #ifdef, but it does
+// need saying out loud on the config page.
+static PtScope s_ql_up = PT_SCOPE_FULL;
+static PtScope s_ql_down = PT_SCOPE_FULL;
+// The scope this particular launch asked for; button presses afterwards always
+// play the whole time, so there is always a way back to it.
+static PtScope s_launch_scope = PT_SCOPE_FULL;
 
 // What we can honestly say about the one worker slot on this watch.
 typedef enum {
@@ -84,6 +102,14 @@ static void load_settings(void) {
   }
   if (persist_exists(PERSIST_EXACT)) s_exact = persist_read_bool(PERSIST_EXACT);
   if (persist_exists(PERSIST_FLICK)) s_flick = persist_read_bool(PERSIST_FLICK);
+  if (persist_exists(PERSIST_QL_UP)) {
+    int32_t v = persist_read_int(PERSIST_QL_UP);
+    if (v >= 0 && v <= PT_SCOPE_MINUTES) s_ql_up = (PtScope)v;
+  }
+  if (persist_exists(PERSIST_QL_DOWN)) {
+    int32_t v = persist_read_int(PERSIST_QL_DOWN);
+    if (v >= 0 && v <= PT_SCOPE_MINUTES) s_ql_down = (PtScope)v;
+  }
 }
 
 static void save_settings(void) {
@@ -91,6 +117,8 @@ static void save_settings(void) {
   persist_write_int(PERSIST_SPEED, (int32_t)s_speed);
   persist_write_bool(PERSIST_EXACT, s_exact);
   persist_write_bool(PERSIST_FLICK, s_flick);
+  persist_write_int(PERSIST_QL_UP, (int32_t)s_ql_up);
+  persist_write_int(PERSIST_QL_DOWN, (int32_t)s_ql_down);
 }
 
 // Tell the phone what the watch currently uses so the Clay page stays in step
@@ -102,6 +130,8 @@ static void send_settings_to_phone(void) {
   dict_write_cstring(iter, MESSAGE_KEY_SPEED, pt_speed_storage_id(s_speed));
   dict_write_uint8(iter, MESSAGE_KEY_EXACT_MINUTES, s_exact ? 1 : 0);
   dict_write_uint8(iter, MESSAGE_KEY_FLICK_LAUNCH, s_flick ? 1 : 0);
+  dict_write_cstring(iter, MESSAGE_KEY_QL_UP, pt_scope_storage_id(s_ql_up));
+  dict_write_cstring(iter, MESSAGE_KEY_QL_DOWN, pt_scope_storage_id(s_ql_down));
   app_message_outbox_send();
 }
 
@@ -213,12 +243,13 @@ static void playback_done(void *data) {
 // Play the current local time, optionally preceded by a confirmation cue.
 // Cue and time go into ONE vibe pattern on purpose: vibes_enqueue_custom_pattern
 // is a no-op while a pattern is playing, so two calls would drop the second.
-static void play_time_cued(PtCueKind cue_kind, int cue_count) {
+static void play_time_scoped(PtCueKind cue_kind, int cue_count, PtScope scope) {
   time_t now = time(NULL);
   struct tm *tm = localtime(&now);
   int hour = tm->tm_hour, minute = tm->tm_min;
 
-  size_t n = pt_encode(s_system, s_speed, s_exact, hour, minute, s_segments, PT_MAX_SEGMENTS);
+  size_t n = pt_encode_scoped(s_system, s_speed, s_exact, hour, minute, scope,
+                              s_segments, PT_MAX_SEGMENTS);
   uint32_t cue_ms = 0;
   size_t used = pt_cue_durations(cue_kind, cue_count, s_durations,
                                  ARRAY_LENGTH(s_durations), &cue_ms);
@@ -243,13 +274,29 @@ static void play_time_cued(PtCueKind cue_kind, int cue_count) {
   const uint32_t total_ms = cue_ms + pt_duration_ms(s_segments, n);
   quiet_worker(total_ms + PT_WORKER_QUIET_MARGIN_MS);
   s_done_timer = app_timer_register(total_ms + 150, playback_done, NULL);
-  APP_LOG(APP_LOG_LEVEL_INFO, "PulseTime: %s %s exact=%d %d:%02d -> %u segments, %u vibe slots (cue %d x%d)",
-          pt_system_storage_id(s_system), pt_speed_storage_id(s_speed), s_exact ? 1 : 0,
-          hour, minute, (unsigned)n, (unsigned)total_slots, (int)cue_kind, cue_count);
+  APP_LOG(APP_LOG_LEVEL_INFO, "PulseTime: %s %s %s exact=%d %d:%02d -> %u seg, %u slots (cue %d x%d)",
+          pt_system_storage_id(s_system), pt_speed_storage_id(s_speed), pt_scope_storage_id(scope),
+          s_exact ? 1 : 0, hour, minute, (unsigned)n, (unsigned)total_slots, (int)cue_kind, cue_count);
   if (s_canvas) layer_mark_dirty(s_canvas);
 }
 
+static void play_time_cued(PtCueKind cue_kind, int cue_count) {
+  play_time_scoped(cue_kind, cue_count, PT_SCOPE_FULL);
+}
+
 static void play_time(void) { play_time_cued(PT_CUE_NONE, 0); }
+
+// Which half of the time this launch asked for. Only Quick Launch carries a
+// button; a launch from the menu, the phone, or the worker always means the
+// whole time.
+static PtScope launch_scope(void) {
+  if (launch_reason() != APP_LAUNCH_QUICK_LAUNCH) return PT_SCOPE_FULL;
+  switch (launch_button()) {
+    case BUTTON_ID_UP: return s_ql_up;
+    case BUTTON_ID_DOWN: return s_ql_down;
+    default: return PT_SCOPE_FULL;
+  }
+}
 
 static void cycle_system(int delta) {
   int next = ((int)s_system + delta + PT_SYSTEM_COUNT) % PT_SYSTEM_COUNT;
@@ -333,7 +380,11 @@ static void draw(Layer *layer, GContext *ctx) {
   y += big ? 32 : 28;
 
   char sub[40];
-  if (s_playing) {
+  if (s_playing && s_launch_scope != PT_SCOPE_FULL) {
+    // Say which half was played, or a partial answer looks like a bug.
+    snprintf(sub, sizeof sub, "%s \u00b7 %d:%02d", pt_scope_label(s_launch_scope),
+             s_played_hour, s_played_minute);
+  } else if (s_playing) {
     snprintf(sub, sizeof sub, "Playing %d:%02d", s_played_hour, s_played_minute);
   } else if (s_system == PT_SYSTEM_TERSE_QUARTER) {
     snprintf(sub, sizeof sub, "%s · %s%s", pt_system_short_label(s_system), pt_speed_label(s_speed),
@@ -373,15 +424,17 @@ static void draw(Layer *layer, GContext *ctx) {
 
 // ---- input --------------------------------------------------------------------
 
-// Any button press means the wearer wants to stay, so cancel the auto-exit.
+// Any button press means the wearer wants to stay, so cancel the auto-exit --
+// and it drops back to the whole time, so a scoped Quick Launch always has a way
+// back to the full answer without leaving the app.
 // Every press produces a vibration, so the app is fully operable with the
 // screen off or unseen: nothing here is confirmed by sight alone.
-static void select_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; play_time(); }
-static void up_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_system(-1); }
-static void down_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_system(+1); }
-static void up_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_speed(-1); }
-static void down_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_speed(+1); }
-static void select_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; toggle_exact(); }
+static void select_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; play_time(); }
+static void up_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(-1); }
+static void down_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(+1); }
+static void up_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_speed(-1); }
+static void down_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_speed(+1); }
+static void select_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; toggle_exact(); }
 
 static void click_config(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click);
@@ -465,6 +518,7 @@ static bool read_choice(Tuple *t, const char *(*id_of)(int), int count, int *out
 
 static const char *system_id_of(int i) { return pt_system_storage_id((PtSystem)i); }
 static const char *speed_id_of(int i) { return pt_speed_storage_id((PtSpeed)i); }
+static const char *scope_id_of(int i) { return pt_scope_storage_id((PtScope)i); }
 
 static void inbox_received(DictionaryIterator *iter, void *context) {
   bool changed = false;
@@ -483,6 +537,15 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   if (read_flag(dict_find(iter, MESSAGE_KEY_EXACT_MINUTES), &f) && f != s_exact) {
     s_exact = f; changed = true;
   }
+  bool scopes_changed = false;
+  if (read_choice(dict_find(iter, MESSAGE_KEY_QL_UP), scope_id_of, PT_SCOPE_MINUTES + 1, &v) &&
+      v != (int)s_ql_up) {
+    s_ql_up = (PtScope)v; scopes_changed = true;
+  }
+  if (read_choice(dict_find(iter, MESSAGE_KEY_QL_DOWN), scope_id_of, PT_SCOPE_MINUTES + 1, &v) &&
+      v != (int)s_ql_down) {
+    s_ql_down = (PtScope)v; scopes_changed = true;
+  }
 
   // A REQUEST asks what the watch is using. Apply anything that came with it
   // first, or the answer would report settings the watch never adopted.
@@ -492,7 +555,7 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     save_settings();
     apply_flick_setting();
   }
-  if (changed) {
+  if (changed || scopes_changed) {
     save_settings();
     if (s_canvas) layer_mark_dirty(s_canvas);
   }
@@ -527,7 +590,8 @@ static void init(void) {
   // service subscriptions below all cost milliseconds the gesture can feel.
   // quiet_worker() still finds the worker here — it is by definition already
   // running, since it is what launched us.
-  if (s_auto_exit) play_time();
+  s_launch_scope = launch_scope();
+  if (s_auto_exit) play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);
 
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
@@ -544,7 +608,9 @@ static void init(void) {
   accel_tap_service_subscribe(tap_handler);
   apply_flick_setting(); // before play_time, so quiet_worker finds the worker
 
-  if (!s_auto_exit) play_time(); // the whole point: tell the time on launch
+  // The whole point: tell the time on launch, in whatever scope the gesture
+  // asked for.
+  if (!s_auto_exit) play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);
 }
 
 static void deinit(void) {

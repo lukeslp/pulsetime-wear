@@ -30,6 +30,51 @@ binary included on every platform), runs in the `basalt`, `diorite`, and
   exact minutes (on the systems that have it; the rest repeat the time instead
   of doing nothing silently). Every setting is now reachable without the phone.
 
+### Two Quick Launch buttons, two questions
+
+Pebble reports **which button** started the app:
+
+```c
+ButtonId launch_button(void);                              // pebble.h
+AppQuickLaunchAction launch_get_quick_launch_action(void);  // HOLD | TAP | COMBO
+```
+
+So one install bound to both Quick Launch slots can answer two different
+questions — hold Up for the hour, hold Down for the minutes. `QL_UP` and
+`QL_DOWN` (Clay selects, persist keys 5 and 6) choose what each button plays;
+both default to the whole time, so no existing binding changes behaviour.
+
+**Availability, checked in the 4.33.1 headers rather than assumed:**
+
+| Platform | Device | `launch_button` | Speaker | Touch |
+|---|---|---|---|---|
+| emery | Pebble Time 2 | yes | yes | yes |
+| flint | Pebble 2 Duo | yes | yes | — |
+| gabbro | Pebble Round 2 | yes | — | yes |
+| basalt / chalk / diorite / aplite | classic | `#define launch_button(...) (0)` | — | — |
+
+The frozen platforms are `FROZEN_AT_REVISION: 89` in
+`common/tools/pebble_sdk_platform.py`, and their headers define both launch
+calls as macros returning `0` (which is `BUTTON_ID_BACK`). The scope settings
+therefore never match there and every launch plays the whole time — no `#ifdef`
+needed, but the config page says so plainly rather than leaving a dead setting.
+
+A scope is a **projection** of the pattern, not a new haptic vocabulary:
+hours-only is exactly the hour phrase of the chosen system, minutes-only is
+exactly its minute phrase. Nothing extra has to be learned.
+
+`pt_encode_scoped()` splits at the boundary each encoder records
+(`Builder.boundary`). That index has to be recorded rather than found, because
+**"the first silence segment" is not the boundary** — past five hours the hour
+field carries group gaps of its own. An empty field (five-minute ladder at
+`:00`, terse quarter before `:15`) plays one `PT_ZERO_FIELD_ON_MS` (300 ms)
+pulse meaning "none"; silence would be indistinguishable from a fault. That
+reuses the decimal-place convention where digit zero is already one
+double-length pulse.
+
+Once the app is open, **any button press drops back to the whole time**, so a
+scoped launch always has a way to the full answer without leaving.
+
 ### Confirmation cues — operable without the screen
 
 The app is for people who cannot see the screen, so no setting may be confirmed
@@ -60,8 +105,9 @@ test covers it and the watchface variant can reuse it.
   (or "Playing h:mm" while the pattern runs), and two hint lines. Works in
   1-bit on diorite/flint, centres inside the chalk circle, and scales up on
   emery/gabbro (`big` = unobstructed height >= 200).
-- Settings (`persist_*` keys 1–4): time system, playback speed, exact minutes,
-  flick to tell time. Defaults: Terse Quarter, Standard, off, off.
+- Settings (`persist_*` keys 1–6): time system, playback speed, exact minutes,
+  flick to tell time, and what each Quick Launch button plays. Defaults: Terse
+  Quarter, Standard, off, off, whole time, whole time.
 
 Pebble motors have **no amplitude control**, so the encoder's relative
 `layer` (100/72/50/45) is carried for the host test but ignored on the watch.
@@ -199,6 +245,8 @@ appstores/pebble/pulsetime/tests/check-fixtures.sh
 #                                 and the longest speed cue (x3) prepended
 #   ok cue shape                  cue pulse lengths, gaps, totals, and the
 #                                 short-vs-long separation
+#   840/840 scoped match          patterns-scoped.txt: every case in hours-only
+#                                 and minutes-only form, and never silent
 ```
 
 ## Build

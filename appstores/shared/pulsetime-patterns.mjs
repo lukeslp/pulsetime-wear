@@ -15,6 +15,15 @@ export const SYSTEMS = ['terse_quarter', 'five_minute_ladder', 'decimal_place', 
 export const SPEEDS = { slow: 1.25, standard: 1, fast: 0.78 };
 
 const FIELD_GAP = 700, GROUP_GAP = 420, SHORT_GAP = 150;
+
+export const SCOPES = ['full', 'hours', 'minutes'];
+// Where the hour field ends in the pattern just built. Recorded rather than
+// re-derived, because "the first silence segment" is NOT the boundary: past five
+// hours the hour field carries group gaps of its own.
+const BOUNDARY = { v: -1 };
+// An empty field (five-minute ladder at :00, terse quarter before :15) plays one
+// long pulse meaning "none". Silence would be indistinguishable from a fault.
+const ZERO_FIELD_ON = 300;
 const T = { HOUR_ON: 200, HOUR_OFF: 280, GAP: 700, QUARTER_ON: 320, QUARTER_OFF: 280, MINUTE_ON: 80, MINUTE_OFF: 120 };
 
 // Kotlin: `Long * Float` is a single-precision multiply, then .toLong() truncates
@@ -41,6 +50,7 @@ function terseQuarter(h24, m, mult, includePrecision) {
   const h = hour12(h24), q = Math.floor(m / 15), rem = m % 15;
   const out = [];
   for (let i = 0; i < h; i++) out.push({ on: T.HOUR_ON, off: i < h - 1 ? T.HOUR_OFF : 0, layer: 1 });
+  BOUNDARY.v = out.length;
   out.push({ on: 0, off: T.GAP, layer: 0 });
   for (let i = 0; i < q; i++) out.push({ on: T.QUARTER_ON, off: i < q - 1 ? T.QUARTER_OFF : 0, layer: 1 });
   if (includePrecision && rem > 0) {
@@ -54,6 +64,7 @@ function terseQuarter(h24, m, mult, includePrecision) {
 function fiveMinuteLadder(h24, m, mult) {
   const out = [];
   counted(out, hour12(h24), 240, 190, mult, 1, 5);
+  BOUNDARY.v = out.length;
   out.push(gap(FIELD_GAP, mult));
   counted(out, Math.floor(m / 5), 145, 145, mult, 0.72, 5);
   if (m % 5 > 0) { out.push(gap(GROUP_GAP, mult)); counted(out, m % 5, 75, 110, mult, 0.45); }
@@ -66,6 +77,7 @@ function addDigit(out, digit, mult, on, layer) {
 function decimalPlace(h24, m, mult) {
   const out = [];
   counted(out, hour12(h24), 230, 180, mult, 1, 5);
+  BOUNDARY.v = out.length;
   out.push(gap(FIELD_GAP, mult));
   addDigit(out, Math.floor(m / 10), mult, 155, 0.72);
   out.push(gap(GROUP_GAP, mult));
@@ -81,6 +93,7 @@ function addBits(out, value, width, mult) {
 function binaryClock(h24, m, mult) {
   const out = [];
   addBits(out, hour12(h24), 4, mult);
+  BOUNDARY.v = out.length;
   out.push(gap(FIELD_GAP, mult));
   addBits(out, m, 6, mult);
   return out;
@@ -95,6 +108,7 @@ function nearestQuarter(h24, m, mult) {
   const offset = absoluteNow - absoluteLandmark;
   const out = [];
   counted(out, hour12(landmarkHour), 230, 180, mult, 1, 5);
+  BOUNDARY.v = out.length;
   out.push(gap(FIELD_GAP, mult));
   const landmarkCount = landmark === 0 ? 1 : landmark / 15 + 1;
   counted(out, landmarkCount, 150, 140, mult, 0.72);
@@ -118,13 +132,34 @@ function morseDigits(h24, m, mult) {
   const hour = String(hour12(h24)); const minutes = String(m).padStart(2, '0');
   const out = [];
   [...hour].forEach((c, i) => { addCode(out, Number(c), mult); if (i < hour.length - 1) out.push(gap(GROUP_GAP, mult)); });
+  BOUNDARY.v = out.length;
   out.push(gap(FIELD_GAP, mult));
   [...minutes].forEach((c, i) => { addCode(out, Number(c), mult); if (i < minutes.length - 1) out.push(gap(GROUP_GAP, mult)); });
   return out;
 }
 
-export function encode(system, h24, m, { speed = 'standard', includePrecision = false } = {}) {
+function scoped(segs, boundary, scope, mult) {
+  if (scope === 'full' || boundary < 0 || boundary >= segs.length) return segs;
+  let picked = scope === 'hours' ? segs.slice(0, boundary) : segs.slice(boundary + 1);
+  // Terse quarter's remainder ticks sit behind a silence; a field never opens
+  // with one once it stands alone.
+  if (scope === 'minutes') while (picked.length && picked[0].on === 0) picked = picked.slice(1);
+  if (!picked.some((s) => s.on > 0)) {
+    const layer = (segs.find((s) => s.on > 0) || { layer: 1 }).layer;
+    return [{ on: Math.max(1, scale(ZERO_FIELD_ON, mult)), off: 0, layer }];
+  }
+  // The field ends here now, so it trails no silence.
+  return picked.map((s, i) => (i === picked.length - 1 ? { ...s, off: 0 } : s));
+}
+
+export function encode(system, h24, m, { speed = 'standard', includePrecision = false, scope = 'full' } = {}) {
   const mult = SPEEDS[speed];
+  BOUNDARY.v = -1;
+  const segs = encodeFull(system, h24, m, mult, includePrecision);
+  return scoped(segs, BOUNDARY.v, scope, mult);
+}
+
+function encodeFull(system, h24, m, mult, includePrecision) {
   switch (system) {
     case 'terse_quarter': return terseQuarter(h24, m, mult, includePrecision);
     case 'five_minute_ladder': return fiveMinuteLadder(h24, m, mult);
@@ -146,6 +181,10 @@ export const SAMPLE_TIMES = [
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fixturePath = path.join(here, 'fixtures', 'patterns.json');
+// Scoped cases live in their OWN file. patterns.json is frozen in shape because
+// three harnesses (Kotlin, Pebble C, Monkey C) parse it, and the Garmin port has
+// no launch-button equivalent and so implements no scopes.
+const scopedPath = path.join(here, 'fixtures', 'patterns-scoped.json');
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const cases = [];
   for (const system of SYSTEMS) for (const speed of Object.keys(SPEEDS)) for (const [h, m] of SAMPLE_TIMES) {
@@ -159,15 +198,32 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   // system speed precision hour minute pattern
   const txt = cases.map((c) => `${c.system} ${c.speed} ${c.includePrecision ? 1 : 0} ${c.hour} ${c.minute} ${c.pattern}`).join('\n') + '\n';
   const txtPath = fixturePath.replace(/\.json$/, '.txt');
+
+  // Scoped twin: same grid, every case in hours-only and minutes-only form.
+  const scopedCases = [];
+  for (const system of SYSTEMS) for (const speed of Object.keys(SPEEDS)) for (const [h, m] of SAMPLE_TIMES) {
+    const variants = system === 'terse_quarter' ? [false, true] : [false];
+    for (const includePrecision of variants) for (const scope of ['hours', 'minutes']) {
+      scopedCases.push({ system, speed, includePrecision, scope, hour: h, minute: m, pattern: compact(encode(system, h, m, { speed, includePrecision, scope })) });
+    }
+  }
+  const scopedJson = JSON.stringify({ version: 1, source: 'shared/src/main/java/com/lukesteuber/pulsetime/shared/encoding', note: 'hours-only / minutes-only projections; an empty field is one 300ms pulse meaning none', cases: scopedCases }, null, 1) + '\n';
+  const scopedTxt = scopedCases.map((c) => `${c.system} ${c.speed} ${c.includePrecision ? 1 : 0} ${c.scope} ${c.hour} ${c.minute} ${c.pattern}`).join('\n') + '\n';
+  const scopedTxtPath = scopedPath.replace(/\.json$/, '.txt');
+
   if (process.argv.includes('--check')) {
-    const cur = fs.existsSync(fixturePath) ? fs.readFileSync(fixturePath, 'utf8') : '';
-    const curTxt = fs.existsSync(txtPath) ? fs.readFileSync(txtPath, 'utf8') : '';
-    if (cur !== json || curTxt !== txt) { console.error('stale fixtures'); process.exit(1); }
-    console.log(`ok: ${cases.length} cases current`);
+    const same = (file, want) => (fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '') === want;
+    if (!same(fixturePath, json) || !same(txtPath, txt) || !same(scopedPath, scopedJson) || !same(scopedTxtPath, scopedTxt)) {
+      console.error('stale fixtures');
+      process.exit(1);
+    }
+    console.log(`ok: ${cases.length} cases + ${scopedCases.length} scoped cases current`);
   } else {
     fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
     fs.writeFileSync(fixturePath, json);
     fs.writeFileSync(txtPath, txt);
-    console.log(`wrote ${cases.length} cases to appstores/shared/fixtures/patterns.{json,txt}`);
+    fs.writeFileSync(scopedPath, scopedJson);
+    fs.writeFileSync(scopedTxtPath, scopedTxt);
+    console.log(`wrote ${cases.length} cases and ${scopedCases.length} scoped cases to appstores/shared/fixtures/`);
   }
 }

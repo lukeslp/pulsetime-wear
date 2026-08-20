@@ -63,9 +63,18 @@ Hard limits:
 
 | Path | Gestures | Notes |
 |---|---|---|
-| Quick Launch (long-press Up or Down) | one press | Zero background cost. The best default. |
+| Quick Launch (long-press Up or Down) | one press | Zero background cost. The best default. **Each button can say something different** — see below. |
 | Background worker + wrist gesture | one double-tap | The worker cannot vibrate (`pebble_worker.h` has no vibes API); it calls `worker_launch_app()`, and the app vibrates and auto-exits when `launch_reason() == APP_LAUNCH_WORKER`. Off by default. |
 | App list | more | Fallback. |
+
+**Quick Launch carries a button id.** `launch_button()` returns which button
+started the app, and `launch_get_quick_launch_action()` distinguishes HOLD from
+TAP from COMBO, so one install can answer more than one question: PulseTime uses
+hold-Up and hold-Down for hours-only and minutes-only. Both are available only on
+**emery (Pebble Time 2), flint (Pebble 2 Duo) and gabbro (Pebble Round 2)**; the
+frozen platforms define both as macros returning `0`, so the feature degrades to
+"always the whole time" with no conditional compilation and no crash. Verified in
+the 4.33.1 headers, not assumed.
 
 Hard limits:
 

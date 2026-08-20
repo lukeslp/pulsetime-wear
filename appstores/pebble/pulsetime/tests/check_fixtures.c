@@ -97,8 +97,59 @@ static int check_cued_pattern(const PtSegment *segs, size_t n, PtCueKind kind, i
   return 1;
 }
 
+// Scoped fixtures: same grid, one extra column, and the projection applied.
+// A scoped pattern must also never be silent -- that is the whole point of the
+// zero marker.
+static int check_scoped_file(const char *path, int *total_out) {
+  FILE *f = fopen(path, "r");
+  if (!f) { perror(path); return -1; }
+  char line[4096];
+  int total = 0, matched = 0;
+  while (fgets(line, sizeof line, f)) {
+    size_t len = strlen(line);
+    while (len && (line[len - 1] == '\n' || line[len - 1] == '\r')) line[--len] = '\0';
+    if (!len) continue;
+    char system[32], speed[16], scope[16];
+    int precision, hour, minute, consumed = 0;
+    if (sscanf(line, "%31s %15s %d %15s %d %d %n", system, speed, &precision, scope, &hour, &minute, &consumed) != 6) {
+      fprintf(stderr, "bad scoped line: %s\n", line);
+      fclose(f);
+      return -1;
+    }
+    const char *expected = line + consumed;
+    total++;
+
+    PtScope sc = pt_scope_from_storage(scope);
+    if (sc == PT_SCOPE_FULL) {
+      printf("SCOPE-UNKNOWN %s\n", scope);
+      continue;
+    }
+    PtSegment segs[PT_MAX_SEGMENTS];
+    size_t n = pt_encode_scoped(pt_system_from_storage(system), pt_speed_from_storage(speed),
+                                precision != 0, hour, minute, sc, segs, PT_MAX_SEGMENTS);
+    char actual[2048];
+    format_pattern(segs, n, actual, sizeof actual);
+    int silent = 1;
+    for (size_t i = 0; i < n; i++) if (segs[i].on_ms > 0) { silent = 0; break; }
+    if (silent) {
+      printf("SCOPED-SILENT %s %s %s %02d:%02d\n", system, speed, scope, hour, minute);
+    } else if (strcmp(actual, expected) == 0) {
+      matched++;
+    } else {
+      printf("SCOPED-MISMATCH %s %s exact=%d %s %02d:%02d\n  expected: %s\n  actual:   %s\n",
+             system, speed, precision, scope, hour, minute, expected, actual);
+    }
+  }
+  fclose(f);
+  *total_out = total;
+  return matched;
+}
+
 int main(int argc, char **argv) {
-  if (argc < 2) { fprintf(stderr, "usage: %s <flattened-fixtures.txt>\n", argv[0]); return 2; }
+  if (argc < 3) {
+    fprintf(stderr, "usage: %s <patterns.txt> <patterns-scoped.txt>\n", argv[0]);
+    return 2;
+  }
   FILE *f = fopen(argv[1], "r");
   if (!f) { perror(argv[1]); return 2; }
 
@@ -148,9 +199,15 @@ int main(int argc, char **argv) {
   }
   fclose(f);
   int cue_bad = check_cue_shape();
+  int scoped_total = 0;
+  int scoped_matched = check_scoped_file(argv[2], &scoped_total);
   printf("%d/%d match\n", matched, total);
   printf("%d/%d vibe patterns valid\n", vibe_ok, total);
   printf("%d/%d cued patterns valid\n", cued_ok, total);
   printf("%s cue shape\n", cue_bad == 0 ? "ok" : "FAILED");
-  return (matched == total && vibe_ok == total && cued_ok == total && cue_bad == 0 && total > 0) ? 0 : 1;
+  printf("%d/%d scoped match\n", scoped_matched, scoped_total);
+  return (matched == total && vibe_ok == total && cued_ok == total && cue_bad == 0 && total > 0 &&
+          scoped_matched == scoped_total && scoped_total > 0)
+             ? 0
+             : 1;
 }

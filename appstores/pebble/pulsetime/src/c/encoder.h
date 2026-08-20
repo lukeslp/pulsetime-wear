@@ -48,11 +48,42 @@ typedef struct {
 // headroom without wasting watch RAM.
 #define PT_MAX_SEGMENTS 64
 
+// Which half of the time to play. PulseTime can be reached from more than one
+// gesture -- Quick Launch reports which button was held -- and a wearer who only
+// wants "is it half past yet" should not sit through the hour.
+//
+// A scope is a PROJECTION of the full pattern, never a new haptic vocabulary:
+// PT_SCOPE_HOURS is exactly the hour phrase the wearer already knows, and
+// PT_SCOPE_MINUTES is exactly the minute phrase. Nothing new has to be learned.
+typedef enum {
+  PT_SCOPE_FULL = 0,
+  PT_SCOPE_HOURS,
+  PT_SCOPE_MINUTES,
+} PtScope;
+
+// A field can come out empty -- five-minute ladder at :00 has no five-minute
+// steps, terse quarter before :15 has no quarters. Silence is the worst possible
+// answer, being indistinguishable from a broken app, so an empty field plays one
+// long pulse meaning "none". That reuses the decimal-place convention, where the
+// digit zero is already a single double-length pulse.
+#define PT_ZERO_FIELD_ON_MS 300
+
 // Encode (hour 0-23, minute 0-59) into `out` (capacity `cap`). Returns the
 // number of segments written, or 0 if the arguments are out of range or the
 // buffer is too small. `exact_minutes` only affects Terse Quarter.
 size_t pt_encode(PtSystem system, PtSpeed speed, bool exact_minutes,
                  int hour, int minute, PtSegment *out, size_t cap);
+
+// As pt_encode, projected down to one field. PT_SCOPE_FULL is identical to
+// pt_encode. Pinned by appstores/shared/fixtures/patterns-scoped.txt.
+size_t pt_encode_scoped(PtSystem system, PtSpeed speed, bool exact_minutes,
+                        int hour, int minute, PtScope scope,
+                        PtSegment *out, size_t cap);
+
+// Storage ids match Kotlin TimeScope.storageId ("full" / "hours" / "minutes").
+const char *pt_scope_storage_id(PtScope scope);
+const char *pt_scope_label(PtScope scope);
+PtScope pt_scope_from_storage(const char *id);
 
 // Convert segments to a Pebble VibePattern duration list (ON, OFF, ON, ...).
 // Rules: each pulse emits ON = on_ms; its off_ms plus any directly following
