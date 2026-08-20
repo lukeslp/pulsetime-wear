@@ -34,6 +34,7 @@ target — PulseTime has no watchOS build.
 |---|---|---|
 | Glance loop | swipe up, tap | The default. The app vibrates on `onShow`. |
 | Published complication on a watch face | one tap | Built. The complication is a **launcher**: a face calls `Complications.exitTo(id)` and the system foregrounds PulseTime, which vibrates. Requires API 4.2.0; the Venu 2S is CIQ 5.0. |
+| **Watchface** (`appstores/pebble/pulsetime-face/`) | **none** | **Built.** It is already running and it can vibrate, so the gesture count is zero. Double-tap tells the time; chimes need no gesture at all. Costs being your watchface. |
 | App list | more | Fallback. |
 
 Hard limits:
@@ -96,10 +97,18 @@ Hard limits:
   carrying the pattern length plus a margin). Any future gesture trigger on any
   platform inherits this problem.
 - Unlike Garmin, a Pebble **watchface can vibrate** and receives accelerometer
-  taps. A PulseTime watchface variant is therefore the only true "no app at all"
+  taps. The PulseTime watchface is therefore the only true "no app at all"
   haptic clock available to us on any platform — at the cost of being the
-  wearer's active face, and of a second store listing. Not built; recorded here
-  so the option is not rediscovered from scratch.
+  wearer's active face, and of a second store listing. **Built 2026-08-19**
+  (`appstores/pebble/pulsetime-face/`, uuid `f9ee597e-…`), sharing the
+  watchapp's encoder by symlink. It is also the only place chimes can exist,
+  since no Pebble background context can vibrate.
+- **A speaker changes the answer on two watches.** `PBL_SPEAKER` is defined for
+  **emery (Pebble Time 2)** and **flint (Pebble 2 Duo)** — not gabbro. Where it
+  exists, `speaker_play_notes()` gives back the relative-strength dimension the
+  motor cannot express, as pitch. The worker still cannot use it:
+  `pebble_worker.h` has no speaker API either, so this changes nothing about the
+  foreground rule.
 
 ## Consequences for the product
 
@@ -108,5 +117,9 @@ Hard limits:
 2. Battery is a real trade: the Pebble worker runs continuously, Quick Launch
    costs nothing. Offer both, default to the free one.
 3. Store shape follows: both the Connect IQ store and the Pebble appstore list
-   **one app per listing**, so a watchface variant or a second gesture app is a
-   separate submission with its own artwork, copy, and review.
+   **one app per listing**, so the watchface is a separate submission from the
+   watchapp, with its own artwork, copy, and review.
+4. **Quick Launch carries a button id and an action kind**, so on Pebble one
+   install can serve more than one intent — PulseTime uses hold-Up and hold-Down
+   for hours-only and minutes-only. No other platform we ship to reports which
+   affordance started the app.

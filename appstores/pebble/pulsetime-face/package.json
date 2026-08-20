@@ -1,0 +1,45 @@
+{
+  "name": "pulsetime-face",
+  "author": "Luke Steuber",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "PulseTime Face",
+    "uuid": "f9ee597e-a160-43a8-b08e-6af03007487b",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "capabilities": [
+      "configurable"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [
+      "SYSTEM",
+      "SPEED",
+      "EXACT_MINUTES",
+      "TAP_TELL",
+      "CHIME",
+      "QUIET_FROM",
+      "QUIET_TO",
+      "SOUND",
+      "VOLUME",
+      "REQUEST"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}

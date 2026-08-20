@@ -36,10 +36,17 @@ coupling.
 | W2 | Garmin Venu 2S device app with glance, 8-profile chunker, settings | built, harness 420/420, sideloaded |
 | W3 | Pebble watchapp, Clay config, host test | built, 420/420, on the Time 2 |
 | W4 | Garmin complication → launch on tap; Pebble worker flick-launch | built, both sideloaded/installed; wrist verification open |
-| W4b | Pebble PulseTime *watchface* variant (the only true no-app haptic path) | not started |
-| W5 | Store submissions (Connect IQ, Pebble appstore) | human gate |
+| W4b | Pebble PulseTime *watchface* variant (the only true no-app haptic path) | **built**, encoder shared by symlink, tap + chime + quiet hours verified on the emery emulator, installed on the Time 2 |
+| W6 | Eyes-free operation: confirmation cues, speed and practice on the wrist | done, verified on emulator + Time 2 |
+| W7 | Hours-only / minutes-only per Quick Launch button (`launch_button()`) | done, 840 scoped fixtures; **wrist check open** — no emulator can trigger a real Quick Launch |
+| W8 | Speaker output on emery/flint: relative strength becomes pitch | done; wrist check open |
+| W5 | Store submissions (Connect IQ, Pebble appstore) | human gate — now **three** listings: Garmin app, Pebble watchapp, Pebble watchface |
 
 ## Outstanding
 
+0. Pebble wrist QA, which is now the gate on almost everything: Quick Launch
+   scopes (unreachable from any emulator), the watchface's false-trigger rate
+   over a real day, speaker legibility, and the Pebble 2 SE degradation path.
+   See `DEVICE_EVIDENCE.md`.
 1. Human haptic and TalkBack QA on the installed Pixel Watch 2
 2. Human Play internal-track upload (replace debug signing with upload keystore)

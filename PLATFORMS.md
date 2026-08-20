@@ -18,6 +18,7 @@ Do not submit to Play from automation.
 | Port | Stage | Evidence |
 |------|-------|----------|
 | Garmin device app + glance + complication (`appstores/garmin/pulsetime`) | built · encoder validated · sideloaded | `monkeyc` clean; simulator harness `PASS 420/420` incl. chunker invariants; PRG sideloaded to the Venu 2S over MTP (imports on disconnect); complication publishes in the simulator but face-editor hosting and tap-to-launch are unverified off-device; wrist QA pending |
-| Pebble watchapp (`appstores/pebble/pulsetime`) | built · encoder validated · device-installed | host C test `420/420 match`; runs in basalt/diorite/chalk emulators; installed on the Pebble Time 2 via CloudPebble; wrist QA and Pebble 2 SE pending |
-| Store | not submitted | Connect IQ store and Pebble appstore are per-app human submissions |
+| Pebble watchapp (`appstores/pebble/pulsetime`) | built · encoder validated · device-installed | host C test `420/420 match` + `840/840 scoped match` + cue and pitch checks; basalt/diorite/chalk/emery emulators; installed on the Pebble Time 2 via CloudPebble; wrist QA and Pebble 2 SE pending |
+| Pebble watchface (`appstores/pebble/pulsetime-face`) | built · encoder shared · device-installed | shares the watchapp's encoder by symlink, so one host test covers both; emery emulator confirms tap discrimination (single armed, cross-axis rejected, same-axis 718 ms plays), hourly chime striking `scope=hours` at 11:00, and quiet hours suppressing it; installed on the Pebble Time 2; wrist QA pending |
+| Store | not submitted | Connect IQ store and Pebble appstore are per-app human submissions. The watchapp and the watchface are **two separate listings** — neither store bundles apps. |
 

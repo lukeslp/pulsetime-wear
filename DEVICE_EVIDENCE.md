@@ -94,3 +94,48 @@ Play Console login, upload, tester management, and rollout remain **human** gate
   ordinary movement and whether the round trip reads as "no app". Tighten
   `PT_TAP_WINDOW_MS` toward 800 ms if twitchy.
 
+
+## Eyes-free controls, scopes, sound, practice (2026-08-19)
+
+Emulator evidence, all on the emery (Pebble Time 2) profile unless noted:
+
+- [x] One short Up/Down press fires only the system handler, one long press only
+  the speed handler — the two do not double-fire (basalt).
+- [x] Rung 2 of the system cycle logs `exact=1` with cue ×2; rung 3 is the
+  five-minute ladder with cue ×3.
+- [x] Hold-Select opens Practice at 1:00; Up steps to 2:00; Back returns.
+- [x] Hold-**Back** is unusable: the system's own back-out swallows it and the
+  app simply exits. BACK is left entirely unsubscribed.
+- [x] `840/840 scoped match` in the Kotlin harness and the Pebble C harness; an
+  exhaustive Kotlin sweep (6 systems × 3 speeds × 2 scopes × all 1440 minutes)
+  confirms no scoped pattern is ever silent.
+- [x] Speaker code links on emery and flint only, confirmed with `nm` on the
+  built ELFs — not gabbro, despite it being new hardware.
+- [ ] **Wrist, Time 2:** bind both Quick Launch buttons and confirm hold-Up
+  gives hours and hold-Down gives minutes. This is the one part of the scope
+  feature no emulator can exercise: `launch_button()` needs a real Quick Launch.
+- [ ] **Wrist, Time 2:** sound on. Is pitch actually easier to read than the
+  motor for the five-minute ladder's three layers? Is the volume ladder
+  (30/65/100 %) usefully spaced?
+- [ ] **Pebble 2 SE (diorite):** install and confirm the graceful degradation —
+  scopes and sound absent, everything else identical.
+
+## Pebble Time 2 — PulseTime Face watchface (2026-08-19)
+
+- [x] `pulsetime-face.pbw` installed over the CloudPebble developer connection.
+      **Installing a watchface makes it selectable; choosing it replaces the
+      wearer's current face.**
+- [x] Emery emulator: face renders time, date, system, and prompt; a single tap
+  arms without playing; two taps on different axes do not play; two same-axis
+  taps 718 ms apart play the time.
+- [x] Emery emulator: with chime off, crossing 11:00 does nothing. With hourly
+  chime and no quiet period, 11:00 plays `scope=hours` — striking the hour.
+  With quiet hours 0–23, 13:00 plays nothing.
+- [ ] **Wrist:** false-trigger rate during ordinary movement over a full day.
+  This is the number that decides whether the face is usable, and no emulator
+  can produce it. Tighten `PT_TAP_WINDOW_MS` toward 800 ms if twitchy; the
+  DEBUG tap log prints the axis and gap of every tap for exactly this.
+- [ ] **Wrist:** battery cost of the always-on tap subscription over a day,
+  against the watchapp + worker for comparison.
+- [ ] **Wrist:** is an hourly chime welcome or irritating in practice, and are
+  the default quiet hours (22:00–07:00) the right ones?

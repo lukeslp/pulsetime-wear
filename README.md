@@ -158,23 +158,41 @@ open. Both ports run the same six systems from the same fixtures:
   repeats, swipe/Up/Down cycles systems; settings in the Connect IQ phone app.
   `appstores/garmin/pulsetime/README.md`.
 - `appstores/pebble/pulsetime/` — a C **watchapp** for basalt/chalk/diorite/
-  emery/flint/gabbro (`vibes_enqueue_custom_pattern`, no amplitude, so layered
-  strength does not exist there). Bind it to Quick Launch; Select repeats,
-  Up/Down cycles systems, a wrist flick repeats; Clay config page for system,
-  speed, exact minutes. An optional **background worker** (off by default) turns
-  a double wrist-tap from any watchface into: launch, buzz, exit.
+  emery/flint/gabbro. Bind it to Quick Launch; Select repeats, Up/Down step
+  through the seven rungs of the system cycle, holding Up/Down changes speed,
+  holding Select opens **practice** (a ladder of chosen times, so patterns can
+  be learned against a known answer). Every change answers with a haptic
+  confirmation cue first — short pulses count the rung, long pulses the speed —
+  so the app is fully operable by someone who never sees the screen. Bind both
+  Quick Launch buttons and each can say something different: `launch_button()`
+  reports which one was held, so hold-Up can give **just the hour** and hold-Down
+  **just the minutes**. An optional background worker (off by default) turns a
+  double wrist-tap from any watchface into: launch, buzz, exit.
   `appstores/pebble/pulsetime/BUILD.md`.
+- `appstores/pebble/pulsetime-face/` — the same clock as a **watchface**, which
+  is the only arrangement on any of these platforms that needs no gesture at
+  all. Double-tap to feel the time, and it can **chime** on its own — impossible
+  in any app, because no Pebble background context can vibrate. It shares the
+  watchapp's encoder by symlink, so the two can never drift.
+  `appstores/pebble/pulsetime-face/BUILD.md`.
+- On the Pebble Time 2 and Pebble 2 Duo, PulseTime can also play the pattern
+  through the **speaker**. That is not decoration: several systems separate
+  their fields by relative strength, and a Pebble motor has no strength control
+  at all, so on the speaker that lost dimension returns as pitch.
 - `appstores/shared/pulsetime-patterns.mjs` is a reference port that writes
-  `appstores/shared/fixtures/patterns.{json,txt}` (420 cases);
+  `appstores/shared/fixtures/patterns.{json,txt}` (420 cases) and
+  `patterns-scoped.{json,txt}` (840 hours-only / minutes-only cases);
   `shared/src/test/.../PortFixturesTest.kt` proves those fixtures equal the
   Kotlin encoders, and each port's harness reproduces them exactly (Pebble:
   host C test; Garmin: simulator harness).
 
-Neither platform can vibrate from a background process, so both "no app to
-open" paths are launchers: the Garmin complication and the Pebble worker each
-foreground the app, which buzzes immediately. `docs/invocation-paths.md`
-records the verified per-platform rules, the gesture paths that follow, and the
-one real exception — a Pebble *watchface* can vibrate, which remains unbuilt.
+No Pebble or Garmin background process can vibrate, so every "no app to open"
+path on those two is really a launcher: the Garmin complication and the Pebble
+worker each foreground the app, which buzzes immediately. The single exception
+is the Pebble watchface, which is already running and is allowed to vibrate —
+unlike a Connect IQ watch face, which is barred from `Attention.vibrate()`.
+`docs/invocation-paths.md` records the verified per-platform rules and the
+gesture paths that follow from them.
 
 ## Platforms track
 
