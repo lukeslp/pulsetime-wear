@@ -27,6 +27,42 @@ the whole reason this project exists.
 - **It has to be your watchface.** That is the entire price, and it is why this
   ships as a second store listing rather than replacing the watchapp.
 
+## It only works while it is the running app
+
+**Selected is not enough — it has to be what is currently running.** Pebble runs
+one app at a time, and a watchface is that app only while nothing else is open.
+Opening any app, or even the launcher, unloads the face: `deinit` runs, the tick
+subscription and the tap subscription go with it, and neither chimes nor
+double-tap work again until the wearer backs out.
+
+Verified on the emery emulator, 2026-08-19, with hourly chime on and no quiet
+period:
+
+| State | Crossing the hour | Result |
+|---|---|---|
+| Face on screen | 14:00 | chime fired (`scope=hours`) |
+| Face still the **selected** face, launcher open | 15:00 | **nothing** |
+
+So the honest scope of this face is: it answers whenever the wearer is looking
+at their watchface, which is nearly always, and it goes quiet the moment they
+are doing something else on the watch. It resumes by itself on the way back —
+there is nothing to restart.
+
+**If chimes need to survive that, the watchface is the wrong mechanism.** Two
+things do work independently of which face is showing, both belonging to the
+watchapp rather than here:
+
+- **`wakeup_schedule()`** — launches the app at a set time *even when it is not
+  running*. Max **8** scheduled events per app, and no event may be scheduled
+  within **one minute** of another already-scheduled one (`E_RANGE`), so hourly
+  chimes mean keeping a rolling window topped up. Costs nothing at all while
+  idle: no resident process. This is the right answer for chimes and is **not
+  built**.
+- **The background worker** — `pebble_worker.h` does expose
+  `tick_timer_service_subscribe()`, so the existing worker could fire on the
+  hour and `worker_launch_app()`. But it holds the watch's single worker slot
+  and runs all day, which `wakeup_schedule()` does not.
+
 ## No buttons
 
 Up and Down belong to the timeline, Select opens the launcher, Back does
