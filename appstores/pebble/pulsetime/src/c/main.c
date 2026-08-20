@@ -15,6 +15,12 @@
 // is fully operable by a wearer who never sees the screen. Nothing here is
 // confirmed by sight alone.
 //
+// Chimes arrive with no gesture at all and nothing resident: wakeup_schedule()
+// has the system launch the app at the scheduled second, it buzzes, and it
+// leaves. Unlike the watchface variant this does not care what the wearer is
+// looking at -- a watchface only runs while it is the foreground app, and is
+// unloaded the moment any app or the launcher opens.
+//
 // The optional background worker (worker_src/c/worker.c) watches for a double
 // wrist tap from any watchface and calls worker_launch_app(). A launch with
 // launch_reason() == APP_LAUNCH_WORKER plays the time and then pops the window
@@ -36,6 +42,19 @@
 #define PERSIST_QL_DOWN 6
 #define PERSIST_SOUND 7
 #define PERSIST_VOLUME 8
+#define PERSIST_CHIME 9
+#define PERSIST_QUIET_FROM 10
+#define PERSIST_QUIET_TO 11
+
+// Pebble allows a maximum of 8 scheduled wakeup events per app, and refuses any
+// event within one minute of one already scheduled -- by ANY app -- with
+// E_RANGE. So a recurring chime is not "schedule forever", it is a rolling
+// window that gets topped up every time the app runs. Which it does on every
+// chime, so the chain sustains itself.
+#define PT_WAKEUP_MAX 8
+// How far ahead to look for usable slots. Quiet hours can eat a long run of
+// candidates, so this has to be comfortably more than PT_WAKEUP_MAX.
+#define PT_WAKEUP_PROBES 96
 
 // Message type shared with worker_src/c/worker.c — keep the two in sync.
 #define PT_WORKER_MSG_SUPPRESS 1
@@ -88,6 +107,57 @@ typedef enum {
 static PtSound s_sound = PT_SOUND_OFF;
 static uint8_t s_volume_choice = 1; // 0 low, 1 medium, 2 high
 
+// Chimes: the time, with no gesture and nothing on screen beforehand.
+//
+// This is the only PulseTime path that does not depend on what the wearer is
+// currently looking at. The watchface variant can chime too, but only while it
+// is the running app -- open any app, or even the launcher, and it is unloaded.
+// wakeup_schedule() has no such condition and keeps NO resident process at all:
+// the system launches the app at the scheduled second, it buzzes, and it leaves.
+//
+// It still cannot vibrate from the background, because nothing on Pebble can.
+// What it can do is arrive without being asked, which is the part that matters.
+typedef enum {
+  PT_CHIME_OFF = 0,
+  PT_CHIME_HOUR,
+  PT_CHIME_HALF,
+  PT_CHIME_QUARTER,
+  PT_CHIME_COUNT,
+} PtChime;
+
+static PtChime s_chime = PT_CHIME_OFF;
+static uint8_t s_quiet_from = 22; // inclusive
+static uint8_t s_quiet_to = 7;    // exclusive
+static int s_chimes_scheduled = 0;
+
+static const char *chime_id_of(int i) {
+  switch (i) {
+    case PT_CHIME_HOUR: return "hour";
+    case PT_CHIME_HALF: return "half";
+    case PT_CHIME_QUARTER: return "quarter";
+    default: return "off";
+  }
+}
+
+static int chime_step_minutes(void) {
+  switch (s_chime) {
+    case PT_CHIME_HOUR: return 60;
+    case PT_CHIME_HALF: return 30;
+    case PT_CHIME_QUARTER: return 15;
+    default: return 0;
+  }
+}
+
+// An hourly buzz at three in the morning is a defect, not a feature. Quiet hours
+// silence chimes only -- every deliberate way of asking still answers, because a
+// wearer asking the time at 3am is exactly when they most need it without
+// turning on a light.
+static bool in_quiet_hours(int hour) {
+  if (s_quiet_from == s_quiet_to) return false; // no quiet period at all
+  if (s_quiet_from < s_quiet_to) return hour >= s_quiet_from && hour < s_quiet_to;
+  return hour >= s_quiet_from || hour < s_quiet_to; // wraps past midnight
+}
+
 static const char *sound_id_of(int i) {
   switch (i) {
     case PT_SOUND_WITH: return "with";
@@ -96,6 +166,7 @@ static const char *sound_id_of(int i) {
   }
 }
 
+#ifdef PBL_SPEAKER
 static uint8_t volume_percent(void) {
   switch (s_volume_choice) {
     case 0: return 30;
@@ -103,6 +174,7 @@ static uint8_t volume_percent(void) {
     default: return 65;
   }
 }
+#endif
 
 // What we can honestly say about the one worker slot on this watch.
 typedef enum {
@@ -155,6 +227,18 @@ static void load_settings(void) {
     int32_t v = persist_read_int(PERSIST_VOLUME);
     if (v >= 0 && v <= 2) s_volume_choice = (uint8_t)v;
   }
+  if (persist_exists(PERSIST_CHIME)) {
+    int32_t v = persist_read_int(PERSIST_CHIME);
+    if (v >= 0 && v < PT_CHIME_COUNT) s_chime = (PtChime)v;
+  }
+  if (persist_exists(PERSIST_QUIET_FROM)) {
+    int32_t v = persist_read_int(PERSIST_QUIET_FROM);
+    if (v >= 0 && v <= 23) s_quiet_from = (uint8_t)v;
+  }
+  if (persist_exists(PERSIST_QUIET_TO)) {
+    int32_t v = persist_read_int(PERSIST_QUIET_TO);
+    if (v >= 0 && v <= 23) s_quiet_to = (uint8_t)v;
+  }
 }
 
 static void save_settings(void) {
@@ -166,6 +250,9 @@ static void save_settings(void) {
   persist_write_int(PERSIST_QL_DOWN, (int32_t)s_ql_down);
   persist_write_int(PERSIST_SOUND, (int32_t)s_sound);
   persist_write_int(PERSIST_VOLUME, (int32_t)s_volume_choice);
+  persist_write_int(PERSIST_CHIME, (int32_t)s_chime);
+  persist_write_int(PERSIST_QUIET_FROM, (int32_t)s_quiet_from);
+  persist_write_int(PERSIST_QUIET_TO, (int32_t)s_quiet_to);
 }
 
 // Tell the phone what the watch currently uses so the Clay page stays in step
@@ -181,6 +268,9 @@ static void send_settings_to_phone(void) {
   dict_write_cstring(iter, MESSAGE_KEY_QL_DOWN, pt_scope_storage_id(s_ql_down));
   dict_write_cstring(iter, MESSAGE_KEY_SOUND, sound_id_of((int)s_sound));
   dict_write_uint8(iter, MESSAGE_KEY_VOLUME, s_volume_choice);
+  dict_write_cstring(iter, MESSAGE_KEY_CHIME, chime_id_of((int)s_chime));
+  dict_write_uint8(iter, MESSAGE_KEY_QUIET_FROM, s_quiet_from);
+  dict_write_uint8(iter, MESSAGE_KEY_QUIET_TO, s_quiet_to);
   app_message_outbox_send();
 }
 
@@ -397,6 +487,68 @@ static void play_time_cued(PtCueKind cue_kind, int cue_count) {
 }
 
 static void play_time(void) { play_time_cued(PT_CUE_NONE, 0); }
+
+// ---- chime scheduling ---------------------------------------------------------
+
+// Refill the rolling window of wakeups. Called on every launch -- including the
+// chime launches themselves, which is what keeps the chain alive without the
+// wearer ever opening the app.
+//
+// The cookie carries the INTENDED hour and minute rather than letting the woken
+// app read the clock. A wakeup can land a second either side of the boundary,
+// and "12:59" when the wearer expected one o'clock is exactly the kind of error
+// that destroys trust in a clock you cannot see.
+static void reschedule_chimes(void) {
+  wakeup_cancel_all();
+  s_chimes_scheduled = 0;
+  const int step = chime_step_minutes();
+  if (step == 0) return;
+
+  const time_t now = time(NULL);
+  struct tm slot = *localtime(&now);
+  slot.tm_sec = 0;
+  slot.tm_min = ((slot.tm_min / step) + 1) * step; // next boundary; mktime normalises
+
+  for (int i = 0; i < PT_WAKEUP_PROBES && s_chimes_scheduled < PT_WAKEUP_MAX; i++) {
+    struct tm probe = slot;
+    const time_t when = mktime(&probe); // normalises probe to real fields
+    slot.tm_min += step;
+    if (when <= now + 5) continue; // too close to schedule reliably
+    if (in_quiet_hours(probe.tm_hour)) continue; // do not spend a slot on a chime we would skip
+    const int32_t cookie = probe.tm_hour * 100 + probe.tm_min;
+    // notify_if_missed: if the watch was off when this was due, say so on
+    // power-up rather than silently dropping it.
+    const WakeupId id = wakeup_schedule(when, cookie, true);
+    if (id >= 0) {
+      // The first slot is logged because "chimes are on" and "a chime will
+      // actually happen at 14:00" are different claims, and only the second one
+      // is worth anything to someone who cannot see the screen.
+      if (s_chimes_scheduled == 0) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "PulseTime: next chime %02d:%02d",
+                probe.tm_hour, probe.tm_min);
+      }
+      s_chimes_scheduled++;
+    }
+    // A negative id is usually E_RANGE -- another app owns a wakeup within a
+    // minute of this slot. Skip it and take the next; do not give up.
+  }
+  APP_LOG(APP_LOG_LEVEL_INFO, "PulseTime: chime=%s scheduled %d/%d wakeups",
+          chime_id_of((int)s_chime), s_chimes_scheduled, PT_WAKEUP_MAX);
+}
+
+// Play the time a chime was scheduled for. On the hour, strike just the hour:
+// at :00 the minute field is empty anyway, and a bare hour is what a chiming
+// clock has always meant. At a quarter or half, the minutes are the point.
+static void play_chime(int hour, int minute) {
+  play_at(hour, minute, PT_CUE_NONE, 0, minute == 0 ? PT_SCOPE_HOURS : PT_SCOPE_FULL);
+}
+
+static void wakeup_handler(WakeupId id, int32_t cookie) {
+  // A wakeup that lands while the app is already open. Play it, but do not take
+  // over the screen -- the wearer is here on purpose.
+  if (cookie >= 0 && cookie <= 2359) play_chime((int)(cookie / 100), (int)(cookie % 100));
+  reschedule_chimes();
+}
 
 // Which half of the time this launch asked for. Only Quick Launch carries a
 // button; a launch from the menu, the phone, or the worker always means the
@@ -665,6 +817,21 @@ static void draw(Layer *layer, GContext *ctx) {
                      GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
   y += big ? 22 : 18;
 
+  // Chime state. It reports the number of wakeups actually scheduled, not the
+  // setting: "hourly" with nothing scheduled would be a lie, and the failure is
+  // real (another app can own a wakeup within a minute of every slot we want).
+  if (s_chime != PT_CHIME_OFF) {
+    char chime_line[28];
+    const char *every = (s_chime == PT_CHIME_HOUR)   ? "hourly"
+                        : (s_chime == PT_CHIME_HALF) ? ":00 :30"
+                                                     : "quarters";
+    snprintf(chime_line, sizeof chime_line, "Chime %s (%d)", every, s_chimes_scheduled);
+    graphics_context_set_text_color(ctx, s_chimes_scheduled > 0 ? accent : muted);
+    graphics_draw_text(ctx, chime_line, sub_font, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
+                       GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+    y += big ? 22 : 18;
+  }
+
   // Worker state, one short line, so "on" is never a silent assumption.
   graphics_context_set_text_color(ctx, s_flick_state == FLICK_ON ? accent : muted);
   graphics_draw_text(ctx, flick_line(), sub_font, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
@@ -809,6 +976,19 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     s_exact = f; changed = true;
   }
   bool scopes_changed = false;
+  bool chime_changed = false;
+  if (read_choice(dict_find(iter, MESSAGE_KEY_CHIME), chime_id_of, PT_CHIME_COUNT, &v) &&
+      v != (int)s_chime) {
+    s_chime = (PtChime)v; chime_changed = true;
+  }
+  if (read_int(dict_find(iter, MESSAGE_KEY_QUIET_FROM), &vol) && vol >= 0 && vol <= 23 &&
+      (uint8_t)vol != s_quiet_from) {
+    s_quiet_from = (uint8_t)vol; chime_changed = true;
+  }
+  if (read_int(dict_find(iter, MESSAGE_KEY_QUIET_TO), &vol) && vol >= 0 && vol <= 23 &&
+      (uint8_t)vol != s_quiet_to) {
+    s_quiet_to = (uint8_t)vol; chime_changed = true;
+  }
   if (read_choice(dict_find(iter, MESSAGE_KEY_SOUND), sound_id_of, PT_SOUND_COUNT, &v) &&
       v != (int)s_sound) {
     s_sound = (PtSound)v; changed = true;
@@ -834,10 +1014,11 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     save_settings();
     apply_flick_setting();
   }
-  if (changed || scopes_changed) {
+  if (changed || scopes_changed || chime_changed) {
     save_settings();
     if (s_canvas) layer_mark_dirty(s_canvas);
   }
+  if (chime_changed) reschedule_chimes();
   if (requested) {
     send_settings_to_phone();
     return; // answering a query is not a reason to buzz
@@ -870,7 +1051,23 @@ static void init(void) {
   // quiet_worker() still finds the worker here — it is by definition already
   // running, since it is what launched us.
   s_launch_scope = launch_scope();
-  if (s_auto_exit) play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);
+
+  // A chime wakeup: the system launched us purely so the time could be felt.
+  // Buzz first and leave afterwards, exactly like the worker gesture path.
+  WakeupId woke_id;
+  int32_t woke_cookie = -1;
+  const bool woke_for_chime =
+      (launch_reason() == APP_LAUNCH_WAKEUP) && wakeup_get_launch_event(&woke_id, &woke_cookie);
+  if (woke_for_chime) {
+    s_auto_exit = true;
+    if (woke_cookie >= 0 && woke_cookie <= 2359) {
+      play_chime((int)(woke_cookie / 100), (int)(woke_cookie % 100));
+    } else {
+      play_time(); // cookie lost somehow; the current time is still the truth
+    }
+  } else if (s_auto_exit) {
+    play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);
+  }
 
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
@@ -887,8 +1084,14 @@ static void init(void) {
   accel_tap_service_subscribe(tap_handler);
   apply_flick_setting(); // before play_time, so quiet_worker finds the worker
 
+  wakeup_service_subscribe(wakeup_handler);
+  // Top up the rolling window on every launch. The chime wakeups are launches
+  // too, so with chimes on this refills itself and the wearer never has to open
+  // the app to keep it going.
+  reschedule_chimes();
+
   // The whole point: tell the time on launch, in whatever scope the gesture
-  // asked for.
+  // asked for. A chime launch already played above.
   if (!s_auto_exit) play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);
 }
 

@@ -115,6 +115,50 @@ double-length pulse.
 Once the app is open, **any button press drops back to the whole time**, so a
 scoped launch always has a way to the full answer without leaving.
 
+### Chimes: the one path that needs nothing running
+
+`wakeup_schedule()` has the system launch PulseTime at a chosen moment, whether
+or not it is running and whatever watchface is showing. The app buzzes and
+closes itself. **Nothing is resident in between** — no worker, no process, no
+battery drawn while it waits, and the watch's single worker slot stays free.
+
+This is the important distinction from the watchface variant. A watchface can
+chime, but only while it is the *foreground app*: open any app, or even the
+launcher, and it is unloaded along with its tick subscription. The wakeup path
+has no such condition.
+
+It does **not** break the platform rule — Pebble still cannot vibrate from a
+background context. What it does is make the app appear without being asked,
+which is the part that matters.
+
+| Constant | Value | Why |
+|---|---|---|
+| `PT_WAKEUP_MAX` | 8 | Pebble's hard per-app limit on scheduled wakeups. |
+| `PT_WAKEUP_PROBES` | 96 | Candidate slots examined; quiet hours can eat a long run, so this must exceed the limit comfortably. |
+
+So a recurring chime is **not** "schedule forever" — it is a rolling window,
+topped up on every launch. Since each chime *is* a launch, the chain sustains
+itself and the wearer never has to open the app. Coverage at any moment:
+hourly ≈ 8 hours ahead, half-hourly ≈ 4, quarter-hourly ≈ 2.
+
+Details that are easy to get wrong:
+
+- **The cookie carries the intended hour and minute**, rather than letting the
+  woken app read the clock. A wakeup can land a second either side of the
+  boundary, and announcing "12:59" when the wearer expected one o'clock is
+  exactly the kind of error that destroys trust in a clock you cannot see.
+- **A negative `WakeupId` is usually `E_RANGE`** — another app already owns a
+  wakeup within a minute of that slot. Skip it and take the next candidate;
+  never treat it as fatal.
+- **Quiet hours are applied at scheduling time**, not at wake time. Booking a
+  wakeup only to ignore it would waste one of the eight slots.
+- **The screen reports the number actually scheduled**, e.g. `Chime hourly (8)`,
+  not the setting. "Chimes are on" and "a chime will really happen" are
+  different claims, and only the second is worth anything.
+- `wakeup_schedule` is present on **every** platform including the frozen ones,
+  so unlike the Quick Launch scopes and the speaker this works on a Pebble 2 SE
+  exactly as it does on a Time 2.
+
 ### Sound: the dimension the motor cannot carry
 
 `PBL_SPEAKER` is defined for **emery (Pebble Time 2)** and **flint (Pebble 2
@@ -178,10 +222,10 @@ test covers it and the watchface variant can reuse it.
   (or "Playing h:mm" while the pattern runs), and two hint lines. Works in
   1-bit on diorite/flint, centres inside the chalk circle, and scales up on
   emery/gabbro (`big` = unobstructed height >= 200).
-- Settings (`persist_*` keys 1–8): time system, playback speed, exact minutes,
-  flick to tell time, what each Quick Launch button plays, sound mode, and
-  volume. Defaults: Terse Quarter, Standard, off, off, whole time, whole time,
-  sound off, medium.
+- Settings (`persist_*` keys 1–11): time system, playback speed, exact minutes,
+  flick to tell time, what each Quick Launch button plays, sound mode, volume,
+  chime interval, and the quiet-hours window. Defaults: Terse Quarter, Standard,
+  off, off, whole time, whole time, sound off, medium, chimes off, 22:00–07:00.
 
 Pebble motors have **no amplitude control**, so the encoder's relative
 `layer` (100/72/50/45) is carried for the host test but ignored on the watch.

@@ -167,13 +167,18 @@ open. Both ports run the same six systems from the same fixtures:
   Quick Launch buttons and each can say something different: `launch_button()`
   reports which one was held, so hold-Up can give **just the hour** and hold-Down
   **just the minutes**. An optional background worker (off by default) turns a
-  double wrist-tap from any watchface into: launch, buzz, exit.
+  double wrist-tap from any watchface into: launch, buzz, exit. It can also
+  **chime** — on the hour, half or quarter — which needs no gesture and, unlike
+  everything else here, does not depend on what the wearer is looking at:
+  `wakeup_schedule()` has the watch launch PulseTime at the chosen moment with
+  nothing resident in between, so it costs no battery while it waits.
   `appstores/pebble/pulsetime/BUILD.md`.
-- `appstores/pebble/pulsetime-face/` — the same clock as a **watchface**, which
-  is the only arrangement on any of these platforms that needs no gesture at
-  all. Double-tap to feel the time, and it can **chime** on its own — impossible
-  in any app, because no Pebble background context can vibrate. It shares the
-  watchapp's encoder by symlink, so the two can never drift.
+- `appstores/pebble/pulsetime-face/` — the same clock as a **watchface**, for
+  wearers who want the time under a double-tap with nothing to open and no
+  scheduling involved. It shares the watchapp's encoder by symlink, so the two
+  can never drift. Note that a watchface only runs while it is the foreground
+  app: open any app, or the launcher, and it stops until you come back. For
+  chimes that survive that, use the watchapp's.
   `appstores/pebble/pulsetime-face/BUILD.md`.
 - On the Pebble Time 2 and Pebble 2 Duo, PulseTime can also play the pattern
   through the **speaker**. That is not decoration: several systems separate

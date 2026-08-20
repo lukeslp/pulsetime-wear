@@ -56,8 +56,8 @@ watchapp rather than here:
   running*. Max **8** scheduled events per app, and no event may be scheduled
   within **one minute** of another already-scheduled one (`E_RANGE`), so hourly
   chimes mean keeping a rolling window topped up. Costs nothing at all while
-  idle: no resident process. This is the right answer for chimes and is **not
-  built**.
+  idle: no resident process. **Built in the watchapp** — see
+  `../pulsetime/BUILD.md`. If chimes are what you want, that is the one to use.
 - **The background worker** — `pebble_worker.h` does expose
   `tick_timer_service_subscribe()`, so the existing worker could fire on the
   hour and `worker_launch_app()`. But it holds the watch's single worker slot

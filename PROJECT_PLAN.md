@@ -40,7 +40,7 @@ coupling.
 | W6 | Eyes-free operation: confirmation cues, speed and practice on the wrist | done, verified on emulator + Time 2 |
 | W7 | Hours-only / minutes-only per Quick Launch button (`launch_button()`) | done, 840 scoped fixtures; **wrist check open** — no emulator can trigger a real Quick Launch |
 | W8 | Speaker output on emery/flint: relative strength becomes pitch | done; wrist check open |
-| W9 | `wakeup_schedule()` chimes in the **watchapp** — the only path that fires with nothing resident and regardless of which watchface is showing (8 events max, 1-minute exclusion window) | not started |
+| W9 | `wakeup_schedule()` chimes in the **watchapp** — the only path that fires with nothing resident and regardless of which watchface is showing (8 events max, 1-minute exclusion window) | **built**, rolling 8-slot window topped up on every launch, quiet hours applied at scheduling time; works on every platform including the frozen ones |
 | W5 | Store submissions (Connect IQ, Pebble appstore) | human gate — now **three** listings: Garmin app, Pebble watchapp, Pebble watchface |
 
 ## Outstanding

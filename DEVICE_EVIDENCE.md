@@ -144,3 +144,39 @@ Emulator evidence, all on the emery (Pebble Time 2) profile unless noted:
   crossing 15:00 fired no chime; the same crossing with the face on screen fired
   at 14:00. It resumes by itself on the way back. Chimes that survive this need
   `wakeup_schedule()` in the watchapp (W9) - see `docs/invocation-paths.md`.
+
+## Background chimes via wakeup_schedule (2026-08-19)
+
+The appeal of a haptic clock is that it can tell you the time without being
+asked. On Pebble that is `wakeup_schedule()` and nothing else: a watchface only
+runs while it is the foreground app, and no background context can vibrate.
+
+Emery emulator, quarter-hourly chimes, PulseTime **closed** and the watchface on
+screen (its own chime set to hourly, so it could not be the source at :30):
+
+```
+[19:16:02] PulseTime: next chime 19:30
+[19:16:02] PulseTime: chime=quarter scheduled 8/8 wakeups
+[19:16:35] Heap Usage for App <PulseTime>: ... Still allocated <0B>   <- app exits
+[19:30:00] Heap Usage for App <PulseTime                              <- system launches it
+[19:30:00] PulseTime: five_minute_ladder standard full exact=0 19:30 -> 16 seg
+[19:30:00] PulseTime: next chime 19:45
+[19:30:00] PulseTime: chime=quarter scheduled 8/8 wakeups             <- chain re-arms
+[19:30:07] Heap Usage for App <PulseTime>: ... Still allocated <0B>   <- exits clean
+```
+
+- [x] Fires at the exact boundary with nothing of ours running.
+- [x] Plays the whole time at :30 (`scope=full`); the hour strike is `scope=hours`.
+- [x] Re-arms its own rolling window, so the wearer never has to open the app.
+- [x] Exits with `Still allocated <0B>` — no leak across repeated wakeups.
+- [x] 8/8 slots accepted; no `E_RANGE` collisions with other apps on this watch.
+- [ ] **Wrist, Time 2:** does the brief app appearance read as intrusive, or does
+  it pass unnoticed? This is the one thing the log cannot answer.
+- [ ] **Wrist:** confirm the chain survives a watch power cycle
+  (`notify_if_missed` is set, so missed chimes should be reported on power-up).
+- [ ] **Pebble 2 SE (diorite):** `wakeup_schedule` is present on every platform,
+  so chimes should behave identically there — the only major feature that does.
+
+Note: `pebble emu-set-time` cannot be used to test this. pypkjs (the emulated
+phone) re-syncs the watch clock back to host time, so the jump silently reverts.
+Use quarter-hourly chimes and wait for a real boundary instead.

@@ -35,6 +35,9 @@
       "QL_DOWN",
       "SOUND",
       "VOLUME",
+      "CHIME",
+      "QUIET_FROM",
+      "QUIET_TO",
       "REQUEST"
     ],
     "resources": {

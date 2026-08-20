@@ -35,7 +35,7 @@ target — PulseTime has no watchOS build.
 | Glance loop | swipe up, tap | The default. The app vibrates on `onShow`. |
 | Published complication on a watch face | one tap | Built. The complication is a **launcher**: a face calls `Complications.exitTo(id)` and the system foregrounds PulseTime, which vibrates. Requires API 4.2.0; the Venu 2S is CIQ 5.0. |
 | **Watchface** (`appstores/pebble/pulsetime-face/`) | **none** | **Built.** It is already running and it can vibrate, so the gesture count is zero. Double-tap tells the time; chimes need no gesture at all. Costs being your watchface — and only works while the face is the *running* app, see below. |
-| `wakeup_schedule()` | none | **Not built.** The only mechanism that fires with no resident process and regardless of which watchface is showing. |
+| **Chimes** via `wakeup_schedule()` (watchapp) | **none** | **Built.** The only mechanism that fires with no resident process at all and regardless of which watchface is showing. The system launches the app, it buzzes, it closes. |
 | App list | more | Fallback. |
 
 Hard limits:
@@ -111,13 +111,20 @@ Hard limits:
   no chime, where the same crossing on the face did. It resumes by itself on the
   way back, so the practical scope is "answers whenever the wearer is on their
   watchface", which is nearly always.
-- **`wakeup_schedule()` is the one path that needs nothing resident.** It
-  launches an app at a set time even when it is not running: max **8** events
-  per app, and no event within **one minute** of another already scheduled
-  (`E_RANGE`), so a recurring chime means topping up a rolling window. Unlike a
-  worker it costs nothing while idle and does not take the watch's single worker
-  slot. `pebble_worker.h` *does* expose `tick_timer_service_subscribe()`, so a
-  worker is a second option, at the price of running all day.
+- **`wakeup_schedule()` is the one path that needs nothing resident**, and is
+  what PulseTime's chimes use. Max **8** events per app, and no event within
+  **one minute** of another already scheduled (`E_RANGE`, and the collision can
+  be with *another app's* wakeup), so a recurring chime is a rolling window
+  topped up on every launch — and since each chime is itself a launch, the chain
+  sustains itself. Unlike a worker it costs nothing while idle and does not take
+  the watch's single worker slot. Available on **every** platform including the
+  frozen ones, so it is the only major PulseTime feature that behaves
+  identically on a Pebble 2 SE and a Pebble Time 2. `pebble_worker.h` does also
+  expose `tick_timer_service_subscribe()`, so a worker was the alternative, at
+  the price of running all day for the same result.
+- **Carry the intended time in the wakeup cookie.** A wakeup can land a second
+  either side of the boundary, and a clock you cannot see announcing "12:59"
+  when you expected one o'clock is worse than no chime at all.
 - **A speaker changes the answer on two watches.** `PBL_SPEAKER` is defined for
   **emery (Pebble Time 2)** and **flint (Pebble 2 Duo)** — not gabbro. Where it
   exists, `speaker_play_notes()` gives back the relative-strength dimension the

@@ -1,8 +1,8 @@
 // PulseTime — phone-side companion (PebbleKit JS).
-// The watch does all the work; the phone only hosts the Clay configuration
-// page (time system, playback speed, exact minutes, flick launch) and mirrors whatever the
-// watch reports back so the page never shows a stale choice after the user
-// cycles systems with Up/Down on the watch itself.
+// The watch does all the work; the phone only hosts the Clay configuration page
+// and mirrors whatever the watch reports back, so the page never shows a stale
+// choice after the wearer changes something with the buttons -- which they can
+// do for the time system, the speed and exact minutes.
 
 'use strict';
 
@@ -12,6 +12,14 @@ var clay = new Clay(clayConfig); // auto-handles showConfiguration + webviewclos
 
 var SYSTEMS = ['terse_quarter', 'five_minute_ladder', 'decimal_place', 'binary_clock', 'nearest_quarter', 'morse_digits'];
 var SPEEDS = ['slow', 'standard', 'fast'];
+var SCOPES = ['full', 'hours', 'minutes'];
+var CHIMES = ['off', 'hour', 'half', 'quarter'];
+var SOUNDS = ['off', 'with', 'only'];
+
+function pick(value, list) {
+  var v = typeof value === 'number' ? list[value] : String(value);
+  return list.indexOf(v) !== -1 ? v : null;
+}
 
 function mirror(payload) {
   var settings = {};
@@ -25,6 +33,22 @@ function mirror(payload) {
   }
   if (payload.EXACT_MINUTES !== undefined) settings.EXACT_MINUTES = !!Number(payload.EXACT_MINUTES);
   if (payload.FLICK_LAUNCH !== undefined) settings.FLICK_LAUNCH = !!Number(payload.FLICK_LAUNCH);
+  ['QL_UP', 'QL_DOWN'].forEach(function (key) {
+    if (payload[key] === undefined) return;
+    var scope = pick(payload[key], SCOPES);
+    if (scope) settings[key] = scope;
+  });
+  if (payload.CHIME !== undefined) {
+    var chime = pick(payload.CHIME, CHIMES);
+    if (chime) settings.CHIME = chime;
+  }
+  if (payload.SOUND !== undefined) {
+    var sound = pick(payload.SOUND, SOUNDS);
+    if (sound) settings.SOUND = sound;
+  }
+  if (payload.QUIET_FROM !== undefined) settings.QUIET_FROM = String(Number(payload.QUIET_FROM));
+  if (payload.QUIET_TO !== undefined) settings.QUIET_TO = String(Number(payload.QUIET_TO));
+  if (payload.VOLUME !== undefined) settings.VOLUME = String(Number(payload.VOLUME));
   if (Object.keys(settings).length) clay.setSettings(settings);
 }
 
