@@ -64,6 +64,35 @@ size_t pt_to_vibe(const PtSegment *segs, size_t count, uint32_t *durations, size
 // Total wall time of a pattern in milliseconds (sum of every on and off).
 uint32_t pt_duration_ms(const PtSegment *segs, size_t count);
 
+// A confirmation cue: `count` identical pulses meant to be played immediately
+// before a time pattern, so a wearer who cannot see the screen knows which
+// setting they just landed on. Pulse LENGTH carries which setting changed,
+// because a bare count would be ambiguous between two settings:
+//
+//   PT_CUE_SYSTEM -> short pulses, counting the time system (1..6)
+//   PT_CUE_SPEED  -> long pulses, counting the playback speed (1..3)
+//
+// Every pulse is identical and evenly spaced, which no time system produces, so
+// a cue is never mistaken for the time that follows it.
+typedef enum {
+  PT_CUE_NONE = 0,
+  PT_CUE_SYSTEM,
+  PT_CUE_SPEED,
+} PtCueKind;
+
+#define PT_CUE_SHORT_MS 60
+#define PT_CUE_LONG_MS 220
+#define PT_CUE_GAP_MS 150
+#define PT_CUE_LEAD_MS 500 // silence between the cue and the time itself
+
+// Write the cue as ON, OFF, ON, ... into `durations`. Always ends on an OFF, so
+// a time pattern can be appended directly without breaking the alternation.
+// Adds the cue's wall time to `*total_ms`. Returns the number of slots written,
+// which is 0 for PT_CUE_NONE, a non-positive count, or a cap under 2 slots.
+// Never fills the last two slots of `cap`, so an ON/OFF pair of time always fits.
+size_t pt_cue_durations(PtCueKind kind, int count, uint32_t *durations, size_t cap,
+                        uint32_t *total_ms);
+
 // Storage ids match Kotlin `storageId` so phone/watch settings share names.
 const char *pt_system_storage_id(PtSystem system);
 const char *pt_system_title(PtSystem system);       // "Terse Quarter"

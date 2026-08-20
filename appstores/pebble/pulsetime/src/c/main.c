@@ -4,9 +4,15 @@
 // Launch (bind to Quick Launch for a one-gesture "tell time"): the app encodes
 // the local time with the saved time system / speed / exact-minutes settings
 // and vibrates at once. Select repeats with a fresh time; Up/Down cycle the six
-// time systems (persisted, redrawn, and played); a wrist flick repeats; Back
+// time systems and a HOLD on Up/Down cycles the playback speed; holding Select
+// toggles exact minutes where the system has them. A wrist flick repeats; Back
 // exits. Settings also arrive from the phone's Clay config page over
 // AppMessage and are applied immediately.
+//
+// Every setting change answers with a haptic confirmation cue before the time
+// (short pulses count the time system, long pulses count the speed), so the app
+// is fully operable by a wearer who never sees the screen. Nothing here is
+// confirmed by sight alone.
 //
 // The optional background worker (worker_src/c/worker.c) watches for a double
 // wrist tap from any watchface and calls worker_launch_app(). A launch with
@@ -204,44 +210,79 @@ static void playback_done(void *data) {
   if (s_canvas) layer_mark_dirty(s_canvas);
 }
 
-static void play_time(void) {
+// Play the current local time, optionally preceded by a confirmation cue.
+// Cue and time go into ONE vibe pattern on purpose: vibes_enqueue_custom_pattern
+// is a no-op while a pattern is playing, so two calls would drop the second.
+static void play_time_cued(PtCueKind cue_kind, int cue_count) {
   time_t now = time(NULL);
   struct tm *tm = localtime(&now);
   int hour = tm->tm_hour, minute = tm->tm_min;
 
   size_t n = pt_encode(s_system, s_speed, s_exact, hour, minute, s_segments, PT_MAX_SEGMENTS);
-  size_t dn = pt_to_vibe(s_segments, n, s_durations, ARRAY_LENGTH(s_durations));
+  uint32_t cue_ms = 0;
+  size_t used = pt_cue_durations(cue_kind, cue_count, s_durations,
+                                 ARRAY_LENGTH(s_durations), &cue_ms);
+  size_t dn = pt_to_vibe(s_segments, n, s_durations + used, ARRAY_LENGTH(s_durations) - used);
   if (dn == 0) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "PulseTime: encode failed (%d:%02d)", hour, minute);
     return;
   }
-  for (size_t i = 0; i < dn; i++) {
+  const size_t total_slots = used + dn;
+  for (size_t i = 0; i < total_slots; i++) {
     if (s_durations[i] > 10000) s_durations[i] = 10000; // API maximum per segment
   }
 
   vibes_cancel(); // an enqueue while a pattern plays would be a no-op
-  VibePattern pattern = { .durations = s_durations, .num_segments = (uint32_t)dn };
+  VibePattern pattern = { .durations = s_durations, .num_segments = (uint32_t)total_slots };
   vibes_enqueue_custom_pattern(pattern);
 
   s_playing = true;
   s_played_hour = hour;
   s_played_minute = minute;
   if (s_done_timer) app_timer_cancel(s_done_timer);
-  const uint32_t total_ms = pt_duration_ms(s_segments, n);
+  const uint32_t total_ms = cue_ms + pt_duration_ms(s_segments, n);
   quiet_worker(total_ms + PT_WORKER_QUIET_MARGIN_MS);
   s_done_timer = app_timer_register(total_ms + 150, playback_done, NULL);
-  APP_LOG(APP_LOG_LEVEL_INFO, "PulseTime: %s %s exact=%d %d:%02d -> %u segments, %u vibe slots",
+  APP_LOG(APP_LOG_LEVEL_INFO, "PulseTime: %s %s exact=%d %d:%02d -> %u segments, %u vibe slots (cue %d x%d)",
           pt_system_storage_id(s_system), pt_speed_storage_id(s_speed), s_exact ? 1 : 0,
-          hour, minute, (unsigned)n, (unsigned)dn);
+          hour, minute, (unsigned)n, (unsigned)total_slots, (int)cue_kind, cue_count);
   if (s_canvas) layer_mark_dirty(s_canvas);
 }
+
+static void play_time(void) { play_time_cued(PT_CUE_NONE, 0); }
 
 static void cycle_system(int delta) {
   int next = ((int)s_system + delta + PT_SYSTEM_COUNT) % PT_SYSTEM_COUNT;
   s_system = (PtSystem)next;
   save_settings();
   send_settings_to_phone();
-  layer_mark_dirty(s_canvas);
+  if (s_canvas) layer_mark_dirty(s_canvas);
+  // N short pulses = "you are on system N", then the time in that system.
+  play_time_cued(PT_CUE_SYSTEM, next + 1);
+}
+
+static void cycle_speed(int delta) {
+  int next = ((int)s_speed + delta + PT_SPEED_COUNT) % PT_SPEED_COUNT;
+  s_speed = (PtSpeed)next;
+  save_settings();
+  send_settings_to_phone();
+  if (s_canvas) layer_mark_dirty(s_canvas);
+  // N long pulses = "you are on speed N", at that speed.
+  play_time_cued(PT_CUE_SPEED, next + 1);
+}
+
+// Exact minutes only exists for Terse Quarter; the other five systems are
+// already exact to the minute. No cue is needed here because the toggle
+// changes the time pattern itself — the extra minute ticks ARE the feedback.
+static void toggle_exact(void) {
+  if (pt_system_inherently_exact(s_system)) {
+    play_time(); // nothing to toggle; just repeat so the press is never silent
+    return;
+  }
+  s_exact = !s_exact;
+  save_settings();
+  send_settings_to_phone();
+  if (s_canvas) layer_mark_dirty(s_canvas);
   play_time();
 }
 
@@ -321,9 +362,11 @@ static void draw(Layer *layer, GContext *ctx) {
     graphics_draw_text(ctx, s_flick_note, hint_font, GRect(inset, hint_y, w - 2 * inset, 2 * hint_h),
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
   } else {
-    graphics_draw_text(ctx, "Select: repeat", hint_font, GRect(inset, hint_y, w - 2 * inset, hint_h),
+    // Kept short on purpose: 144 px of GOTHIC_14 is about twenty characters,
+    // and an ellipsised hint teaches nothing.
+    graphics_draw_text(ctx, "Sel play \u00b7 Up/Dn sys", hint_font, GRect(inset, hint_y, w - 2 * inset, hint_h),
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-    graphics_draw_text(ctx, "Up/Down: system", hint_font, GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
+    graphics_draw_text(ctx, "Hold: speed, exact", hint_font, GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
   }
 }
@@ -331,14 +374,24 @@ static void draw(Layer *layer, GContext *ctx) {
 // ---- input --------------------------------------------------------------------
 
 // Any button press means the wearer wants to stay, so cancel the auto-exit.
+// Every press produces a vibration, so the app is fully operable with the
+// screen off or unseen: nothing here is confirmed by sight alone.
 static void select_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; play_time(); }
 static void up_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_system(-1); }
 static void down_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_system(+1); }
+static void up_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_speed(-1); }
+static void down_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; cycle_speed(+1); }
+static void select_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; toggle_exact(); }
 
 static void click_config(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click);
   window_single_click_subscribe(BUTTON_ID_UP, up_click);
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click);
+  // Long presses reach the settings that used to need the phone. 0 = the
+  // system default hold time, so it matches every other Pebble app.
+  window_long_click_subscribe(BUTTON_ID_UP, 0, up_long, NULL);
+  window_long_click_subscribe(BUTTON_ID_DOWN, 0, down_long, NULL);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 0, select_long, NULL);
   // BACK keeps its default: pop the window and exit.
 }
 
@@ -355,6 +408,43 @@ static void tick(struct tm *tick_time, TimeUnits units_changed) {
 
 // ---- phone messages -------------------------------------------------------------
 
+// Read an integer tuple at the width the sender actually used. Only `length`
+// says how many bytes are there, so reading `.uint32` off a one-byte tuple
+// walks past the value into the next entry.
+static bool read_int(Tuple *t, int32_t *out) {
+  if (!t) return false;
+  if (t->type == TUPLE_UINT) {
+    switch (t->length) {
+      case 1: *out = (int32_t)t->value->uint8; return true;
+      case 2: *out = (int32_t)t->value->uint16; return true;
+      case 4: *out = (int32_t)t->value->uint32; return true;
+      default: return false;
+    }
+  }
+  if (t->type == TUPLE_INT) {
+    switch (t->length) {
+      case 1: *out = (int32_t)t->value->int8; return true;
+      case 2: *out = (int32_t)t->value->int16; return true;
+      case 4: *out = t->value->int32; return true;
+      default: return false;
+    }
+  }
+  return false;
+}
+
+static bool read_flag(Tuple *t, bool *out) {
+  if (!t) return false;
+  if (t->type == TUPLE_CSTRING) {
+    const char *s = t->value->cstring;
+    *out = (s[0] == '1' || s[0] == 't' || s[0] == 'T' || s[0] == 'y' || s[0] == 'Y');
+    return true;
+  }
+  int32_t v;
+  if (!read_int(t, &v)) return false;
+  *out = (v != 0);
+  return true;
+}
+
 static bool read_choice(Tuple *t, const char *(*id_of)(int), int count, int *out) {
   if (!t) return false;
   if (t->type == TUPLE_CSTRING) {
@@ -367,8 +457,8 @@ static bool read_choice(Tuple *t, const char *(*id_of)(int), int count, int *out
     }
     return false;
   }
-  int32_t v = t->value->int32;
-  if (t->type == TUPLE_UINT) v = (int32_t)t->value->uint32;
+  int32_t v;
+  if (!read_int(t, &v)) return false;
   if (v >= 0 && v < count) { *out = (int)v; return true; }
   return false;
 }
@@ -379,6 +469,7 @@ static const char *speed_id_of(int i) { return pt_speed_storage_id((PtSpeed)i); 
 static void inbox_received(DictionaryIterator *iter, void *context) {
   bool changed = false;
   int v;
+  bool f;
   if (read_choice(dict_find(iter, MESSAGE_KEY_SYSTEM), system_id_of, PT_SYSTEM_COUNT, &v) && v != (int)s_system) {
     s_system = (PtSystem)v; changed = true;
   }
@@ -386,24 +477,16 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     s_speed = (PtSpeed)v; changed = true;
   }
   bool flick_changed = false;
-  Tuple *flick = dict_find(iter, MESSAGE_KEY_FLICK_LAUNCH);
-  if (flick) {
-    bool f;
-    if (flick->type == TUPLE_CSTRING) { const char *s = flick->value->cstring; f = s[0] == '1' || s[0] == 't'; }
-    else f = flick->value->int32 != 0;
-    if (f != s_flick) { s_flick = f; flick_changed = true; }
+  if (read_flag(dict_find(iter, MESSAGE_KEY_FLICK_LAUNCH), &f) && f != s_flick) {
+    s_flick = f; flick_changed = true;
   }
-  Tuple *exact = dict_find(iter, MESSAGE_KEY_EXACT_MINUTES);
-  if (exact) {
-    bool e;
-    if (exact->type == TUPLE_CSTRING) { const char *s = exact->value->cstring; e = s[0] == '1' || s[0] == 't'; }
-    else e = exact->value->int32 != 0;
-    if (e != s_exact) { s_exact = e; changed = true; }
+  if (read_flag(dict_find(iter, MESSAGE_KEY_EXACT_MINUTES), &f) && f != s_exact) {
+    s_exact = f; changed = true;
   }
-  if (dict_find(iter, MESSAGE_KEY_REQUEST)) {
-    send_settings_to_phone(); // the phone asked what the watch is using
-    return;
-  }
+
+  // A REQUEST asks what the watch is using. Apply anything that came with it
+  // first, or the answer would report settings the watch never adopted.
+  const bool requested = dict_find(iter, MESSAGE_KEY_REQUEST) != NULL;
   if (flick_changed) {
     s_auto_exit = false; // the wearer is configuring; don't vanish mid-change
     save_settings();
@@ -411,9 +494,13 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   }
   if (changed) {
     save_settings();
-    layer_mark_dirty(s_canvas);
-    play_time(); // let the user feel the new setting straight away
+    if (s_canvas) layer_mark_dirty(s_canvas);
   }
+  if (requested) {
+    send_settings_to_phone();
+    return; // answering a query is not a reason to buzz
+  }
+  if (changed) play_time(); // let the user feel the new setting straight away
 }
 
 // ---- lifecycle --------------------------------------------------------------------
@@ -435,6 +522,13 @@ static void init(void) {
   // APP_LAUNCH_WORKER means the double-tap gesture opened us: buzz and go.
   s_auto_exit = (launch_reason() == APP_LAUNCH_WORKER);
 
+  // On a gesture launch the wearer is waiting on exactly one thing, so vibrate
+  // before building any UI: window creation, the AppMessage buffers and the
+  // service subscriptions below all cost milliseconds the gesture can feel.
+  // quiet_worker() still finds the worker here — it is by definition already
+  // running, since it is what launched us.
+  if (s_auto_exit) play_time();
+
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
   window_set_click_config_provider(s_window, click_config);
@@ -450,7 +544,7 @@ static void init(void) {
   accel_tap_service_subscribe(tap_handler);
   apply_flick_setting(); // before play_time, so quiet_worker finds the worker
 
-  play_time(); // the whole point: tell the time on launch
+  if (!s_auto_exit) play_time(); // the whole point: tell the time on launch
 }
 
 static void deinit(void) {

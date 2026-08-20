@@ -285,3 +285,20 @@ PtSpeed pt_speed_from_storage(const char *id) {
   if (id) for (int i = 0; i < PT_SPEED_COUNT; i++) if (strcmp(id, SPEED_IDS[i]) == 0) return (PtSpeed)i;
   return PT_SPEED_STANDARD;
 }
+
+size_t pt_cue_durations(PtCueKind kind, int count, uint32_t *durations, size_t cap,
+                        uint32_t *total_ms) {
+  if (total_ms) *total_ms = 0;
+  if (durations == NULL || kind == PT_CUE_NONE || count <= 0 || cap < 4) return 0;
+  const uint32_t on_ms = (kind == PT_CUE_SPEED) ? PT_CUE_LONG_MS : PT_CUE_SHORT_MS;
+  size_t slot = 0;
+  for (int i = 0; i < count; i++) {
+    // Leave room for at least one ON/OFF pair of the time pattern itself.
+    if (slot + 4 > cap) break;
+    const uint32_t gap = (i == count - 1) ? PT_CUE_LEAD_MS : PT_CUE_GAP_MS;
+    durations[slot++] = on_ms;
+    durations[slot++] = gap;
+    if (total_ms) *total_ms += on_ms + gap;
+  }
+  return slot;
+}

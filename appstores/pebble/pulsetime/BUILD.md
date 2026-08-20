@@ -20,9 +20,36 @@ binary included on every platform), runs in the `basalt`, `diorite`, and
 - **Launch = tell time.** The app encodes `localtime()` with the saved settings
   and vibrates immediately. It is a watchapp (not a watchface) so it can be
   bound to **Quick Launch** (hold Up or Down) — that is the intended gesture.
+  On a worker (gesture) launch the vibration is started *before* the window,
+  AppMessage buffers, and service subscriptions are set up, because that is the
+  one path where the wearer is waiting on nothing else.
 - **Select** repeats with a fresh time (`vibes_cancel()` first).
 - **Up / Down** cycle the six time systems; the choice is persisted, redrawn,
   and played straight away. **Back** exits.
+- **Hold Up / Down** cycles the playback speed, and **hold Select** toggles
+  exact minutes (on the systems that have it; the rest repeat the time instead
+  of doing nothing silently). Every setting is now reachable without the phone.
+
+### Confirmation cues — operable without the screen
+
+The app is for people who cannot see the screen, so no setting may be confirmed
+by sight alone. Every change plays a **cue** before the time, in the same vibe
+pattern (`vibes_enqueue_custom_pattern` is a no-op while a pattern plays, so two
+calls would drop the second):
+
+| Change | Cue | Count |
+|---|---|---|
+| Time system (Up/Down) | `PT_CUE_SHORT_MS` 60 ms pulses | 1–6, the system's 1-based index |
+| Playback speed (hold Up/Down) | `PT_CUE_LONG_MS` 220 ms pulses | 1–3, the speed's 1-based index |
+| Exact minutes (hold Select) | none | the extra minute ticks *are* the feedback |
+
+Pulse **length**, not just count, carries which setting changed — a bare count
+would make "two short" and "two long" both mean "2". Cue pulses are identical
+and evenly spaced (`PT_CUE_GAP_MS` 150 ms), which no time system produces, and
+`PT_CUE_LEAD_MS` (500 ms) separates the cue from the time.
+
+`pt_cue_durations()` lives in `src/c/encoder.c`, not in `main.c`, so the host
+test covers it and the watchface variant can reuse it.
 - A **wrist flick** (`accel_tap_service`) also repeats — but not while a
   pattern is playing, since the motor shakes the watch hard enough to register
   as a tap and would otherwise loop.
@@ -163,8 +190,15 @@ pebble sdk activate 4.33.1
 ```sh
 appstores/pebble/pulsetime/tests/check-fixtures.sh
 # flattens appstores/shared/fixtures/patterns.json with node, compiles
-# src/c/encoder.c + tests/check_fixtures.c with cc, prints "420/420 match"
-# and exits non-zero on any mismatch.
+# src/c/encoder.c + tests/check_fixtures.c with cc, and exits non-zero on any
+# mismatch. Four lines, all of which must pass:
+#   420/420 match                 encoder output equals the Kotlin fixtures
+#   420/420 vibe patterns valid   pt_to_vibe output is odd-length, no zero ON,
+#                                 nothing over 10000 ms
+#   420/420 cued patterns valid   the same, with the longest system cue (x6)
+#                                 and the longest speed cue (x3) prepended
+#   ok cue shape                  cue pulse lengths, gaps, totals, and the
+#                                 short-vs-long separation
 ```
 
 ## Build

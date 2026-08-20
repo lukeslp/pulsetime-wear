@@ -5,7 +5,7 @@
   },
   {
     "type": "text",
-    "defaultValue": "Feel the time as a vibration pattern. Bind PulseTime to Quick Launch (hold Up or Down) for a one-gesture time check. On the watch, Select repeats and Up/Down cycle the time system."
+    "defaultValue": "Feel the time as a vibration pattern. Bind PulseTime to Quick Launch (hold Up or Down) for a one-gesture time check. Everything here can also be set on the watch without looking at it: Select repeats, Up/Down cycle the time system, holding Up/Down cycles the speed, and holding Select toggles exact minutes. Each change answers with a short count of pulses before the time \u2014 short pulses count the time system, long pulses count the speed."
   },
   {
     "type": "section",
