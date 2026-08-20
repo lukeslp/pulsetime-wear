@@ -180,3 +180,20 @@ screen (its own chime set to hourly, so it could not be the source at :30):
 Note: `pebble emu-set-time` cannot be used to test this. pypkjs (the emulated
 phone) re-syncs the watch clock back to host time, so the jump silently reverts.
 Use quarter-hourly chimes and wait for a real boundary instead.
+
+## Pebble Time 2 — on-hardware confirmation (2026-08-19, later)
+
+- [x] Chime build (`ae64854`) and the updated watchface installed over the
+  CloudPebble developer connection after it came back.
+- [x] `docs/time2-live.png` — the real emery watch running the current app:
+  20:18, Terse Quarter, "Simple · Standard", "Flick: off", and the new hint
+  lines "Sel play · Up/Dn sys" / "Hold: speed, practice". No chime line, which
+  is how the screen reports chimes off — so the default is intact on the device.
+- Transport note: **CloudPebble allows one connection at a time.** Running
+  `pebble logs --cloudpebble` and then `pebble install`/`send-app-message`
+  disconnects the logger ("Disconnected."), so device logs and device commands
+  cannot be interleaved the way they can on the emulator. Capture logs in one
+  session and drive the watch in another.
+- A system modal (e.g. "Fully Charged" on the charger) sits on top of the app
+  and `pebble screenshot` captures the modal, not the app. It needs a physical
+  button press to dismiss; there is no remote way past it.
