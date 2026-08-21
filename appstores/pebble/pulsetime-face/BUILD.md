@@ -4,6 +4,15 @@
 PulseTime ships to where the time is felt with **no app starting at all**.
 Author: Luke Steuber.
 
+## CloudPebble import
+
+This directory is canonical. The private
+[`lukeslp/pebble-pulsetime-face`](https://github.com/lukeslp/pebble-pulsetime-face)
+repository is its self-contained, root-level CloudPebble mirror. The mirror
+materializes the shared encoder symlinks so CloudPebble can build it without the
+sibling watchapp directory. Preserve UUID
+`f9ee597e-a160-43a8-b08e-6af03007487b` across both copies.
+
 (The watchapp's `wakeup_schedule()` chimes also arrive without being asked, but
 they do start the app for a few seconds. If chimes are what you want, use those
 — they work whatever face you are on. See `../pulsetime/BUILD.md`.)
