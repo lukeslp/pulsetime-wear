@@ -1,8 +1,9 @@
-# PulseTime (Wear OS)
+# PulseTime
 
-Eyes-free haptic clock for blind and low-vision Wear OS users. Tap the
-**PulseTime** tile (or **Tell time** in the app) to feel the current local time
-as a short vibration pattern.
+Eyes-free haptic clock for blind and low-vision users, implemented natively for
+Wear OS, Pebble, and Garmin. Each platform offers a short vibration pattern for
+the current local time through the invocation path its operating system
+actually permits.
 
 **Author:** Luke Steuber · **License:** MIT
 
@@ -224,5 +225,5 @@ neither listing bundles or replaces the other.
 
 ## Later work
 
-Complications, hourly ambient chimes, phone sync, watchOS
-(Core Haptics, only if meaningfully better than Apple Taptic Time).
+Wear OS ambient chimes, expanded phone sync, and watchOS (Core Haptics, only if
+meaningfully better than Apple Taptic Time).

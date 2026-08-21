@@ -1,4 +1,4 @@
-# PulseTime — project plan (MVP v0.1)
+# PulseTime — project plan
 
 ## Objective
 
