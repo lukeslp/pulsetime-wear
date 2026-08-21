@@ -172,14 +172,17 @@ open. Both ports run the same six systems from the same fixtures:
   everything else here, does not depend on what the wearer is looking at:
   `wakeup_schedule()` has the watch launch PulseTime at the chosen moment with
   nothing resident in between, so it costs no battery while it waits.
-  `appstores/pebble/pulsetime/BUILD.md`.
+  Canonical source: `appstores/pebble/pulsetime/BUILD.md`. Root-level
+  CloudPebble import: [`lukeslp/pebble-pulsetime`](https://github.com/lukeslp/pebble-pulsetime).
 - `appstores/pebble/pulsetime-face/` — the same clock as a **watchface**, for
   wearers who want the time under a double-tap with nothing to open and no
   scheduling involved. It shares the watchapp's encoder by symlink, so the two
   can never drift. Note that a watchface only runs while it is the foreground
   app: open any app, or the launcher, and it stops until you come back. For
   chimes that survive that, use the watchapp's.
-  `appstores/pebble/pulsetime-face/BUILD.md`.
+  Canonical source: `appstores/pebble/pulsetime-face/BUILD.md`. Root-level
+  CloudPebble import:
+  [`lukeslp/pebble-pulsetime-face`](https://github.com/lukeslp/pebble-pulsetime-face).
 - On the Pebble Time 2 and Pebble 2 Duo, PulseTime can also play the pattern
   through the **speaker**. That is not decoration: several systems separate
   their fields by relative strength, and a Pebble motor has no strength control
@@ -198,6 +201,21 @@ is the Pebble watchface, which is already running and is allowed to vibrate —
 unlike a Connect IQ watch face, which is barred from `Attention.vibrate()`.
 `docs/invocation-paths.md` records the verified per-platform rules and the
 gesture paths that follow from them.
+
+### Pebble submission order
+
+PulseTime is deliberately two Pebble products, not one package with two modes:
+
+1. Submit **PulseTime** as an app first. Quick Launch, Practice, scheduled
+   chimes, and the optional worker are the complete accessible utility and work
+   regardless of the selected watchface.
+2. Submit **PulseTime Face** as a watchface second. It is the optional
+   zero-launch double-tap experience for someone willing to use it as their
+   current face; its tap and unscheduled chime behavior pauses whenever another
+   app or the launcher is in the foreground.
+
+The listings must keep their distinct UUIDs and explain the tradeoff plainly;
+neither listing bundles or replaces the other.
 
 ## Platforms track
 

@@ -34,14 +34,14 @@ coupling.
 |----|------|--------|
 | W1 | Reference encoder port + fixtures pinned to Kotlin (`PortFixturesTest`) | done |
 | W2 | Garmin Venu 2S device app with glance, 8-profile chunker, settings | built, harness 420/420, sideloaded |
-| W3 | Pebble watchapp, Clay config, host test | built, 420/420, on the Time 2 |
+| W3 | Pebble watchapp, Clay config, host test | built, 420/420, on the Time 2; root CloudPebble mirror pushed |
 | W4 | Garmin complication → launch on tap; Pebble worker flick-launch | built, both sideloaded/installed; wrist verification open |
-| W4b | Pebble PulseTime *watchface* variant (the only true no-app haptic path) | **built**, encoder shared by symlink, tap + chime + quiet hours verified on the emery emulator, installed on the Time 2 |
+| W4b | Pebble PulseTime *watchface* variant (the only true no-app haptic path) | **built**, encoder shared by symlink, tap + chime + quiet hours verified on the emery emulator, installed on the Time 2; root CloudPebble mirror pushed |
 | W6 | Eyes-free operation: confirmation cues, speed and practice on the wrist | done, verified on emulator + Time 2 |
 | W7 | Hours-only / minutes-only per Quick Launch button (`launch_button()`) | done, 840 scoped fixtures; **wrist check open** — no emulator can trigger a real Quick Launch |
 | W8 | Speaker output on emery/flint: relative strength becomes pitch | done; wrist check open |
 | W9 | `wakeup_schedule()` chimes in the **watchapp** — the only path that fires with nothing resident and regardless of which watchface is showing (8 events max, 1-minute exclusion window) | **built**, rolling 8-slot window topped up on every launch, quiet hours applied at scheduling time; works on every platform including the frozen ones |
-| W5 | Store submissions (Connect IQ, Pebble appstore) | human gate — now **three** listings: Garmin app, Pebble watchapp, Pebble watchface |
+| W5 | Store submissions (Connect IQ, Pebble appstore) | human gate — now **three** listings: Garmin app, Pebble watchapp, Pebble watchface; submit the Pebble app before the optional face |
 
 ## Outstanding
 
