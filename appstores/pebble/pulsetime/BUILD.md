@@ -32,12 +32,11 @@ a separate listing from PulseTime Face.
   On a worker (gesture) launch the vibration is started *before* the window,
   AppMessage buffers, and service subscriptions are set up, because that is the
   one path where the wearer is waiting on nothing else.
-- **Select** repeats with a fresh time (`vibes_cancel()` first).
-- **Up / Down** cycle the six time systems; the choice is persisted, redrawn,
-  and played straight away. **Back** exits.
-- **Hold Up / Down** cycles the playback speed. **Hold Select** opens Practice.
-  Every setting is reachable without the phone, and without a gesture anyone has
-  to be told about.
+- **Select** plays the whole time with a fresh reading (`vibes_cancel()` first).
+- **Up** plays only the hour; **Down** plays only the minutes. These ordinary
+  presses never alter a learned language. **Back** exits.
+- **Hold Up / Down** deliberately cycles the haptic language. **Hold Select**
+  opens Practice. Playback speed stays in the phone configuration page.
 
 **BACK is left entirely alone.** A long press on it is swallowed by the system's
 own back-out before any handler runs — verified on the emery emulator, where the
@@ -121,8 +120,9 @@ pulse meaning "none"; silence would be indistinguishable from a fault. That
 reuses the decimal-place convention where digit zero is already one
 double-length pulse.
 
-Once the app is open, **any button press drops back to the whole time**, so a
-scoped launch always has a way to the full answer without leaving.
+Once the app is open, **Select always gives the whole time**, Up gives the hour,
+and Down gives the minutes. A scoped launch therefore always has a direct path
+back to the full answer without leaving.
 
 ### Chimes: the one path that needs nothing running
 
@@ -210,14 +210,13 @@ calls would drop the second):
 
 | Change | Cue | Count |
 |---|---|---|
-| Time system (Up/Down) | `PT_CUE_SHORT_MS` 60 ms pulses | 1–6, the system's 1-based index |
-| Playback speed (hold Up/Down) | `PT_CUE_LONG_MS` 220 ms pulses | 1–3, the speed's 1-based index |
-| Exact minutes (hold Select) | none | the extra minute ticks *are* the feedback |
+| Haptic language (hold Up/Down) | `PT_CUE_SHORT_MS` 60 ms pulses | 1–7, the language rung's 1-based index |
 
-Pulse **length**, not just count, carries which setting changed — a bare count
-would make "two short" and "two long" both mean "2". Cue pulses are identical
-and evenly spaced (`PT_CUE_GAP_MS` 150 ms), which no time system produces, and
-`PT_CUE_LEAD_MS` (500 ms) separates the cue from the time.
+Cue pulses are identical and evenly spaced (`PT_CUE_GAP_MS` 150 ms), which no
+time system produces, and `PT_CUE_LEAD_MS` (500 ms) separates the cue from the
+time. The encoder's long speed cue remains fixture-tested for release
+compatibility, but the streamlined watch controls no longer emit it; speed is
+an advanced phone setting.
 
 `pt_cue_durations()` lives in `src/c/encoder.c`, not in `main.c`, so the host
 test covers it and the watchface variant can reuse it.
@@ -329,18 +328,19 @@ odd-length, has no zero ON, and no slot above 10000.
 
 ## Config page (phone)
 
-The phone side (`src/pkjs/index.js`) hosts a **Clay** page — Time system,
-Playback speed, Exact minutes (Terse Quarter only; the other five are
-inherently exact), and Flick to tell time — and sends the values over
+The phone side (`src/pkjs/index.js`) hosts a **Clay** page. It begins by naming
+the simple default, then groups Time system, Playback speed, Exact minutes, and
+Quick Launch scopes as advanced choices; sound, chimes, and Flick to tell time
+are explicitly optional. It sends values over
 AppMessage as the keys `SYSTEM` / `SPEED` (storage-id strings) and
 `EXACT_MINUTES` / `FLICK_LAUNCH` (0/1). The flick toggle's description states
 the costs in full: continuous worker, battery, one worker per watch, the app
 briefly opening because Pebble cannot vibrate from the background, and Quick
 Launch as the free alternative. The watch
 applies them at once, persists them, and plays the new pattern. On `ready` the
-phone sends `REQUEST`; the watch answers with its live settings, and after
-Up/Down changes on the watch it pushes them too, so the Clay page never shows
-a stale choice.
+phone sends `REQUEST`; the watch answers with its live settings, and after a
+deliberate hold-Up/hold-Down language change it pushes them too, so the Clay
+page never shows a stale choice.
 
 Clay is **vendored** at `src/pkjs/vendor/pebble-clay.js` (v1.0.4, MIT, licence
 alongside). `pebble package install pebble-clay` works, but the published
@@ -406,7 +406,9 @@ pebble install --emulator basalt      # Pebble Time (colour)
 pebble install --emulator diorite     # Pebble 2 SE profile (1-bit)
 pebble logs --emulator basalt         # "PulseTime: <system> <speed> ... -> N segments"
 pebble emu-button --emulator basalt click select   # repeat
-pebble emu-button --emulator basalt click down     # next system
+pebble emu-button --emulator basalt click up       # hours only
+pebble emu-button --emulator basalt click down     # minutes only
+pebble emu-button --emulator basalt --duration 1000 click down  # next language
 pebble emu-tap --emulator basalt                   # wrist flick
 pebble screenshot --no-open --emulator basalt docs/basalt.png
 BROWSER=/bin/echo pebble emu-app-config --emulator basalt   # prints the Clay page URL

@@ -5,14 +5,14 @@
   },
   {
     "type": "text",
-    "defaultValue": "The haptic clock as your watchface. Double-tap the watch and feel the time \u2014 nothing to launch, nothing to exit, no background worker holding the watch's only worker slot. This is the only way to feel the time without any app starting at all. The price is that it has to be your watchface, and that it only works while it is the one on screen: open any app, or even the launcher, and it stops until you come back. If you mainly want chimes, the PulseTime app does those better \u2014 it schedules them with the watch, so they arrive whatever face you are using. A watchface has no buttons either \u2014 Up and Down belong to the timeline and Select opens the launcher \u2014 so everything is set from this page."
+    "defaultValue": "Double-tap the watch and feel the time. The default is Terse Quarter at standard speed, with exact-minute ticks off; install it and start there. Nothing launches, nothing exits, and no background worker takes the watch's only worker slot. It works only while this face is on screen. Alternate haptic languages, chimes, and sound are optional settings below."
   },
   {
     "type": "section",
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Haptic language"
+        "defaultValue": "Advanced · Haptic language"
       },
       {
         "type": "select",
@@ -98,7 +98,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Chimes"
+        "defaultValue": "Optional · Chimes"
       },
       {
         "type": "text",
@@ -347,7 +347,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Sound"
+        "defaultValue": "Optional · Sound"
       },
       {
         "type": "text",

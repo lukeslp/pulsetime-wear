@@ -21,9 +21,10 @@ PulseTime now includes six selectable haptic time languages:
 - **Nearest-Quarter Offset:** a quarter-hour landmark plus before/after minutes
 - **Morse Digits:** displayed digits as standard Morse numerals
 
-The original Terse Quarter system remains the default for existing installs.
-Settings also control playback speed and whether relative-strength layers are
-used alongside duration and rhythm. No system depends on amplitude alone.
+The intentionally simple starting point is **Terse Quarter, Standard speed,
+approximate to the quarter**. Exact-minute ticks, alternate languages, sound,
+scheduled chimes, and gesture workers are opt-in. Existing installs keep every
+saved choice. No system depends on amplitude alone.
 
 ## Android companion
 
@@ -159,12 +160,13 @@ open. Both ports run the same six systems from the same fixtures:
   repeats, swipe/Up/Down cycles systems; settings in the Connect IQ phone app.
   `appstores/garmin/pulsetime/README.md`.
 - `appstores/pebble/pulsetime/` — a C **watchapp** for basalt/chalk/diorite/
-  emery/flint/gabbro. Bind it to Quick Launch; Select repeats, Up/Down step
-  through the seven rungs of the system cycle, holding Up/Down changes speed,
-  holding Select opens **practice** (a ladder of chosen times, so patterns can
-  be learned against a known answer). Every change answers with a haptic
-  confirmation cue first — short pulses count the rung, long pulses the speed —
-  so the app is fully operable by someone who never sees the screen. Bind both
+  emery/flint/gabbro. Bind it to Quick Launch; Select plays the whole time, Up
+  plays only the hour, and Down plays only the minutes. These everyday buttons
+  never change a learned language accidentally. Holding Up/Down deliberately
+  steps through its seven language rungs, while holding Select opens
+  **practice** (a ladder of chosen times, so patterns can be learned against a
+  known answer). Each language change answers with a short count of pulses
+  before playing the time, so it remains operable without sight. Bind both
   Quick Launch buttons and each can say something different: `launch_button()`
   reports which one was held, so hold-Up can give **just the hour** and hold-Down
   **just the minutes**. An optional background worker (off by default) turns a

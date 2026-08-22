@@ -74,9 +74,10 @@ Play Console login, upload, tester management, and rollout remain **human** gate
 
 - [x] `pulsetime.pbw` installed over the CloudPebble developer connection
   ("App install succeeded"), final build sha256 952aaa01….
-- [ ] Wrist: launch vibrates immediately; Select repeats; Up/Down cycles;
-  flick repeats; Quick Launch binding; config page reachable from the phone
-  app; Pebble 2 SE install.
+- [ ] Wrist: launch vibrates immediately; Select plays the whole time; Up plays
+  hours; Down plays minutes; hold Up/Down changes language; flick repeats;
+  Quick Launch binding; config page reachable from the phone app; Pebble 2 SE
+  install.
 
 ## W4 invocation paths (2026-08-18)
 
@@ -95,7 +96,12 @@ Play Console login, upload, tester management, and rollout remain **human** gate
   `PT_TAP_WINDOW_MS` toward 800 ms if twitchy.
 
 
-## Eyes-free controls, scopes, sound, practice (2026-08-19)
+## Earlier controls, scopes, sound, practice (2026-08-19)
+
+The short-press system / long-press speed mapping below documents the earlier
+build. It was deliberately superseded by the streamlined mapping verified on
+2026-08-21: ordinary buttons now answer stable questions and cannot change the
+learned language accidentally.
 
 Emulator evidence, all on the emery (Pebble Time 2) profile unless noted:
 
@@ -197,3 +203,24 @@ Use quarter-hourly chimes and wait for a real boundary instead.
 - A system modal (e.g. "Fully Charged" on the charger) sits on top of the app
   and `pebble screenshot` captures the modal, not the app. It needs a physical
   button press to dismiss; there is no remote way past it.
+
+## Streamlined Pebble controls (2026-08-21)
+
+- [x] All persisted keys and defaults remain unchanged. A pre-existing emulator
+  install reopened with its saved Binary Clock / Slow selection intact.
+- [x] Basalt emulator: Up logs `scope=hours`, Down logs `scope=minutes`, and
+  Select logs `scope=full`; none changes the selected language.
+- [x] Basalt emulator: a one-second Down hold advances the language and logs a
+  system cue before the full-time phrase; the ordinary Down click does not also
+  fire.
+- [x] Basalt screenshot refreshed at `appstores/pebble/pulsetime/docs/basalt.png`
+  with the starting Terse Quarter / Standard configuration and the revised
+  `Sel all · Up hours` / `Dn mins · Hold more` hints.
+- [x] Both PBWs clean-build for basalt, chalk, diorite, emery, flint, and
+  gabbro. The app retains its worker binaries on all six platforms.
+- [x] Encoder parity remains exact: 420/420 full patterns, 420/420 valid vibe
+  and cued patterns, and 840/840 scoped patterns.
+- [ ] **Wrist:** current CloudPebble authentication succeeded, but the phone
+  first timed out while fetching watch info and then stopped connecting to the
+  proxy. Install the staged `pulsetime.pbw` when Developer Connection is open,
+  then feel-check full/hour/minute and the deliberate hold gesture.

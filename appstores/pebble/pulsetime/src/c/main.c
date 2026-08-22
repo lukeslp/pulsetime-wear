@@ -3,17 +3,17 @@
 //
 // Launch (bind to Quick Launch for a one-gesture "tell time"): the app encodes
 // the local time with the saved time system / speed / exact-minutes settings
-// and vibrates at once. Select repeats with a fresh time; Up/Down cycle the six
-// steps through the seven rungs of the system cycle (the six systems, with terse
-// quarter appearing twice, with and without exact minutes). A HOLD on Up/Down
-// cycles the playback speed and a HOLD on Select opens practice. A wrist flick
-// repeats; Back exits. Settings also arrive from the phone's Clay config page over
-// AppMessage and are applied immediately.
+// and vibrates at once. Select repeats the whole time, Up plays only the hour,
+// and Down plays only the minutes. Deliberate holds keep advanced controls out
+// of the everyday path: hold Up/Down to move through the seven haptic-language
+// rungs, and hold Select to open practice. A wrist flick repeats; Back exits.
+// Settings also arrive from the phone's Clay config page over AppMessage and
+// are applied immediately.
 //
-// Every setting change answers with a haptic confirmation cue before the time
-// (short pulses count the time system, long pulses count the speed), so the app
-// is fully operable by a wearer who never sees the screen. Nothing here is
-// confirmed by sight alone.
+// Every on-watch language change answers with a haptic confirmation cue before
+// the time: short pulses count the selected rung. Ordinary buttons answer with
+// the same hour, minute, or whole-time phrases the wearer already knows, so
+// nothing in the everyday path is confirmed by sight alone.
 //
 // Chimes arrive with no gesture at all and nothing resident: wakeup_schedule()
 // has the system launch the app at the scheduled second, it buzzes, and it
@@ -256,7 +256,8 @@ static void save_settings(void) {
 }
 
 // Tell the phone what the watch currently uses so the Clay page stays in step
-// after Up/Down changes. Best effort: silently ignored when JS is not running.
+// after a deliberate language change. Best effort: silently ignored when JS is
+// not running.
 static void send_settings_to_phone(void) {
   DictionaryIterator *iter;
   if (app_message_outbox_begin(&iter) != APP_MSG_OK) return;
@@ -603,16 +604,6 @@ static void cycle_system(int delta) {
   play_time_cued(PT_CUE_SYSTEM, next + 1);
 }
 
-static void cycle_speed(int delta) {
-  int next = ((int)s_speed + delta + PT_SPEED_COUNT) % PT_SPEED_COUNT;
-  s_speed = (PtSpeed)next;
-  save_settings();
-  send_settings_to_phone();
-  if (s_canvas) layer_mark_dirty(s_canvas);
-  // N long pulses = "you are on speed N", at that speed.
-  play_time_cued(PT_CUE_SPEED, next + 1);
-}
-
 // ---- practice ----------------------------------------------------------------
 //
 // A haptic clock is only useful once its patterns are legible, and "now" is the
@@ -849,33 +840,35 @@ static void draw(Layer *layer, GContext *ctx) {
   } else {
     // Kept short on purpose: 144 px of GOTHIC_14 is about twenty characters,
     // and an ellipsised hint teaches nothing.
-    graphics_draw_text(ctx, "Sel play \u00b7 Up/Dn sys", hint_font, GRect(inset, hint_y, w - 2 * inset, hint_h),
+    graphics_draw_text(ctx, "Sel all \u00b7 Up hours", hint_font, GRect(inset, hint_y, w - 2 * inset, hint_h),
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-    graphics_draw_text(ctx, "Hold: speed, practice", hint_font, GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
+    graphics_draw_text(ctx, "Dn mins \u00b7 Hold more", hint_font, GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
   }
 }
 
 // ---- input --------------------------------------------------------------------
 
-// Any button press means the wearer wants to stay, so cancel the auto-exit --
-// and it drops back to the whole time, so a scoped Quick Launch always has a way
-// back to the full answer without leaving the app.
-// Every press produces a vibration, so the app is fully operable with the
-// screen off or unseen: nothing here is confirmed by sight alone.
+// Any button press means the wearer wants to stay, so cancel the auto-exit.
+// The three ordinary buttons answer stable questions and never alter settings:
+// Select = whole time, Up = hours, Down = minutes. Advanced language changes
+// require a deliberate hold. Every press produces a vibration, so the app is
+// fully operable with the screen off or unseen: nothing is confirmed by sight
+// alone.
 static void select_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; play_time(); }
-static void up_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(-1); }
-static void down_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(+1); }
-static void up_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_speed(-1); }
-static void down_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_speed(+1); }
+static void up_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_HOURS; play_time_scoped(PT_CUE_NONE, 0, s_launch_scope); }
+static void down_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_MINUTES; play_time_scoped(PT_CUE_NONE, 0, s_launch_scope); }
+static void up_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(-1); }
+static void down_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(+1); }
 static void select_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; open_practice(); }
 
 static void click_config(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click);
   window_single_click_subscribe(BUTTON_ID_UP, up_click);
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click);
-  // Long presses reach the settings that used to need the phone. 0 = the
-  // system default hold time, so it matches every other Pebble app.
+  // Long presses expose language and practice without putting mutable settings
+  // in the ordinary button path. Playback speed remains on the phone config
+  // page. 0 = the system default hold time, matching other Pebble apps.
   window_long_click_subscribe(BUTTON_ID_UP, 0, up_long, NULL);
   window_long_click_subscribe(BUTTON_ID_DOWN, 0, down_long, NULL);
   window_long_click_subscribe(BUTTON_ID_SELECT, 0, select_long, NULL);
