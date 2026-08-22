@@ -220,7 +220,19 @@ Use quarter-hourly chimes and wait for a real boundary instead.
   gabbro. The app retains its worker binaries on all six platforms.
 - [x] Encoder parity remains exact: 420/420 full patterns, 420/420 valid vibe
   and cued patterns, and 840/840 scoped patterns.
-- [ ] **Wrist:** current CloudPebble authentication succeeded, but the phone
-  first timed out while fetching watch info and then stopped connecting to the
-  proxy. Install the staged `pulsetime.pbw` when Developer Connection is open,
-  then feel-check full/hour/minute and the deliberate hold gesture.
+- [x] **Pebble 2 SE:** imported the staged `pulsetime.pbw` through the RePebble
+  app on its paired Pixel 9a. The phone protocol log records `BlobResponse`
+  success, `AppRunStateStart` for `e69d82c1-73f1-4b29-a50f-06d17edd13b2`, and
+  the watch returning `terse_quarter`, `standard`, and exact-off. RePebble's
+  hardware screenshot shows the 144×168 watch running PulseTime with the new
+  `Sel all · Up hours` / `Dn mins · Hold more` hints and no clipping.
+- [x] **Pebble Time 2:** CloudPebble installed the same staged PBW successfully;
+  the Pixel 10 later reported PulseTime as the running UUID. A subsequent local
+  re-import was interrupted when the watch's BLE link dropped with Android GATT
+  status 147. Companion-app restart, explicit disconnect/reconnect, and a
+  Pixel-10-only Bluetooth reset did not restore the link; no watch crash or core
+  dump appeared in the disconnect window. Wake or reboot the watch, re-enable
+  Developer Connection, and capture the current 200×228 screen.
+- [ ] **Wrist feel:** on both watches, confirm Select = full time, Up = hours,
+  Down = minutes, and a deliberate hold cycles language without an accidental
+  short-press response.
