@@ -226,13 +226,14 @@ Use quarter-hourly chimes and wait for a real boundary instead.
   the watch returning `terse_quarter`, `standard`, and exact-off. RePebble's
   hardware screenshot shows the 144×168 watch running PulseTime with the new
   `Sel all · Up hours` / `Dn mins · Hold more` hints and no clipping.
-- [x] **Pebble Time 2:** CloudPebble installed the same staged PBW successfully;
-  the Pixel 10 later reported PulseTime as the running UUID. A subsequent local
-  re-import was interrupted when the watch's BLE link dropped with Android GATT
-  status 147. Companion-app restart, explicit disconnect/reconnect, and a
-  Pixel-10-only Bluetooth reset did not restore the link; no watch crash or core
-  dump appeared in the disconnect window. Wake or reboot the watch, re-enable
-  Developer Connection, and capture the current 200×228 screen.
+- [x] **Pebble Time 2:** recovered and rechecked on 2026-09-02. CloudPebble ping
+  succeeds, the screenshot transport returns the expected 200×228 display, and
+  reinstalling the staged PBW reports `App install succeeded`. An explicit
+  `AppRunStateRequest` returns PulseTime's UUID
+  (`e69d82c1-73f1-4b29-a50f-06d17edd13b2`) as the running app. The remaining
+  blue `Ping` screen is the system diagnostic overlay created by the connection
+  check; one physical Back press is required before capturing PulseTime beneath
+  it.
 - [ ] **Wrist feel:** on both watches, confirm Select = full time, Up = hours,
   Down = minutes, and a deliberate hold cycles language without an accidental
   short-press response.
