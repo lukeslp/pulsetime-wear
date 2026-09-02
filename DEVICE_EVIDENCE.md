@@ -230,10 +230,10 @@ Use quarter-hourly chimes and wait for a real boundary instead.
   succeeds, the screenshot transport returns the expected 200×228 display, and
   reinstalling the staged PBW reports `App install succeeded`. An explicit
   `AppRunStateRequest` returns PulseTime's UUID
-  (`e69d82c1-73f1-4b29-a50f-06d17edd13b2`) as the running app. The remaining
-  blue `Ping` screen is the system diagnostic overlay created by the connection
-  check; one physical Back press is required before capturing PulseTime beneath
-  it.
+  (`e69d82c1-73f1-4b29-a50f-06d17edd13b2`) as the running app. After dismissing
+  the system diagnostic overlay, `appstores/pebble/pulsetime/docs/time2-streamlined-live.png`
+  captures the current app on real hardware: Terse Quarter, Simple / Standard,
+  Flick off, and all four short/hold control labels fit without clipping.
 - [ ] **Wrist feel:** on both watches, confirm Select = full time, Up = hours,
   Down = minutes, and a deliberate hold cycles language without an accidental
   short-press response.
