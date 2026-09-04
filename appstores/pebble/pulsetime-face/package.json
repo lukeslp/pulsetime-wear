@@ -1,7 +1,7 @@
 {
   "name": "pulsetime-face",
-  "author": "Luke Steuber",
-  "version": "1.0.0",
+  "author": "PulseTime",
+  "version": "1.0.1",
   "keywords": [
     "pebble-app"
   ],
@@ -9,6 +9,7 @@
   "dependencies": {},
   "pebble": {
     "displayName": "PulseTime Face",
+    "companyName": "PulseTime",
     "uuid": "f9ee597e-a160-43a8-b08e-6af03007487b",
     "sdkVersion": "3",
     "enableMultiJS": true,

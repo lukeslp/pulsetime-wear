@@ -1,7 +1,7 @@
 # PulseTime Play intake
 
 - Product: PulseTime 0.3.0
-- Maintainer: Luke Steuber
+- Maintainer: PulseTime contributors
 - License: MIT
 - Play Console account: `lucas.steuber@gmail.com`, the same developer account used for Alt Text Intelligence
 - Play package: `com.lukesteuber.pulsetime.wear`

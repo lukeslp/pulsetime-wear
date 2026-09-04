@@ -5,7 +5,7 @@ local time as a vibration pattern, for blind and low-vision users. It ports the
 six haptic time systems from `shared/.../encoding/TimeSystems.kt` and
 `TerseQuarterEncoder.kt` to pure C (`src/c/encoder.c`), and reproduces every
 case in `appstores/shared/fixtures/patterns.json` byte for byte (host test
-below). Author: Luke Steuber.
+below).
 
 It also ships an optional **background worker** (`worker_src/c/worker.c`) so
 the time can be felt from any watchface without opening anything by hand.
