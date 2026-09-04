@@ -8,7 +8,7 @@ PulseTime's six haptic time systems
 locked to the same 420-case fixture set as the Pebble port
 (`appstores/shared/fixtures/patterns.json`).
 
-Author: Luke Steuber. License: MIT.
+License: MIT. A small open-source project for friends and anyone it helps.
 
 ## How it feels
 

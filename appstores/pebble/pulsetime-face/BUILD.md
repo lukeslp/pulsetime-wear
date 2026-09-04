@@ -2,7 +2,6 @@
 
 **The haptic clock as a watchface.** This is the only path on any watch
 PulseTime ships to where the time is felt with **no app starting at all**.
-Author: Luke Steuber.
 
 ## CloudPebble import
 

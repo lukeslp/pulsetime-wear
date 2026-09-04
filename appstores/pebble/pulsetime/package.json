@@ -1,7 +1,7 @@
 {
   "name": "pulsetime",
-  "author": "Luke Steuber",
-  "version": "1.0.0",
+  "author": "PulseTime",
+  "version": "1.0.1",
   "keywords": [
     "pebble-app"
   ],
@@ -9,6 +9,7 @@
   "dependencies": {},
   "pebble": {
     "displayName": "PulseTime",
+    "companyName": "PulseTime",
     "uuid": "e69d82c1-73f1-4b29-a50f-06d17edd13b2",
     "sdkVersion": "3",
     "enableMultiJS": true,

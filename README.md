@@ -5,7 +5,7 @@ Wear OS, Pebble, and Garmin. Each platform offers a short vibration pattern for
 the current local time through the invocation path its operating system
 actually permits.
 
-**Author:** Luke Steuber · **License:** MIT
+**License:** MIT · A small open-source project for friends and anyone it helps.
 
 This project is standalone. It is not part of Ambient Time and shares no
 package IDs, App Groups, or product coupling.
