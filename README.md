@@ -109,9 +109,11 @@ Pulse Lab debug APK:
 
 `hapticlab/build/outputs/apk/debug/hapticlab-debug.apk`
 
-Release AAB:
+Signed release artifacts:
 
+- `dist/play/pulsetime-phone-0.3.0-10000003.apk`
 - `dist/play/pulsetime-phone-0.3.0-10000003.aab`
+- `dist/play/pulsetime-wear-0.3.0-20000003.apk`
 - `dist/play/pulsetime-wear-0.3.0-20000003.aab`
 (application id `com.lukesteuber.pulsetime.wear`; human Play upload)
 
