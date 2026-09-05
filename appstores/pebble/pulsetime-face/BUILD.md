@@ -3,6 +3,30 @@
 **The haptic clock as a watchface.** This is the only path on any watch
 PulseTime ships to where the time is felt with **no app starting at all**.
 
+## Large time, version 1.1.0
+
+Bright bold starts with black digits on white, hours above minutes. The phone's
+PulseTime Face settings offer a classic row and a dark inverse palette. All text
+uses full contrast on color and monochrome displays. Display choices save quietly
+and preserve the language, speed, sound, and chime settings. Physical backlight
+brightness remains a watch setting.
+
+The digit renderer is shared by symlink with the watchapp, as is the encoder;
+CloudPebble mirrors materialize both. The phone settings include a worked lesson,
+explain that haptic hours use 1–12 even with a 24-hour visual clock, and direct
+wearers to the separate watchapp for guided practice and side-button control.
+The watchface does not intercept system buttons.
+
+```sh
+bash appstores/pebble/pulsetime-face/tests/check-display.sh
+```
+
+The renderer test covers all minutes in both clock formats, stacked and row
+layouts, every supported screen size, circular clipping, and smaller available
+bounds. Emulator screenshots and interaction checks are recorded in the
+[release validation](../pulsetime/VALIDATION.md). Physical readability and tactile
+perception still need testing on the wearer's watch.
+
 ## CloudPebble import
 
 This directory is canonical. The private

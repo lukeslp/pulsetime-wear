@@ -15,6 +15,55 @@ except the 2013 aplite). Verified 2026-08-18: clean build for all six (worker
 binary included on every platform), runs in the `basalt`, `diorite`, and
 `chalk` emulators (`docs/*.png`).
 
+## Guided clock, version 1.1.0
+
+A first launch from the launcher or phone opens **Learn pattern**. Quick Launch,
+worker, and chime launches keep their immediate time reply. Finish the guide
+with Down on its last page to remember completion; Back leaves it available
+for the next normal launch. Existing language, speed, and optional settings
+are preserved.
+
+Hold **Select** for a named menu: Learn pattern, Practice, Language, Speed,
+Display, Quick Launch, and Watch status. Select applies a setting; Back returns
+to the previous menu, then the clock. Hold Up/Down remains the language shortcut.
+On the clock, Select asks for the whole time, Up for hours, and Down for minutes.
+Press the same reply button during playback to stop it. Pressing a different
+reply button starts that phrase. Learning and menu navigation stop previews;
+scheduled chimes wait for the next scheduled slot while those screens are open.
+
+The guide teaches the saved language at **3:32**: feel hours, minutes, then the
+whole answer. In approximate Terse Quarter this means 3:30–3:44. A separate
+zero lesson makes the ambiguous minutes-only zero cue explicit. See
+[the measured language comparison](HAPTICS.md) before selecting an exact mode.
+No emulator can establish whether a pattern is comfortable or reliably felt.
+
+**Bright / bold** is the initial display: black, scalable digits on white with
+hours above minutes. Dark inverts both colors. Row layout puts the time on one
+line. These display choices do not change the haptic language. Both the app and
+face share the digit renderer. The watch controls physical backlight brightness;
+PulseTime only requests the normal temporary light on a deliberate time check.
+
+Quick Launch assignments belong to Pebble's Settings. PulseTime cannot assign
+an operating-system shortcut automatically. Follow the guide: Settings > Quick
+Launch > Up > PulseTime; repeat for Down if wanted. Time 2, 2 Duo, and Round 2
+report the launch button, so the app's Quick Launch menu can select each reply.
+Pebble 2 SE and the original Time Round always launch with the whole time;
+their Up/Down replies work normally once the app is open.
+
+Display persistence uses keys 13–14; guide completion uses key 12. Existing
+keys 1–11 and message-key ordering remain unchanged. AppMessage buffers are
+512 bytes to hold the complete settings dictionary. Display-only changes save
+quietly; haptic changes preview the new choice, and Practice keeps its known time.
+
+Validation commands:
+
+```sh
+bash appstores/pebble/pulsetime/tests/check-fixtures.sh
+bash appstores/pebble/pulsetime/tests/evaluate-patterns.sh
+node appstores/pebble/pulsetime/tests/check-phone.mjs
+bash appstores/pebble/pulsetime-face/tests/check-display.sh
+```
+
 ## CloudPebble import
 
 This directory is canonical. The private
@@ -26,8 +75,9 @@ a separate listing from PulseTime Face.
 
 ## How it behaves on the watch
 
-- **Launch = tell time.** The app encodes `localtime()` with the saved settings
-  and vibrates immediately. It is a watchapp (not a watchface) so it can be
+- **Quick Launch = tell time.** A normal first launch offers the guide, where
+  Select can always tell the current time. Later launches encode `localtime()`
+  with the saved settings and vibrate immediately. It is a watchapp (not a watchface) so it can be
   bound to **Quick Launch** (hold Up or Down) — that is the intended gesture.
   On a worker (gesture) launch the vibration is started *before* the window,
   AppMessage buffers, and service subscriptions are set up, because that is the
@@ -36,12 +86,12 @@ a separate listing from PulseTime Face.
 - **Up** plays only the hour; **Down** plays only the minutes. These ordinary
   presses never alter a learned language. **Back** exits.
 - **Hold Up / Down** deliberately cycles the haptic language. **Hold Select**
-  opens Practice. Playback speed stays in the phone configuration page.
+  opens the learning and settings menu. Speed is available there and on the phone.
 
-**BACK is left entirely alone.** A long press on it is swallowed by the system's
+**BACK on the clock is left entirely alone.** A long press on it is swallowed by the system's
 own back-out before any handler runs — verified on the emery emulator, where the
 app simply exits — and subscribing to BACK at all risks a screen the wearer
-cannot leave. That is why Practice sits on hold-Select.
+cannot leave. The menu is on hold-Select; its Back handler pops a submenu and then exits.
 
 ### The system cycle has seven rungs, not six
 
@@ -64,7 +114,7 @@ as one sequence, and the phone's Clay page still sets either independently.
 
 ### Practice
 
-`Hold Select`. A haptic clock is only useful once its patterns are legible, and
+`Hold Select > Practice`. A haptic clock is only useful once its patterns are legible, and
 "now" is the worst possible teacher: you cannot choose it and it moves. Practice
 plays a **chosen** time from a 22-rung ladder ordered easiest to hardest, so the
 wearer knows the answer before the pattern starts and can attend to its shape.
@@ -76,7 +126,7 @@ up is one rung up.
 The ladder walks bare hours → the quarters → minutes inside a quarter → then the
 boundaries that catch every system out: the 12/0 wrap at midnight and noon, and
 11:59 → 12:00 → 12:01, where Nearest-Quarter has to roll its landmark into the
-next hour. Up/Down step, Select replays, Back returns to the clock.
+next hour. Up/Down step, Select replays or stops, Back returns to the menu.
 
 ### Two Quick Launch buttons, two questions
 
@@ -215,8 +265,7 @@ calls would drop the second):
 Cue pulses are identical and evenly spaced (`PT_CUE_GAP_MS` 150 ms), which no
 time system produces, and `PT_CUE_LEAD_MS` (500 ms) separates the cue from the
 time. The encoder's long speed cue remains fixture-tested for release
-compatibility, but the streamlined watch controls no longer emit it; speed is
-an advanced phone setting.
+compatibility, but the on-watch Speed menu emits it before previewing a new speed.
 
 `pt_cue_durations()` lives in `src/c/encoder.c`, not in `main.c`, so the host
 test covers it and the watchface variant can reuse it.
@@ -226,10 +275,8 @@ test covers it and the watchface variant can reuse it.
 - **Flick to tell time** (off by default) runs the background worker described
   below. A double wrist tap from any watchface opens PulseTime, plays the time,
   and closes it again.
-- Screen: the time large (Leco), the system name, its short label and speed
-  (or "Playing h:mm" while the pattern runs), and two hint lines. Works in
-  1-bit on diorite/flint, centres inside the chalk circle, and scales up on
-  emery/gabbro (`big` = unobstructed height >= 200).
+- Screen: scalable time digits, a precise/quarter status, and explicit Select
+  and menu hints. Optional worker and chime details live in Watch status.
 - Settings (`persist_*` keys 1–11): time system, playback speed, exact minutes,
   flick to tell time, what each Quick Launch button plays, sound mode, volume,
   chime interval, and the quiet-hours window. Defaults: Terse Quarter, Standard,
@@ -293,7 +340,7 @@ app plays the time as usual and then calls `window_stack_pop_all(false)` from
 the playback-finished timer, so the wearer lands back on their own watchface
 without touching anything. Any button press cancels the auto-exit, so a wearer
 who wants to change the system mid-gesture keeps the app open. A launch from
-the menu, Quick Launch, or the phone never auto-exits — that path is unchanged.
+the menu, Quick Launch, or the phone never auto-exits.
 
 ### Saying the truth about the worker
 
@@ -310,9 +357,8 @@ against `app_worker_is_running()`:
 | `NO_WORKER` | `Flick: unavailable` | "This build has no background worker." |
 | anything else | `Flick: off` | "The watch refused to start the worker." |
 
-The one-line state (`Flick: on` / `Flick: off`) sits under the system name on
-every launch. When there is a second line it takes over the button-hint block
-at the bottom so the words are not cut short.
+The state is available under Watch status. The phone settings explain worker
+requirements and how to resolve a blocked or unavailable worker.
 
 Turning the setting off calls `app_worker_kill()`, and the state line goes back
 to `Flick: off`.
@@ -337,7 +383,8 @@ AppMessage as the keys `SYSTEM` / `SPEED` (storage-id strings) and
 the costs in full: continuous worker, battery, one worker per watch, the app
 briefly opening because Pebble cannot vibrate from the background, and Quick
 Launch as the free alternative. The watch
-applies them at once, persists them, and plays the new pattern. On `ready` the
+applies and persists them at once. Haptic changes preview the new pattern;
+display-only changes remain silent. On `ready` the
 phone sends `REQUEST`; the watch answers with its live settings, and after a
 deliberate hold-Up/hold-Down language change it pushes them too, so the Clay
 page never shows a stale choice.
@@ -414,8 +461,9 @@ pebble screenshot --no-open --emulator basalt docs/basalt.png
 BROWSER=/bin/echo pebble emu-app-config --emulator basalt   # prints the Clay page URL
 ```
 
-The emulator cannot vibrate; use the log line to confirm playback. `emery`
-(Pebble Time 2) is not supported by the QEMU 10.x build; test it on hardware.
+The emulator cannot establish tactile perception; use logs to verify requested
+playback. SDK 4.33.1 includes current emery and gabbro emulator boards. Test the
+actual motor on hardware before making perception claims.
 
 ### Driving the worker gesture in the emulator
 

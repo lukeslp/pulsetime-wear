@@ -5,48 +5,30 @@
   },
   {
     "type": "text",
-    "defaultValue": "The default is intentionally simple: Terse Quarter at standard speed, with exact-minute ticks off. Bind PulseTime to Quick Launch for a one-gesture time check. Once open, Select plays the whole time, Up plays the hour, and Down plays the minutes. Those buttons never change settings. Hold Up or Down to choose another haptic language; hold Select for Practice. Existing saved choices are always kept."
+    "defaultValue": "Feel the time without reading the screen. Start with Terse Quarter at Standard speed; it reports the start of the current quarter hour. Your existing saved choices are kept. Use the guide below before choosing an exact-minute language."
   },
   {
     "type": "section",
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Advanced · Haptic language"
+        "defaultValue": "Start here · Learn one pattern"
       },
       {
-        "type": "select",
-        "messageKey": "SYSTEM",
-        "label": "Time system",
-        "defaultValue": "terse_quarter",
-        "options": [
-          { "label": "Terse Quarter (hours, quarters)", "value": "terse_quarter" },
-          { "label": "Five-Minute Ladder", "value": "five_minute_ladder" },
-          { "label": "Decimal Place Rhythm", "value": "decimal_place" },
-          { "label": "Binary Clock", "value": "binary_clock" },
-          { "label": "Nearest-Quarter Offset", "value": "nearest_quarter" },
-          { "label": "Morse Digits", "value": "morse_digits" }
-        ],
-        "description": "Terse Quarter: hour pulses, a pause, then quarter-hour pulses. Five-Minute Ladder: hours, five-minute steps, leftover minutes. Decimal Place: hours, minute tens, minute ones. Binary Clock: four hour bits then six minute bits (short = 0, long = 1). Nearest-Quarter Offset: nearest quarter, a before/after marker, then the offset in minutes. Morse Digits: the displayed digits as Morse numerals."
+        "type": "text",
+        "defaultValue": "1. Open PulseTime. A first-use guide appears on a normal launch. Later, hold Select and choose Learn pattern. Select plays an example; press it again to stop. Down moves forward, Up moves back, and Back returns. In the default language, 3:32 feels like 3:30: three hour pulses, a pause, then two longer quarter-hour pulses."
       },
       {
-        "type": "select",
-        "messageKey": "SPEED",
-        "label": "Playback speed",
-        "defaultValue": "standard",
-        "options": [
-          { "label": "Slow", "value": "slow" },
-          { "label": "Standard", "value": "standard" },
-          { "label": "Fast", "value": "fast" }
-        ],
-        "description": "Slow stretches every pulse and pause by 25%; Fast shortens them by 22%."
+        "type": "text",
+        "defaultValue": "2. Learn the pause. At 3:00 the whole-time pattern has three hour pulses and no quarter pulses. At 3:30 it adds two quarter pulses. Exact minutes is off at first: 3:30 through 3:44 all feel the same. Turning exact minutes on adds two short ticks for 3:32."
       },
       {
-        "type": "toggle",
-        "messageKey": "EXACT_MINUTES",
-        "label": "Exact minutes (Terse Quarter only)",
-        "defaultValue": false,
-        "description": "Adds short ticks for the leftover minutes inside the quarter. Only Terse Quarter needs this; the other five systems are inherently exact to the minute. On the watch this is rung 2 of the deliberate hold-Up/hold-Down language cycle rather than a separate control."
+        "type": "text",
+        "defaultValue": "3. In the clock screen, press Select for the whole time (or to stop playback), Up for the hour phrase, or Down for the minute phrase. Hold Select for Learn pattern, Practice, Language, Speed, Display, Quick Launch, and Status. Hold Up or Down is also a language shortcut. Back always takes you out."
+      },
+      {
+        "type": "text",
+        "defaultValue": "Learn the whole-time pattern first. In minutes-only Terse Quarter, no quarters is one 300 ms pulse, while one quarter is 320 ms. These are very close. Use Select for the whole time when unsure; avoid a minutes-only Quick Launch until you have compared both on your wrist."
       }
     ]
   },
@@ -55,37 +37,172 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Advanced · Quick Launch buttons"
+        "defaultValue": "Display · Large and clear"
+      },
+      {
+        "type": "select",
+        "messageKey": "STYLE",
+        "label": "Time size",
+        "defaultValue": "bold",
+        "options": [
+          {
+            "label": "Bold · large time",
+            "value": "bold"
+          },
+          {
+            "label": "Classic · time on one row",
+            "value": "classic"
+          }
+        ],
+        "description": "Bold gives the time more space. Both layouts fit rectangular and round watches."
+      },
+      {
+        "type": "select",
+        "messageKey": "THEME",
+        "label": "Contrast",
+        "defaultValue": "bright",
+        "options": [
+          {
+            "label": "Bright · black on white",
+            "value": "bright"
+          },
+          {
+            "label": "Dark · white on black",
+            "value": "dark"
+          }
+        ],
+        "description": "Choose the contrast you read most easily. Bright changes the display colors; backlight brightness is controlled by your watch."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Haptic language · Choose by feel"
+      },
+      {
+        "type": "select",
+        "messageKey": "SYSTEM",
+        "label": "Language",
+        "defaultValue": "terse_quarter",
+        "options": [
+          {
+            "label": "Terse Quarter · start here (15-minute time)",
+            "value": "terse_quarter"
+          },
+          {
+            "label": "Five-Minute Ladder · count fives",
+            "value": "five_minute_ladder"
+          },
+          {
+            "label": "Decimal Place · try for exact minutes",
+            "value": "decimal_place"
+          },
+          {
+            "label": "Binary Clock · advanced, shortest",
+            "value": "binary_clock"
+          },
+          {
+            "label": "Nearest-Quarter Offset · advanced",
+            "value": "nearest_quarter"
+          },
+          {
+            "label": "Morse Digits · for Morse readers",
+            "value": "morse_digits"
+          }
+        ],
+        "description": "Terse Quarter is the simplest place to start. For exact time, try Decimal Place: hours, minute tens, then minute ones. Binary is shortest in the timing audit but requires reading bits. Familiarity matters more than speed; compare known examples in Practice before changing your daily language."
+      },
+      {
+        "type": "select",
+        "messageKey": "SPEED",
+        "label": "Playback speed",
+        "defaultValue": "standard",
+        "options": [
+          {
+            "label": "Slow",
+            "value": "slow"
+          },
+          {
+            "label": "Standard",
+            "value": "standard"
+          },
+          {
+            "label": "Fast",
+            "value": "fast"
+          }
+        ],
+        "description": "Start at Standard. Slow makes pulses and pauses 25% longer; Fast makes them about 22% shorter. Some short ticks may be hard to feel on your watch. Choose by touch after comparing the same example."
+      },
+      {
+        "type": "toggle",
+        "messageKey": "EXACT_MINUTES",
+        "label": "Exact minutes (Terse Quarter only)",
+        "defaultValue": false,
+        "description": "Adds short ticks for the minutes after the last quarter: 3:32 is three hour pulses, two quarter pulses, then two ticks. Up to 14 ticks may be needed. Only Terse Quarter uses this switch; all other languages already report exact minutes. It is also the second choice in the watch language menu."
       },
       {
         "type": "text",
-        "defaultValue": "By default, either Quick Launch button plays the whole time. You can optionally make each launch answer a smaller question. Hours only and minutes only are not new codes: each is exactly one half of the chosen language. If a half is empty, you get one long pulse meaning none, because silence would look broken. Once the app is open, Select always plays the whole time, Up the hour, and Down the minutes."
+        "defaultValue": "Five-Minute Ladder counts hours, five-minute groups, then leftover minutes. Decimal Place uses a double-length pulse for a zero digit. Binary reads 4 hour bits then 6 minute bits, largest first (short 0, long 1). Nearest-Quarter names a nearby quarter and an offset; its hour phrase may name the next hour. Morse spells the 12-hour clock digits. None of these patterns distinguishes AM from PM."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Quick Launch · Set up side buttons"
+      },
+      {
+        "type": "text",
+        "defaultValue": "On your watch, open Settings > Quick Launch > Up (or Down) and choose PulseTime. This is a watch setting: PulseTime cannot assign or replace the shortcut for you. Then return to your watchface and hold that button to feel the time. Start with The whole time."
       },
       {
         "type": "select",
         "messageKey": "QL_UP",
-        "label": "Hold Up plays",
+        "label": "Up shortcut answer",
         "defaultValue": "full",
         "options": [
-          { "label": "The whole time", "value": "full" },
-          { "label": "Hours only", "value": "hours" },
-          { "label": "Minutes only", "value": "minutes" }
+          {
+            "label": "The whole time",
+            "value": "full"
+          },
+          {
+            "label": "Hours only",
+            "value": "hours"
+          },
+          {
+            "label": "Minutes only",
+            "value": "minutes"
+          }
         ]
       },
       {
         "type": "select",
         "messageKey": "QL_DOWN",
-        "label": "Hold Down plays",
+        "label": "Down shortcut answer",
         "defaultValue": "full",
         "options": [
-          { "label": "The whole time", "value": "full" },
-          { "label": "Hours only", "value": "hours" },
-          { "label": "Minutes only", "value": "minutes" }
+          {
+            "label": "The whole time",
+            "value": "full"
+          },
+          {
+            "label": "Hours only",
+            "value": "hours"
+          },
+          {
+            "label": "Minutes only",
+            "value": "minutes"
+          }
         ]
       },
       {
         "type": "text",
-        "defaultValue": "Needs a watch that reports which button launched the app: Pebble Time 2, Pebble 2 Duo, or Pebble Round 2. On older Pebbles both settings are ignored and every launch plays the whole time."
+        "defaultValue": "Pebble Time 2, Pebble 2 Duo, and Pebble Round 2 report which shortcut opened PulseTime, so each can play a different phrase. Pebble 2 SE, Pebble 2 HR, Pebble Time, and the original Time Round do not: either shortcut plays the whole time. Once PulseTime is open, Up and Down work for hour and minute phrases on every supported model. These choices do not assign the system shortcut."
       }
     ]
   },
@@ -98,7 +215,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "The Pebble Time 2 and Pebble 2 Duo have a speaker, and PulseTime can play the same rhythm as notes. This is not decoration: several time systems separate hours from five-minute steps from leftover minutes by STRENGTH, and a Pebble motor has no strength control at all, so that dimension is simply lost when you feel it. On the speaker it comes back as pitch \u2014 stronger means higher \u2014 which is often easier to read than strength ever was. Sound is off by default, and the watch's own mute setting is always obeyed."
+        "defaultValue": "On Pebble Time 2 and Pebble 2 Duo, sound can play the rhythm as pitched notes. Hours and different minute fields use different pitches. Pebble 2 SE and round watches have no supported speaker. Sound starts off and follows the watch mute setting; vibration remains available when sound cannot play."
       },
       {
         "type": "select",
@@ -106,9 +223,18 @@
         "label": "Play sound",
         "defaultValue": "off",
         "options": [
-          { "label": "Off", "value": "off" },
-          { "label": "Sound and vibration", "value": "with" },
-          { "label": "Sound instead of vibration", "value": "only" }
+          {
+            "label": "Off",
+            "value": "off"
+          },
+          {
+            "label": "Sound and vibration",
+            "value": "with"
+          },
+          {
+            "label": "Sound instead of vibration",
+            "value": "only"
+          }
         ]
       },
       {
@@ -117,14 +243,23 @@
         "label": "Volume",
         "defaultValue": "1",
         "options": [
-          { "label": "Low", "value": "0" },
-          { "label": "Medium", "value": "1" },
-          { "label": "High", "value": "2" }
+          {
+            "label": "Low",
+            "value": "0"
+          },
+          {
+            "label": "Medium",
+            "value": "1"
+          },
+          {
+            "label": "High",
+            "value": "2"
+          }
         ]
       },
       {
         "type": "text",
-        "defaultValue": "Needs a watch with a speaker: Pebble Time 2 or Pebble 2 Duo. On every other Pebble, including Pebble Round 2, these settings do nothing."
+        "defaultValue": "Choose sound only after trying it privately. The watch motor has no strength control; pulse length and pauses carry the haptic language."
       }
     ]
   },
@@ -137,7 +272,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "The time, with no gesture and nothing on screen beforehand. This is the one part of PulseTime that does not depend on what you are looking at: the watch launches PulseTime at the chosen moment, it buzzes, and it closes itself again. Nothing runs in between, so it costs no battery while it waits, and it does not take the watch's single background-worker slot. On the hour it strikes just the hour, the way a chiming clock always has; at a quarter or a half it plays the whole time, because there the minutes are the point."
+        "defaultValue": "Chimes briefly open PulseTime, play the time, then return you to your watchface. They work even when PulseTime is closed. On the hour you hear or feel the hour phrase; half-hour and quarter-hour chimes play the whole time. No background worker is needed."
       },
       {
         "type": "select",
@@ -145,10 +280,22 @@
         "label": "Chime",
         "defaultValue": "off",
         "options": [
-          { "label": "Off", "value": "off" },
-          { "label": "On the hour", "value": "hour" },
-          { "label": "Every half hour", "value": "half" },
-          { "label": "Every quarter hour", "value": "quarter" }
+          {
+            "label": "Off",
+            "value": "off"
+          },
+          {
+            "label": "On the hour",
+            "value": "hour"
+          },
+          {
+            "label": "Every half hour",
+            "value": "half"
+          },
+          {
+            "label": "Every quarter hour",
+            "value": "quarter"
+          }
         ]
       },
       {
@@ -157,30 +304,102 @@
         "label": "Quiet from",
         "defaultValue": "22",
         "options": [
-          { "label": "00:00", "value": "0" },
-          { "label": "01:00", "value": "1" },
-          { "label": "02:00", "value": "2" },
-          { "label": "03:00", "value": "3" },
-          { "label": "04:00", "value": "4" },
-          { "label": "05:00", "value": "5" },
-          { "label": "06:00", "value": "6" },
-          { "label": "07:00", "value": "7" },
-          { "label": "08:00", "value": "8" },
-          { "label": "09:00", "value": "9" },
-          { "label": "10:00", "value": "10" },
-          { "label": "11:00", "value": "11" },
-          { "label": "12:00", "value": "12" },
-          { "label": "13:00", "value": "13" },
-          { "label": "14:00", "value": "14" },
-          { "label": "15:00", "value": "15" },
-          { "label": "16:00", "value": "16" },
-          { "label": "17:00", "value": "17" },
-          { "label": "18:00", "value": "18" },
-          { "label": "19:00", "value": "19" },
-          { "label": "20:00", "value": "20" },
-          { "label": "21:00", "value": "21" },
-          { "label": "22:00", "value": "22" },
-          { "label": "23:00", "value": "23" }
+          {
+            "label": "00:00",
+            "value": "0"
+          },
+          {
+            "label": "01:00",
+            "value": "1"
+          },
+          {
+            "label": "02:00",
+            "value": "2"
+          },
+          {
+            "label": "03:00",
+            "value": "3"
+          },
+          {
+            "label": "04:00",
+            "value": "4"
+          },
+          {
+            "label": "05:00",
+            "value": "5"
+          },
+          {
+            "label": "06:00",
+            "value": "6"
+          },
+          {
+            "label": "07:00",
+            "value": "7"
+          },
+          {
+            "label": "08:00",
+            "value": "8"
+          },
+          {
+            "label": "09:00",
+            "value": "9"
+          },
+          {
+            "label": "10:00",
+            "value": "10"
+          },
+          {
+            "label": "11:00",
+            "value": "11"
+          },
+          {
+            "label": "12:00",
+            "value": "12"
+          },
+          {
+            "label": "13:00",
+            "value": "13"
+          },
+          {
+            "label": "14:00",
+            "value": "14"
+          },
+          {
+            "label": "15:00",
+            "value": "15"
+          },
+          {
+            "label": "16:00",
+            "value": "16"
+          },
+          {
+            "label": "17:00",
+            "value": "17"
+          },
+          {
+            "label": "18:00",
+            "value": "18"
+          },
+          {
+            "label": "19:00",
+            "value": "19"
+          },
+          {
+            "label": "20:00",
+            "value": "20"
+          },
+          {
+            "label": "21:00",
+            "value": "21"
+          },
+          {
+            "label": "22:00",
+            "value": "22"
+          },
+          {
+            "label": "23:00",
+            "value": "23"
+          }
         ]
       },
       {
@@ -189,35 +408,107 @@
         "label": "Quiet until",
         "defaultValue": "7",
         "options": [
-          { "label": "00:00", "value": "0" },
-          { "label": "01:00", "value": "1" },
-          { "label": "02:00", "value": "2" },
-          { "label": "03:00", "value": "3" },
-          { "label": "04:00", "value": "4" },
-          { "label": "05:00", "value": "5" },
-          { "label": "06:00", "value": "6" },
-          { "label": "07:00", "value": "7" },
-          { "label": "08:00", "value": "8" },
-          { "label": "09:00", "value": "9" },
-          { "label": "10:00", "value": "10" },
-          { "label": "11:00", "value": "11" },
-          { "label": "12:00", "value": "12" },
-          { "label": "13:00", "value": "13" },
-          { "label": "14:00", "value": "14" },
-          { "label": "15:00", "value": "15" },
-          { "label": "16:00", "value": "16" },
-          { "label": "17:00", "value": "17" },
-          { "label": "18:00", "value": "18" },
-          { "label": "19:00", "value": "19" },
-          { "label": "20:00", "value": "20" },
-          { "label": "21:00", "value": "21" },
-          { "label": "22:00", "value": "22" },
-          { "label": "23:00", "value": "23" }
+          {
+            "label": "00:00",
+            "value": "0"
+          },
+          {
+            "label": "01:00",
+            "value": "1"
+          },
+          {
+            "label": "02:00",
+            "value": "2"
+          },
+          {
+            "label": "03:00",
+            "value": "3"
+          },
+          {
+            "label": "04:00",
+            "value": "4"
+          },
+          {
+            "label": "05:00",
+            "value": "5"
+          },
+          {
+            "label": "06:00",
+            "value": "6"
+          },
+          {
+            "label": "07:00",
+            "value": "7"
+          },
+          {
+            "label": "08:00",
+            "value": "8"
+          },
+          {
+            "label": "09:00",
+            "value": "9"
+          },
+          {
+            "label": "10:00",
+            "value": "10"
+          },
+          {
+            "label": "11:00",
+            "value": "11"
+          },
+          {
+            "label": "12:00",
+            "value": "12"
+          },
+          {
+            "label": "13:00",
+            "value": "13"
+          },
+          {
+            "label": "14:00",
+            "value": "14"
+          },
+          {
+            "label": "15:00",
+            "value": "15"
+          },
+          {
+            "label": "16:00",
+            "value": "16"
+          },
+          {
+            "label": "17:00",
+            "value": "17"
+          },
+          {
+            "label": "18:00",
+            "value": "18"
+          },
+          {
+            "label": "19:00",
+            "value": "19"
+          },
+          {
+            "label": "20:00",
+            "value": "20"
+          },
+          {
+            "label": "21:00",
+            "value": "21"
+          },
+          {
+            "label": "22:00",
+            "value": "22"
+          },
+          {
+            "label": "23:00",
+            "value": "23"
+          }
         ]
       },
       {
         "type": "text",
-        "defaultValue": "Quiet hours silence chimes only \u2014 every deliberate way of asking still answers, including at three in the morning, which is exactly when you want the time without turning on a light. Set both to the same hour for no quiet period. Pebble allows an app only eight scheduled wake-ups at a time, so PulseTime books the next few and tops them up each time it runs; quarter-hourly therefore looks a couple of hours ahead and hourly most of a day. The watch screen shows how many are actually booked, because \u201cchimes are on\u201d and \u201ca chime will really happen\u201d are different claims."
+        "defaultValue": "Quiet hours silence automatic chimes only. Asking for the time always works. Set both ends to the same hour for no quiet period. The watch books up to eight future chimes and refills them on each launch. Status shows how many are actually booked."
       }
     ]
   },
@@ -233,13 +524,13 @@
         "messageKey": "FLICK_LAUNCH",
         "label": "Flick to tell time",
         "defaultValue": false,
-        "description": "Double-tap your wrist twice in the same direction, within about a second, from any watchface and PulseTime tells you the time. Read the costs first: a background worker has to run continuously, which uses battery all day. A Pebble can run only ONE background worker at a time, so turning this on may ask you to take the slot from another app, and another app can take it back. Pebble cannot vibrate from the background at all, so PulseTime briefly opens on screen to buzz and then closes itself and returns you to your watchface. If you would rather spend no battery, leave this off and bind PulseTime to Quick Launch instead: hold Up or Down from any watchface."
+        "description": "Tap the watch twice along the same axis within about a second. PulseTime opens, tells the time, then returns to your watchface. This needs a continuously running accelerometer worker and uses battery. Pebble has one worker slot shared by all apps, so another app may block it or take it back. Status shows whether it is running. Leave this off and use Quick Launch if a side button works for you."
       }
     ]
   },
   {
     "type": "text",
-    "defaultValue": "Pebble motors have no strength control, so every system here relies on pulse length and rhythm only. No PulseTime system depends on strength alone."
+    "defaultValue": "A different duration sequence is not proof that every pulse is easy to distinguish. Practice on your own watch. Start with whole-time playback and Standard speed, then choose the language and contrast you understand most reliably."
   },
   {
     "type": "submit",

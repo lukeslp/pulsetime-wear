@@ -30,6 +30,7 @@
 #include <pebble.h>
 
 #include "encoder.h"
+#include "display.h"
 
 #define PERSIST_SYSTEM 1
 #define PERSIST_SPEED 2
@@ -40,6 +41,8 @@
 #define PERSIST_QUIET_TO 7
 #define PERSIST_SOUND 8
 #define PERSIST_VOLUME 9
+#define PERSIST_STYLE 10
+#define PERSIST_THEME 11
 
 // Same gesture as the watchapp's worker, and for the same reason: a single tap
 // fires constantly during ordinary arm movement, so the gesture is a DOUBLE tap
@@ -76,6 +79,9 @@ static uint8_t s_quiet_from = 22; // inclusive
 static uint8_t s_quiet_to = 7;    // exclusive
 static PtSound s_sound = PT_SOUND_OFF;
 static uint8_t s_volume_choice = 1;
+// Separate display preferences never migrate or reset haptic choices.
+static bool s_bold = true;
+static bool s_bright = true;
 
 static PtSegment s_segments[PT_MAX_SEGMENTS];
 static uint32_t s_durations[PT_MAX_SEGMENTS * 2];
@@ -106,6 +112,9 @@ static const char *chime_id_of(int i) {
     default: return "off";
   }
 }
+
+static const char *style_id_of(int i) { return i == 0 ? "bold" : "classic"; }
+static const char *theme_id_of(int i) { return i == 0 ? "bright" : "dark"; }
 
 static const char *sound_id_of(int i) {
   switch (i) {
@@ -141,6 +150,8 @@ static void load_settings(void) {
   s_quiet_to = (uint8_t)read_persist_range(PERSIST_QUIET_TO, s_quiet_to, 0, 23);
   s_sound = (PtSound)read_persist_range(PERSIST_SOUND, s_sound, 0, PT_SOUND_COUNT - 1);
   s_volume_choice = (uint8_t)read_persist_range(PERSIST_VOLUME, s_volume_choice, 0, 2);
+  s_bold = read_persist_range(PERSIST_STYLE, 0, 0, 1) == 0;
+  s_bright = read_persist_range(PERSIST_THEME, 0, 0, 1) == 0;
 }
 
 static void save_settings(void) {
@@ -153,6 +164,8 @@ static void save_settings(void) {
   persist_write_int(PERSIST_QUIET_TO, (int32_t)s_quiet_to);
   persist_write_int(PERSIST_SOUND, (int32_t)s_sound);
   persist_write_int(PERSIST_VOLUME, (int32_t)s_volume_choice);
+  persist_write_int(PERSIST_STYLE, s_bold ? 0 : 1);
+  persist_write_int(PERSIST_THEME, s_bright ? 0 : 1);
 }
 
 static void send_settings_to_phone(void) {
@@ -167,6 +180,8 @@ static void send_settings_to_phone(void) {
   dict_write_uint8(iter, MESSAGE_KEY_QUIET_TO, s_quiet_to);
   dict_write_cstring(iter, MESSAGE_KEY_SOUND, sound_id_of((int)s_sound));
   dict_write_uint8(iter, MESSAGE_KEY_VOLUME, s_volume_choice);
+  dict_write_cstring(iter, MESSAGE_KEY_STYLE, style_id_of(s_bold ? 0 : 1));
+  dict_write_cstring(iter, MESSAGE_KEY_THEME, theme_id_of(s_bright ? 0 : 1));
   app_message_outbox_send();
 }
 
@@ -237,14 +252,17 @@ static void play_at(int hour, int minute, PtScope scope, const char *label) {
   const bool sound = wants_sound();
   const bool vibrate = !(sound && s_sound == PT_SOUND_ONLY);
 
+  // A new preview replaces both channels, including a channel just disabled.
+  vibes_cancel();
+#ifdef PBL_SPEAKER
+  speaker_stop();
+#endif
   if (vibrate) {
-    vibes_cancel();
     VibePattern pattern = { .durations = s_durations, .num_segments = (uint32_t)dn };
     vibes_enqueue_custom_pattern(pattern);
   }
 #ifdef PBL_SPEAKER
   if (sound) {
-    speaker_stop();
     size_t note_count = build_notes(s_segments, n);
     if (note_count > 0) speaker_play_notes(s_notes, (uint32_t)note_count, volume_percent());
   }
@@ -338,72 +356,50 @@ static void tick(struct tm *tick_time, TimeUnits units_changed) {
 
 static void draw(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_unobstructed_bounds(layer);
+  const int x = bounds.origin.x, y = bounds.origin.y;
   const int w = bounds.size.w, h = bounds.size.h;
   const bool big = h >= 200;
   const bool round = PBL_IF_ROUND_ELSE(true, false);
-  const int inset = round ? 16 : 4;
-  const GColor accent = PBL_IF_COLOR_ELSE(GColorCyan, GColorWhite);
-  const GColor muted = PBL_IF_COLOR_ELSE(GColorLightGray, GColorWhite);
-
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+  const GColor paper = s_bright ? GColorWhite : GColorBlack;
+  const GColor ink = s_bright ? GColorBlack : GColorWhite;
+  graphics_context_set_fill_color(ctx, paper);
+  graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
+  graphics_context_set_text_color(ctx, ink);
 
   time_t now = time(NULL);
   struct tm *tm = localtime(&now);
-
-  char time_text[8];
-  int hour = tm->tm_hour;
-  if (!clock_is_24h_style()) {
-    hour %= 12;
-    if (hour == 0) hour = 12;
-    snprintf(time_text, sizeof time_text, "%d:%02d", hour, tm->tm_min);
-  } else {
-    snprintf(time_text, sizeof time_text, "%02d:%02d", hour, tm->tm_min);
-  }
-
   char date_text[24];
   strftime(date_text, sizeof date_text, "%a %e %b", tm);
-
-  // Time, centred and dominant: this is a watchface first.
-  const int time_h = big ? 49 : 42;
-  int y = (h - time_h) / 2 - (big ? 26 : 20);
-  graphics_context_set_text_color(ctx, GColorWhite);
-  graphics_draw_text(ctx, time_text,
-                     fonts_get_system_font(big ? FONT_KEY_LECO_42_NUMBERS : FONT_KEY_LECO_36_BOLD_NUMBERS),
-                     GRect(0, y, w, time_h + 10),
-                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  y += time_h + 2;
-
-  GFont body = fonts_get_system_font(big ? FONT_KEY_GOTHIC_24_BOLD : FONT_KEY_GOTHIC_18_BOLD);
-  graphics_context_set_text_color(ctx, muted);
-  graphics_draw_text(ctx, date_text, body, GRect(inset, y, w - 2 * inset, big ? 28 : 22),
-                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  y += big ? 30 : 24;
-
-  // One status line: what is playing, or how the face is set up.
-  GFont small = fonts_get_system_font(big ? FONT_KEY_GOTHIC_18 : FONT_KEY_GOTHIC_14);
-  char line[40];
-  if (s_playing) {
-    snprintf(line, sizeof line, "%s · %s", s_status, pt_system_short_label(s_system));
-    graphics_context_set_text_color(ctx, accent);
-  } else {
-    const char *chime = (s_chime == PT_CHIME_OFF)       ? ""
-                        : (s_chime == PT_CHIME_HOUR)    ? " · hourly"
-                        : (s_chime == PT_CHIME_HALF)    ? " · :00 :30"
-                                                        : " · quarters";
-    snprintf(line, sizeof line, "%s%s", pt_system_short_label(s_system), chime);
-    graphics_context_set_text_color(ctx, muted);
+  const bool twenty_four = clock_is_24h_style();
+  if (!twenty_four) {
+    // The time itself stays huge; AM/PM is explicit alongside the date.
+    const size_t len = strlen(date_text);
+    snprintf(date_text + len, sizeof date_text - len, " %s", tm->tm_hour < 12 ? "AM" : "PM");
   }
-  graphics_draw_text(ctx, line, small, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
-                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  y += big ? 22 : 18;
 
-  if (!s_playing) {
-    graphics_context_set_text_color(ctx, muted);
-    graphics_draw_text(ctx, s_tap_tell ? "Double-tap to feel the time" : "Tap to tell is off",
-                       small, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
-                       GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  }
+  // A circular face gets a central safe rectangle and shorter footer copy.
+  // No color-only meaning: all labels use the same full-contrast ink.
+  const int top = round ? h / 11 : 1;
+  const int date_h = big ? 22 : 18;
+  const int footer_h = big ? 24 : 20;
+  const int footer_y = round ? h - h / 11 - footer_h : h - footer_h - 3;
+  const int time_y = top + date_h + 3;
+  const int inset = round ? w / 8 : 5;
+  const int time_bottom = footer_y - 5;
+  const int date_inset = round ? w / 5 : 2;
+  graphics_draw_text(ctx, date_text,
+                     fonts_get_system_font(big ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_14_BOLD),
+                     GRect(x + date_inset, y + top, w - 2 * date_inset, date_h),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+  pt_draw_large_time(ctx, GRect(x + inset, y + time_y, w - 2 * inset, time_bottom - time_y),
+                     tm->tm_hour, tm->tm_min, twenty_four, s_bold, ink);
+
+  const int footer_inset = round ? w / 6 : 3;
+  GFont small = fonts_get_system_font(big ? FONT_KEY_GOTHIC_24_BOLD : FONT_KEY_GOTHIC_18_BOLD);
+  const char *hint = s_playing ? "Feeling time..." : (s_tap_tell ? "Double-tap watch" : "Tap is off");
+  graphics_draw_text(ctx, hint, small,
+                     GRect(x + footer_inset, y + footer_y, w - 2 * footer_inset, footer_h),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 }
 
 // ---- phone messages ----------------------------------------------------------
@@ -503,6 +499,13 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     s_volume_choice = (uint8_t)n; changed = feelable = true;
   }
 
+  if (read_choice(dict_find(iter, MESSAGE_KEY_STYLE), style_id_of, 2, &v) && (v == 0) != s_bold) {
+    s_bold = v == 0; changed = true;
+  }
+  if (read_choice(dict_find(iter, MESSAGE_KEY_THEME), theme_id_of, 2, &v) && (v == 0) != s_bright) {
+    s_bright = v == 0; changed = true;
+  }
+
   // Apply before answering a REQUEST, or the reply would report settings the
   // watch never adopted.
   const bool requested = dict_find(iter, MESSAGE_KEY_REQUEST) != NULL;
@@ -544,7 +547,7 @@ static void init(void) {
   window_stack_push(s_window, true);
 
   app_message_register_inbox_received(inbox_received);
-  app_message_open(128, 128);
+  app_message_open(512, 512);
   tick_timer_service_subscribe(MINUTE_UNIT, tick);
   // The accelerometer subscription is what costs battery here. It is the reason
   // the face exists, so it defaults on, but it is a setting and the config page
@@ -553,6 +556,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
+  vibes_cancel();
 #ifdef PBL_SPEAKER
   speaker_stop();
 #endif
