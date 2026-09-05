@@ -6,7 +6,7 @@
 // and vibrates at once. Select repeats the whole time, Up plays only the hour,
 // and Down plays only the minutes. Deliberate holds keep advanced controls out
 // of the everyday path: hold Up/Down to move through the seven haptic-language
-// rungs, and hold Select to open practice. A wrist flick repeats; Back exits.
+// rungs, and hold Select to open learning and settings. A wrist flick repeats; Back exits.
 // Settings also arrive from the phone's Clay config page over AppMessage and
 // are applied immediately.
 //
@@ -33,6 +33,7 @@
 #include <pebble.h>
 
 #include "encoder.h"
+#include "display.h"
 
 #define PERSIST_SYSTEM 1
 #define PERSIST_SPEED 2
@@ -45,6 +46,24 @@
 #define PERSIST_CHIME 9
 #define PERSIST_QUIET_FROM 10
 #define PERSIST_QUIET_TO 11
+#define PERSIST_GUIDE_DONE 12
+#define PERSIST_THEME 13
+#define PERSIST_STYLE 14
+
+static bool s_dark = false;
+static bool s_classic = false;
+static Window *s_guide_window;
+static Layer *s_guide_canvas;
+static Window *s_menu_window;
+static MenuLayer *s_menu;
+static void open_menu(void);
+static void open_guide(int page);
+static void stop_playback(void);
+
+static const char *theme_id_of(int i) { return i ? "dark" : "bright"; }
+static const char *style_id_of(int i) { return i ? "classic" : "bold"; }
+static GColor ink(void) { return s_dark ? GColorWhite : GColorBlack; }
+static GColor paper(void) { return s_dark ? GColorBlack : GColorWhite; }
 
 // Pebble allows a maximum of 8 scheduled wakeup events per app, and refuses any
 // event within one minute of one already scheduled -- by ANY app -- with
@@ -201,6 +220,8 @@ static int s_played_minute = -1;
 // ---- settings ---------------------------------------------------------------
 
 static void load_settings(void) {
+  s_dark = persist_exists(PERSIST_THEME) && persist_read_int(PERSIST_THEME) == 1;
+  s_classic = persist_exists(PERSIST_STYLE) && persist_read_int(PERSIST_STYLE) == 1;
   if (persist_exists(PERSIST_SYSTEM)) {
     int32_t v = persist_read_int(PERSIST_SYSTEM);
     if (v >= 0 && v < PT_SYSTEM_COUNT) s_system = (PtSystem)v;
@@ -242,6 +263,8 @@ static void load_settings(void) {
 }
 
 static void save_settings(void) {
+  persist_write_int(PERSIST_THEME, s_dark);
+  persist_write_int(PERSIST_STYLE, s_classic);
   persist_write_int(PERSIST_SYSTEM, (int32_t)s_system);
   persist_write_int(PERSIST_SPEED, (int32_t)s_speed);
   persist_write_bool(PERSIST_EXACT, s_exact);
@@ -261,6 +284,8 @@ static void save_settings(void) {
 static void send_settings_to_phone(void) {
   DictionaryIterator *iter;
   if (app_message_outbox_begin(&iter) != APP_MSG_OK) return;
+  dict_write_cstring(iter, MESSAGE_KEY_THEME, theme_id_of(s_dark));
+  dict_write_cstring(iter, MESSAGE_KEY_STYLE, style_id_of(s_classic));
   dict_write_cstring(iter, MESSAGE_KEY_SYSTEM, pt_system_storage_id(s_system));
   dict_write_cstring(iter, MESSAGE_KEY_SPEED, pt_speed_storage_id(s_speed));
   dict_write_uint8(iter, MESSAGE_KEY_EXACT_MINUTES, s_exact ? 1 : 0);
@@ -368,6 +393,19 @@ static const char *flick_line(void) {
 
 // ---- playback ---------------------------------------------------------------
 
+static void stop_playback(void) {
+  vibes_cancel();
+#ifdef PBL_SPEAKER
+  speaker_stop();
+#endif
+  if (s_done_timer) app_timer_cancel(s_done_timer);
+  s_done_timer = NULL;
+  s_playing = false;
+  quiet_worker(PT_WORKER_QUIET_MARGIN_MS);
+  if (s_canvas) layer_mark_dirty(s_canvas);
+  if (s_guide_canvas) layer_mark_dirty(s_guide_canvas);
+}
+
 static void playback_done(void *data) {
   s_done_timer = NULL;
   s_playing = false;
@@ -378,6 +416,7 @@ static void playback_done(void *data) {
     return;
   }
   if (s_canvas) layer_mark_dirty(s_canvas);
+  if (s_guide_canvas) layer_mark_dirty(s_guide_canvas);
 }
 
 #ifdef PBL_SPEAKER
@@ -431,6 +470,7 @@ static bool wants_sound(void) {
 // Play a specific time. play_time_scoped() supplies "now"; practice mode
 // supplies a chosen one.
 static void play_at(int hour, int minute, PtCueKind cue_kind, int cue_count, PtScope scope) {
+  s_launch_scope = scope;
   size_t n = pt_encode_scoped(s_system, s_speed, s_exact, hour, minute, scope,
                               s_segments, PT_MAX_SEGMENTS);
   uint32_t cue_ms = 0;
@@ -446,6 +486,7 @@ static void play_at(int hour, int minute, PtCueKind cue_kind, int cue_count, PtS
     if (s_durations[i] > 10000) s_durations[i] = 10000; // API maximum per segment
   }
 
+  stop_playback();
   const bool sound = wants_sound();
   const bool vibrate = !(sound && s_sound == PT_SOUND_ONLY);
 
@@ -475,6 +516,7 @@ static void play_at(int hour, int minute, PtCueKind cue_kind, int cue_count, PtS
           pt_system_storage_id(s_system), pt_speed_storage_id(s_speed), pt_scope_storage_id(scope),
           s_exact ? 1 : 0, hour, minute, (unsigned)n, (unsigned)total_slots, (int)cue_kind, cue_count);
   if (s_canvas) layer_mark_dirty(s_canvas);
+  if (s_guide_canvas) layer_mark_dirty(s_guide_canvas);
 }
 
 static void play_time_scoped(PtCueKind cue_kind, int cue_count, PtScope scope) {
@@ -545,9 +587,9 @@ static void play_chime(int hour, int minute) {
 }
 
 static void wakeup_handler(WakeupId id, int32_t cookie) {
-  // A wakeup that lands while the app is already open. Play it, but do not take
-  // over the screen -- the wearer is here on purpose.
-  if (cookie >= 0 && cookie <= 2359) play_chime((int)(cookie / 100), (int)(cookie % 100));
+  // Keep a scheduled chime from replacing a known lesson or settings preview.
+  if (window_stack_get_top_window() == s_window && cookie >= 0 && cookie <= 2359)
+    play_chime((int)(cookie / 100), (int)(cookie % 100));
   reschedule_chimes();
 }
 
@@ -656,10 +698,10 @@ static void practice_draw(Layer *layer, GContext *ctx) {
   const bool big = h >= 200;
   const bool round = PBL_IF_ROUND_ELSE(true, false);
   const int inset = round ? 14 : 0;
-  const GColor accent = PBL_IF_COLOR_ELSE(GColorCyan, GColorWhite);
-  const GColor muted = PBL_IF_COLOR_ELSE(GColorLightGray, GColorWhite);
+  const GColor accent = ink();
+  const GColor muted = ink();
 
-  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_context_set_fill_color(ctx, paper());
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
   const PracticeStep step = PRACTICE_LADDER[s_practice_index];
@@ -674,7 +716,7 @@ static void practice_draw(Layer *layer, GContext *ctx) {
   }
 
   int y = round ? (big ? 34 : 18) : (big ? 22 : 10);
-  graphics_context_set_text_color(ctx, GColorWhite);
+  graphics_context_set_text_color(ctx, ink());
   graphics_draw_text(ctx, time_text,
                      fonts_get_system_font(big ? FONT_KEY_LECO_42_NUMBERS : FONT_KEY_LECO_36_BOLD_NUMBERS),
                      GRect(0, y, w, (big ? 42 : 36) + 10),
@@ -701,12 +743,12 @@ static void practice_draw(Layer *layer, GContext *ctx) {
   graphics_draw_text(ctx, "Sel replay \u00b7 Up/Dn step", sub_font,
                      GRect(inset, hint_y, w - 2 * inset, hint_h),
                      GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  graphics_draw_text(ctx, "Back: the clock", sub_font,
+  graphics_draw_text(ctx, "Back: menu", sub_font,
                      GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
                      GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 }
 
-static void practice_select(ClickRecognizerRef r, void *c) { practice_play(); }
+static void practice_select(ClickRecognizerRef r, void *c) { if (s_playing) stop_playback(); else practice_play(); }
 static void practice_up(ClickRecognizerRef r, void *c) { practice_step(-1); }
 static void practice_down(ClickRecognizerRef r, void *c) { practice_step(+1); }
 
@@ -725,6 +767,7 @@ static void practice_load(Window *window) {
 }
 
 static void practice_unload(Window *window) {
+  stop_playback();
   layer_destroy(s_practice_canvas);
   s_practice_canvas = NULL;
 }
@@ -743,108 +786,298 @@ static void open_practice(void) {
   practice_play();
 }
 
-// ---- drawing ------------------------------------------------------------------
+// ---- guided learning and settings ---------------------------------------------
+// Lessons always use 3:32 and the saved language. They never overwrite a choice.
+// Navigation stops playback, and Back always remains a route out.
+static int s_guide_page;
+#define GUIDE_PAGES 10
 
-static void format_time(char *out, size_t len, time_t t) {
-  struct tm *tm = localtime(&t);
-  int hour = tm->tm_hour;
-  if (!clock_is_24h_style()) {
-    hour %= 12;
-    if (hour == 0) hour = 12;
-    snprintf(out, len, "%d:%02d", hour, tm->tm_min);
-  } else {
-    snprintf(out, len, "%02d:%02d", hour, tm->tm_min);
+static bool reports_launch_button(void) {
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_GABBRO)
+  return true;
+#else
+  return false;
+#endif
+}
+
+static const char *lesson_hours(void) {
+  if (s_system == PT_SYSTEM_BINARY_CLOCK) return "0011 = 3\nShort = 0\nLong = 1";
+  if (s_system == PT_SYSTEM_MORSE_DIGITS) return "3 = ...--\nThree short,\ntwo long.";
+  return "Three hour\npulses.\nCount each buzz.";
+}
+
+static const char *lesson_minutes(void) {
+  switch (s_system) {
+    case PT_SYSTEM_TERSE_QUARTER:
+      return s_exact ? "2 quarters, then\n2 tiny ticks.\n30 + 2 minutes." : "2 quarter pulses.\nMeans :30 to :44.\nExtra minutes off.";
+    case PT_SYSTEM_FIVE_MINUTE_LADDER: return "6 five-min steps,\nthen 2 tiny ticks.\n30 + 2 minutes.";
+    case PT_SYSTEM_DECIMAL_PLACE: return "3 tens pulses,\nthen 2 tiny ones.\n30 + 2 minutes.";
+    case PT_SYSTEM_BINARY_CLOCK: return "100000 = 32\nShort = 0\nLong = 1";
+    case PT_SYSTEM_NEAREST_QUARTER: return "3 landmark taps;\nshort-long: after;\n2 ticks. :30 + 2";
+    case PT_SYSTEM_MORSE_DIGITS: return "3 = ...--\n2 = ..---\nShort dot; long dash.";
+    default: return "";
   }
 }
 
-static void draw(Layer *layer, GContext *ctx) {
-  GRect bounds = layer_get_unobstructed_bounds(layer);
-  const int w = bounds.size.w;
-  const int h = bounds.size.h;
-  const bool big = h >= 200;                     // emery / gabbro
+static void guide_draw(Layer *layer, GContext *ctx) {
+  GRect b = layer_get_unobstructed_bounds(layer);
   const bool round = PBL_IF_ROUND_ELSE(true, false);
-  const int inset = round ? 14 : 0;              // keep text off the round bezel
-
-  const GColor accent = PBL_IF_COLOR_ELSE(GColorCyan, GColorWhite);
-  const GColor muted = PBL_IF_COLOR_ELSE(GColorLightGray, GColorWhite);
-
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
-
-  // Time, large.
-  char time_text[8];
-  format_time(time_text, sizeof time_text, time(NULL));
-  GFont time_font = fonts_get_system_font(big ? FONT_KEY_LECO_42_NUMBERS : FONT_KEY_LECO_36_BOLD_NUMBERS);
-  const int time_h = big ? 42 : 36;
-  int y = round ? (big ? 34 : 18) : (big ? 22 : 10);
-  graphics_context_set_text_color(ctx, GColorWhite);
-  graphics_draw_text(ctx, time_text, time_font, GRect(0, y, w, time_h + 10),
-                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  y += time_h + (big ? 16 : 6); // tight: the worker line needs a row of its own
-
-  // Time-system name, then its short label with the playback speed.
-  GFont title_font = fonts_get_system_font(big ? FONT_KEY_GOTHIC_28_BOLD : FONT_KEY_GOTHIC_24_BOLD);
-  graphics_context_set_text_color(ctx, accent);
-  graphics_draw_text(ctx, pt_system_title(s_system), title_font, GRect(inset, y, w - 2 * inset, big ? 32 : 28),
-                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  y += big ? 32 : 28;
-
-  char sub[40];
-  if (s_playing && s_launch_scope != PT_SCOPE_FULL) {
-    // Say which half was played, or a partial answer looks like a bug.
-    snprintf(sub, sizeof sub, "%s \u00b7 %d:%02d", pt_scope_label(s_launch_scope),
-             s_played_hour, s_played_minute);
-  } else if (s_playing) {
-    snprintf(sub, sizeof sub, "Playing %d:%02d", s_played_hour, s_played_minute);
-  } else if (s_system == PT_SYSTEM_TERSE_QUARTER) {
-    snprintf(sub, sizeof sub, "%s · %s%s", pt_system_short_label(s_system), pt_speed_label(s_speed),
-             s_exact ? " · Exact" : "");
-  } else {
-    snprintf(sub, sizeof sub, "%s · %s", pt_system_short_label(s_system), pt_speed_label(s_speed));
+  const bool big = b.size.h >= 200;
+  const int inset = round ? (big ? 40 : 23) : 5;
+  const int top = round ? (big ? 32 : 18) : 2;
+  const int width = b.size.w - inset * 2;
+  const char *title = "Learn by touch";
+  const char *body = "Select: time now\nDown: learn\nUp: previous\nBack: return";
+  const char *action = "Select: time now";
+  char heading[40];
+  switch (s_guide_page) {
+    case 1: title = "3:32 / hours"; body = lesson_hours(); action = "Select: feel hours"; break;
+    case 2: title = "3:32 / minutes"; body = lesson_minutes(); action = "Select: feel minutes"; break;
+    case 3:
+      title = "3:32 / all";
+      body = s_system == PT_SYSTEM_TERSE_QUARTER && !s_exact
+        ? "Hours, pause,\nthen quarters.\nSays about 3:30." : "Hours, pause,\nthen minutes.\nSays 3:32.";
+      action = "Select: feel time"; break;
+    case 4:
+      title = "Zero minutes";
+      body = s_system == PT_SYSTEM_TERSE_QUARTER
+        ? "At :00, minutes\nuse one long buzz.\nQuarter can feel\nalike. Try both."
+        : "Learn zero too.\nCompare :00 with\nthe prior lesson.";
+      action = "Select: feel :00"; break;
+    case 5:
+      title = "Compare :15"; body = "Feel one quarter.\nCompare with :00.\nUse whole time\nif unsure.";
+      if (s_system != PT_SYSTEM_TERSE_QUARTER) body = "Compare :15 with\n:00 and :32.\nUse whole time\nif unsure.";
+      action = "Select: feel :15"; break;
+    case 6:
+      title = "Daily buttons"; body = "Up: hour\nSelect: time / stop\nDown: minutes\nHold Select: menu"; break;
+    case 7:
+      title = "Quick Launch"; body = "On your watch:\nSettings >\nQuick Launch >\nUp > PulseTime"; break;
+    case 8:
+      title = "Button setup";
+      body = reports_launch_button() ? "Repeat for Down.\nChoose each reply\nin this app's\nQuick Launch menu."
+        : "2 SE / older:\neither launch\nsays whole time.\nUp/Down split inside.";
+      break;
+    case 9:
+      title = "Ready"; body = "Hold a bound key\nfrom any face.\nSelect tells time.\nDown ends guide."; action = "Select: time now"; break;
   }
-  GFont sub_font = fonts_get_system_font(big ? FONT_KEY_GOTHIC_18 : FONT_KEY_GOTHIC_14);
-  graphics_context_set_text_color(ctx, muted);
-  graphics_draw_text(ctx, sub, sub_font, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
-                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  y += big ? 22 : 18;
+  snprintf(heading, sizeof heading, "%d/%d  %s", s_guide_page + 1, GUIDE_PAGES, title);
+  graphics_context_set_fill_color(ctx, paper());
+  graphics_fill_rect(ctx, b, 0, GCornerNone);
+  graphics_context_set_text_color(ctx, ink());
+  graphics_draw_text(ctx, heading, fonts_get_system_font(big ? FONT_KEY_GOTHIC_24_BOLD : FONT_KEY_GOTHIC_14_BOLD),
+    GRect(inset, top, width, big ? 30 : 24), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  const int body_y = top + (big ? 36 : 26);
+  graphics_draw_text(ctx, body, fonts_get_system_font(big ? FONT_KEY_GOTHIC_24_BOLD : FONT_KEY_GOTHIC_18_BOLD),
+    GRect(inset, body_y, width, big ? 118 : 88), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  const int foot_y = b.size.h - (round ? (big ? 63 : 45) : (big ? 51 : 39));
+  graphics_draw_text(ctx, s_playing ? "Select: stop" : action,
+    fonts_get_system_font(big ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_14_BOLD),
+    GRect(inset, foot_y, width, 23), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  graphics_draw_text(ctx, s_guide_page == 9 ? "Down: finish" : "Up / Down: steps",
+    fonts_get_system_font(big ? FONT_KEY_GOTHIC_18 : FONT_KEY_GOTHIC_14),
+    GRect(inset, foot_y + (big ? 23 : 18), width, 22), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+}
 
-  // Chime state. It reports the number of wakeups actually scheduled, not the
-  // setting: "hourly" with nothing scheduled would be a lie, and the failure is
-  // real (another app can own a wakeup within a minute of every slot we want).
-  if (s_chime != PT_CHIME_OFF) {
-    char chime_line[28];
-    const char *every = (s_chime == PT_CHIME_HOUR)   ? "hourly"
-                        : (s_chime == PT_CHIME_HALF) ? ":00 :30"
-                                                     : "quarters";
-    snprintf(chime_line, sizeof chime_line, "Chime %s (%d)", every, s_chimes_scheduled);
-    graphics_context_set_text_color(ctx, s_chimes_scheduled > 0 ? accent : muted);
-    graphics_draw_text(ctx, chime_line, sub_font, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
-                       GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-    y += big ? 22 : 18;
+static void guide_select(ClickRecognizerRef r, void *c) {
+  if (s_playing) { stop_playback(); return; }
+  if (s_guide_page == 1 || s_guide_page == 2 || s_guide_page == 3 || s_guide_page == 4 || s_guide_page == 5) {
+    PtScope scope = s_guide_page == 1 ? PT_SCOPE_HOURS : s_guide_page == 3 ? PT_SCOPE_FULL : PT_SCOPE_MINUTES;
+    play_at(3, s_guide_page == 4 ? 0 : s_guide_page == 5 ? 15 : 32, PT_CUE_NONE, 0, scope);
+  } else play_time(); // Asking for the time works even before finishing setup.
+}
+static void guide_step(int delta) {
+  stop_playback();
+  if (s_guide_page + delta >= GUIDE_PAGES) {
+    persist_write_bool(PERSIST_GUIDE_DONE, true);
+    window_stack_pop(true);
+    return;
   }
-
-  // Worker state, one short line, so "on" is never a silent assumption.
-  graphics_context_set_text_color(ctx, s_flick_state == FLICK_ON ? accent : muted);
-  graphics_draw_text(ctx, flick_line(), sub_font, GRect(inset, y, w - 2 * inset, big ? 22 : 18),
-                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-
-  // Button hints along the bottom.
-  GFont hint_font = fonts_get_system_font(big ? FONT_KEY_GOTHIC_18 : FONT_KEY_GOTHIC_14);
-  const int hint_h = big ? 22 : 16;
-  const int hint_y = h - (round ? 2 * hint_h + 22 : 2 * hint_h + 4);
-  graphics_context_set_text_color(ctx, muted);
-  if (s_flick_note) {
-    // A worker problem takes the whole two-line block so it is not cut short.
-    graphics_draw_text(ctx, s_flick_note, hint_font, GRect(inset, hint_y, w - 2 * inset, 2 * hint_h),
-                       GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-  } else {
-    // Kept short on purpose: 144 px of GOTHIC_14 is about twenty characters,
-    // and an ellipsised hint teaches nothing.
-    graphics_draw_text(ctx, "Sel all \u00b7 Up hours", hint_font, GRect(inset, hint_y, w - 2 * inset, hint_h),
-                       GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-    graphics_draw_text(ctx, "Dn mins \u00b7 Hold more", hint_font, GRect(inset, hint_y + hint_h, w - 2 * inset, hint_h),
-                       GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+  s_guide_page += delta;
+  if (s_guide_page < 0) s_guide_page = 0;
+  layer_mark_dirty(s_guide_canvas);
+}
+static void guide_up(ClickRecognizerRef r, void *c) { guide_step(-1); }
+static void guide_down(ClickRecognizerRef r, void *c) { guide_step(1); }
+static void guide_click_config(void *c) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, guide_select);
+  window_single_click_subscribe(BUTTON_ID_UP, guide_up);
+  window_single_click_subscribe(BUTTON_ID_DOWN, guide_down);
+}
+static void guide_load(Window *window) {
+  Layer *root = window_get_root_layer(window);
+  s_guide_canvas = layer_create(layer_get_bounds(root));
+  layer_set_update_proc(s_guide_canvas, guide_draw);
+  layer_add_child(root, s_guide_canvas);
+}
+static void guide_unload(Window *window) {
+  stop_playback();
+  layer_destroy(s_guide_canvas);
+  s_guide_canvas = NULL;
+}
+static void open_guide(int page) {
+  s_auto_exit = false;
+  stop_playback();
+  s_guide_page = page;
+  if (!s_guide_window) {
+    s_guide_window = window_create();
+    window_set_click_config_provider(s_guide_window, guide_click_config);
+    window_set_window_handlers(s_guide_window, (WindowHandlers){ .load = guide_load, .unload = guide_unload });
   }
+  window_set_background_color(s_guide_window, paper());
+  window_stack_push(s_guide_window, true);
+}
+
+typedef enum { MENU_HOME, MENU_LANGUAGE, MENU_SPEED, MENU_DISPLAY, MENU_QUICK, MENU_STATUS } MenuKind;
+static MenuKind s_menu_kind;
+static const char *const LANGUAGE_NAMES[] = { "Quarter", "Quarter + ticks", "Five-minute", "Decimal", "Binary", "Nearest quarter", "Morse digits" };
+static const char *const LANGUAGE_NOTES[] = { "Start here / approximate", "Exact / more counting", "Exact / count by five", "Exact / tens and ones", "Advanced / bit reading", "Advanced / before-after", "Advanced / Morse code" };
+static uint16_t menu_rows(MenuLayer *menu, uint16_t section, void *c) {
+  switch (s_menu_kind) {
+    case MENU_LANGUAGE: return CYCLE_COUNT;
+    case MENU_SPEED: return PT_SPEED_COUNT;
+    case MENU_DISPLAY: return 4;
+    case MENU_QUICK: return reports_launch_button() ? 3 : 1;
+    case MENU_STATUS: return 3;
+    default: return 7;
+  }
+}
+static int16_t menu_height(MenuLayer *menu, MenuIndex *index, void *c) {
+  return PBL_IF_ROUND_ELSE(68, 52);
+}
+static void menu_draw_row(GContext *ctx, const Layer *cell, MenuIndex *index, void *c) {
+  int row = index->row;
+  const char *title = "", *sub = "";
+  char detail[48];
+  switch (s_menu_kind) {
+    case MENU_HOME: {
+      static const char *const titles[] = { "Learn pattern", "Practice", "Language", "Speed", "Display", "Quick Launch", "Watch status" };
+      static const char *const subtitles[] = { "Hours, minutes, then all", "22 known times", "Compare seven choices", "Slow, standard, fast", "Bright / dark, bold / row", "Set up the side buttons", "Chimes and wrist flick" };
+      title = titles[row]; sub = subtitles[row]; break;
+    }
+    case MENU_LANGUAGE:
+      title = LANGUAGE_NAMES[row]; sub = row == current_cycle_index() ? "Selected / Select to hear" : LANGUAGE_NOTES[row]; break;
+    case MENU_SPEED:
+      title = pt_speed_label((PtSpeed)row); sub = row == s_speed ? "Selected / Select to hear" : "Select: save and feel"; break;
+    case MENU_DISPLAY:
+      title = (const char *const[]){ "Bright / bold", "Dark / bold", "Bright / row", "Dark / row" }[row];
+      sub = row == s_dark + 2 * s_classic ? "Selected" : "Select: apply"; break;
+    case MENU_QUICK:
+      if (row == 0) { title = "Set up buttons"; sub = "Watch Settings first"; }
+      else { title = row == 1 ? "Up plays" : "Down plays"; sub = pt_scope_label(row == 1 ? s_ql_up : s_ql_down); }
+      break;
+    case MENU_STATUS:
+      if (row == 0) { title = flick_line(); sub = s_flick_note ? "Check phone settings" : "Double wrist-tap worker"; }
+      if (row == 1) { title = "Chimes"; snprintf(detail, sizeof detail, "%s / %d scheduled", chime_id_of(s_chime), s_chimes_scheduled); sub = detail; }
+      if (row == 2) { title = "More settings"; sub = "Phone > PulseTime gear"; }
+      break;
+  }
+  menu_cell_basic_draw(ctx, cell, title, sub, NULL);
+}
+static void menu_select(MenuLayer *menu, MenuIndex *index, void *c) {
+  int row = index->row;
+  stop_playback();
+  if (s_menu_kind == MENU_HOME) {
+    if (row == 0) { open_guide(0); return; }
+    if (row == 1) { open_practice(); return; }
+    s_menu_kind = (MenuKind)(row - 1);
+    menu_layer_reload_data(s_menu);
+    menu_layer_set_selected_index(s_menu, MenuIndex(0, 0), MenuRowAlignCenter, false);
+    return;
+  }
+  if (s_menu_kind == MENU_LANGUAGE) {
+    s_system = CYCLE[row].system; s_exact = CYCLE[row].exact;
+    play_time_cued(PT_CUE_SYSTEM, row + 1);
+  } else if (s_menu_kind == MENU_SPEED) {
+    s_speed = (PtSpeed)row; play_time_cued(PT_CUE_SPEED, row + 1);
+  } else if (s_menu_kind == MENU_DISPLAY) {
+    s_dark = row % 2; s_classic = row / 2;
+    light_enable_interaction();
+    menu_layer_set_normal_colors(s_menu, paper(), ink());
+    menu_layer_set_highlight_colors(s_menu, ink(), paper());
+  } else if (s_menu_kind == MENU_QUICK) {
+    if (row == 0) { open_guide(7); return; }
+    PtScope *scope = row == 1 ? &s_ql_up : &s_ql_down;
+    *scope = (PtScope)((*scope + 1) % 3);
+    play_time_scoped(PT_CUE_NONE, 0, *scope);
+  } else return;
+  save_settings(); send_settings_to_phone();
+  menu_layer_reload_data(s_menu);
+  layer_mark_dirty(s_canvas);
+}
+static void menu_back(ClickRecognizerRef r, void *c) {
+  stop_playback();
+  if (s_menu_kind == MENU_HOME) { window_stack_pop(true); return; }
+  s_menu_kind = MENU_HOME;
+  menu_layer_reload_data(s_menu);
+  menu_layer_set_selected_index(s_menu, MenuIndex(0, 0), MenuRowAlignCenter, false);
+}
+static void menu_up(ClickRecognizerRef r, void *c) { stop_playback(); menu_layer_set_selected_next(s_menu, true, MenuRowAlignCenter, true); }
+static void menu_down(ClickRecognizerRef r, void *c) { stop_playback(); menu_layer_set_selected_next(s_menu, false, MenuRowAlignCenter, true); }
+static void menu_choose(ClickRecognizerRef r, void *c) {
+  MenuIndex index = menu_layer_get_selected_index(s_menu);
+  menu_select(s_menu, &index, NULL);
+}
+static void menu_click_config(void *c) {
+  window_single_click_subscribe(BUTTON_ID_BACK, menu_back);
+  window_single_click_subscribe(BUTTON_ID_SELECT, menu_choose);
+  window_single_repeating_click_subscribe(BUTTON_ID_UP, 200, menu_up);
+  window_single_repeating_click_subscribe(BUTTON_ID_DOWN, 200, menu_down);
+}
+static void menu_load(Window *window) {
+  Layer *root = window_get_root_layer(window);
+  s_menu = menu_layer_create(layer_get_bounds(root));
+  menu_layer_set_callbacks(s_menu, NULL, (MenuLayerCallbacks){
+    .get_num_rows = menu_rows, .get_cell_height = menu_height,
+    .draw_row = menu_draw_row, .select_click = menu_select });
+  menu_layer_set_normal_colors(s_menu, paper(), ink());
+  menu_layer_set_highlight_colors(s_menu, ink(), paper());
+  window_set_click_config_provider(window, menu_click_config);
+  layer_add_child(root, menu_layer_get_layer(s_menu));
+}
+static void menu_unload(Window *window) {
+  stop_playback(); menu_layer_destroy(s_menu); s_menu = NULL;
+}
+static void open_menu(void) {
+  s_auto_exit = false;
+  stop_playback(); s_menu_kind = MENU_HOME;
+  if (!s_menu_window) {
+    s_menu_window = window_create();
+    window_set_window_handlers(s_menu_window, (WindowHandlers){ .load = menu_load, .unload = menu_unload });
+  }
+  window_set_background_color(s_menu_window, paper());
+  window_stack_push(s_menu_window, true);
+}
+
+// ---- drawing ------------------------------------------------------------------
+
+static void draw(Layer *layer, GContext *ctx) {
+  GRect b = layer_get_unobstructed_bounds(layer);
+  const int w = b.size.w, h = b.size.h;
+  const bool big = h >= 200;
+  const bool round = PBL_IF_ROUND_ELSE(true, false);
+  const int side = round ? (big ? 42 : 27) : 6;
+  const int top = round ? (big ? 32 : 17) : 2;
+  const int footer = h - (round ? (big ? 62 : 45) : (big ? 54 : 40));
+  graphics_context_set_fill_color(ctx, paper());
+  graphics_fill_rect(ctx, b, 0, GCornerNone);
+  graphics_context_set_text_color(ctx, ink());
+  const char *heading = s_system == PT_SYSTEM_TERSE_QUARTER && !s_exact ? "Quarter time" : "Exact time";
+  if (s_playing) heading = s_launch_scope == PT_SCOPE_HOURS ? "Feeling hours" :
+                           s_launch_scope == PT_SCOPE_MINUTES ? "Feeling minutes" : "Feeling time";
+  graphics_draw_text(ctx, heading, fonts_get_system_font(big ? FONT_KEY_GOTHIC_24_BOLD : FONT_KEY_GOTHIC_18_BOLD),
+    GRect(side, top, w - 2 * side, big ? 30 : 24), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  time_t now = time(NULL);
+  struct tm *tm = localtime(&now);
+  const int digits_top = top + (big ? 34 : 27);
+  pt_draw_large_time(ctx, GRect(side, digits_top, w - side * 2, footer - digits_top - 4),
+    tm->tm_hour, tm->tm_min, clock_is_24h_style(), !s_classic, ink());
+  graphics_draw_text(ctx, s_playing ? "Select: stop / time" : "Select: feel time",
+    fonts_get_system_font(big ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_14_BOLD),
+    GRect(side, footer, w - side * 2, big ? 25 : 20), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  graphics_draw_text(ctx, "Hold Select: menu",
+    fonts_get_system_font(big ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_14_BOLD),
+    GRect(side, footer + (big ? 25 : 18), w - side * 2, big ? 25 : 20),
+    GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 }
 
 // ---- input --------------------------------------------------------------------
@@ -855,12 +1088,19 @@ static void draw(Layer *layer, GContext *ctx) {
 // require a deliberate hold. Every press produces a vibration, so the app is
 // fully operable with the screen off or unseen: nothing is confirmed by sight
 // alone.
-static void select_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; play_time(); }
-static void up_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_HOURS; play_time_scoped(PT_CUE_NONE, 0, s_launch_scope); }
-static void down_click(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_MINUTES; play_time_scoped(PT_CUE_NONE, 0, s_launch_scope); }
+static void request_scope(PtScope scope) {
+  s_auto_exit = false;
+  light_enable_interaction();
+  if (s_playing && s_launch_scope == scope) { stop_playback(); return; }
+  s_launch_scope = scope;
+  play_time_scoped(PT_CUE_NONE, 0, scope);
+}
+static void select_click(ClickRecognizerRef recognizer, void *context) { request_scope(PT_SCOPE_FULL); }
+static void up_click(ClickRecognizerRef recognizer, void *context) { request_scope(PT_SCOPE_HOURS); }
+static void down_click(ClickRecognizerRef recognizer, void *context) { request_scope(PT_SCOPE_MINUTES); }
 static void up_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(-1); }
 static void down_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; cycle_system(+1); }
-static void select_long(ClickRecognizerRef recognizer, void *context) { s_auto_exit = false; s_launch_scope = PT_SCOPE_FULL; open_practice(); }
+static void select_long(ClickRecognizerRef recognizer, void *context) { open_menu(); }
 
 static void click_config(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click);
@@ -875,13 +1115,13 @@ static void click_config(void *context) {
   // BACK is left entirely alone. A long press on it is swallowed by the system's
   // own back-out before any handler runs (verified on the emery emulator: the
   // app simply exits), and subscribing to BACK at all risks a screen the wearer
-  // cannot leave. Practice lives on hold-Select instead.
+  // cannot leave. The learning and settings menu lives on hold-Select instead.
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
   // Our own vibration shakes the watch hard enough to register as a tap, and a
   // worker-launched run is about to exit anyway, so ignore both cases.
-  if (s_playing || s_auto_exit) return;
+  if (s_playing || s_auto_exit || window_stack_get_top_window() != s_window) return;
   play_time(); // wrist flick repeats the current time
 }
 
@@ -952,9 +1192,16 @@ static const char *scope_id_of(int i) { return pt_scope_storage_id((PtScope)i); 
 
 static void inbox_received(DictionaryIterator *iter, void *context) {
   bool changed = false;
+  bool display_changed = false;
   int v;
   int32_t vol;
   bool f;
+  if (read_choice(dict_find(iter, MESSAGE_KEY_THEME), theme_id_of, 2, &v) && v != s_dark) {
+    s_dark = v; display_changed = true;
+  }
+  if (read_choice(dict_find(iter, MESSAGE_KEY_STYLE), style_id_of, 2, &v) && v != s_classic) {
+    s_classic = v; display_changed = true;
+  }
   if (read_choice(dict_find(iter, MESSAGE_KEY_SYSTEM), system_id_of, PT_SYSTEM_COUNT, &v) && v != (int)s_system) {
     s_system = (PtSystem)v; changed = true;
   }
@@ -1007,7 +1254,7 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     save_settings();
     apply_flick_setting();
   }
-  if (changed || scopes_changed || chime_changed) {
+  if (changed || scopes_changed || chime_changed || display_changed) {
     save_settings();
     if (s_canvas) layer_mark_dirty(s_canvas);
   }
@@ -1016,7 +1263,23 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     send_settings_to_phone();
     return; // answering a query is not a reason to buzz
   }
-  if (changed) play_time(); // let the user feel the new setting straight away
+  if (changed) {
+    s_auto_exit = false;
+    if (s_guide_window && window_stack_get_top_window() == s_guide_window) {
+      stop_playback(); // A new language changes the lesson; wait for Select.
+      layer_mark_dirty(s_guide_canvas);
+    } else if (s_practice_window && window_stack_get_top_window() == s_practice_window) {
+      practice_play();
+    } else play_time();
+  }
+  if (s_menu) {
+    menu_layer_set_normal_colors(s_menu, paper(), ink());
+    menu_layer_set_highlight_colors(s_menu, ink(), paper());
+    menu_layer_reload_data(s_menu);
+  }
+  if (s_guide_canvas) layer_mark_dirty(s_guide_canvas);
+  if (s_practice_canvas) layer_mark_dirty(s_practice_canvas);
+  if (changed || scopes_changed || chime_changed || display_changed || flick_changed) send_settings_to_phone();
 }
 
 // ---- lifecycle --------------------------------------------------------------------
@@ -1072,7 +1335,7 @@ static void init(void) {
   window_stack_push(s_window, true);
 
   app_message_register_inbox_received(inbox_received);
-  app_message_open(128, 128);
+  app_message_open(512, 512);
   tick_timer_service_subscribe(MINUTE_UNIT, tick);
   accel_tap_service_subscribe(tap_handler);
   apply_flick_setting(); // before play_time, so quiet_worker finds the worker
@@ -1085,10 +1348,18 @@ static void init(void) {
 
   // The whole point: tell the time on launch, in whatever scope the gesture
   // asked for. A chime launch already played above.
-  if (!s_auto_exit) play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);
+  if (!s_auto_exit) {
+    if (!persist_read_bool(PERSIST_GUIDE_DONE) &&
+        (launch_reason() == APP_LAUNCH_USER || launch_reason() == APP_LAUNCH_PHONE)) {
+      open_guide(0);
+    } else play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);
+  }
 }
 
 static void deinit(void) {
+  stop_playback();
+  if (s_guide_window) window_destroy(s_guide_window);
+  if (s_menu_window) window_destroy(s_menu_window);
 #ifdef PBL_SPEAKER
   speaker_stop(); // never leave a note ringing after the app is gone
 #endif

@@ -149,6 +149,19 @@ No network. No location.
 - [ ] Training completable without sight  
 - [ ] Tile content description announces the tell-time action  
 
+## Pebble guided clock (1.1.0)
+
+The Pebble app now starts with a guided, replayable lesson. Hold Select for
+Learn pattern, Practice, Language, Speed, Display, Quick Launch, and Watch status.
+The app and watchface offer huge stacked digits or a single row, in black on
+white or white on black, on rectangular and round screens. Settings preserve
+existing haptic preferences.
+
+Start with quarter time; [compare the measured haptic options](appstores/pebble/pulsetime/HAPTICS.md)
+before adding exact minutes. Quick Launch setup is explained on the watch.
+Time 2 can recognize its launch button; Pebble 2 SE launches with the whole time
+and offers separate hour/minute buttons after opening.
+
 ## Garmin and Pebble ports (2026-08-18)
 
 Play is blocked for now, so PulseTime also ships natively where the stores are
@@ -165,7 +178,7 @@ open. Both ports run the same six systems from the same fixtures:
   emery/flint/gabbro. Bind it to Quick Launch; Select plays the whole time, Up
   plays only the hour, and Down plays only the minutes. These everyday buttons
   never change a learned language accidentally. Holding Up/Down deliberately
-  steps through its seven language rungs, while holding Select opens
+  steps through its seven language rungs, while holding Select opens the learning and settings menu, including
   **practice** (a ladder of chosen times, so patterns can be learned against a
   known answer). Each language change answers with a short count of pulses
   before playing the time, so it remains operable without sight. Bind both

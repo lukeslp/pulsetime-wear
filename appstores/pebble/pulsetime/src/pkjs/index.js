@@ -1,8 +1,7 @@
 // PulseTime — phone-side companion (PebbleKit JS).
 // The watch does all the work; the phone only hosts the Clay configuration page
 // and mirrors whatever the watch reports back, so the page never shows a stale
-// choice after the wearer changes something with the buttons -- which they can
-// do for the time system, the speed and exact minutes.
+// choice after the wearer changes the language, speed, or display on the watch.
 
 'use strict';
 
@@ -15,6 +14,8 @@ var SPEEDS = ['slow', 'standard', 'fast'];
 var SCOPES = ['full', 'hours', 'minutes'];
 var CHIMES = ['off', 'hour', 'half', 'quarter'];
 var SOUNDS = ['off', 'with', 'only'];
+var THEMES = ['bright', 'dark'];
+var STYLES = ['bold', 'classic'];
 
 function pick(value, list) {
   var v = typeof value === 'number' ? list[value] : String(value);
@@ -45,6 +46,14 @@ function mirror(payload) {
   if (payload.SOUND !== undefined) {
     var sound = pick(payload.SOUND, SOUNDS);
     if (sound) settings.SOUND = sound;
+  }
+  if (payload.THEME !== undefined) {
+    var theme = pick(payload.THEME, THEMES);
+    if (theme) settings.THEME = theme;
+  }
+  if (payload.STYLE !== undefined) {
+    var style = pick(payload.STYLE, STYLES);
+    if (style) settings.STYLE = style;
   }
   if (payload.QUIET_FROM !== undefined) settings.QUIET_FROM = String(Number(payload.QUIET_FROM));
   if (payload.QUIET_TO !== undefined) settings.QUIET_TO = String(Number(payload.QUIET_TO));

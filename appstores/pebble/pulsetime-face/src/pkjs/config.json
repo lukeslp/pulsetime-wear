@@ -5,14 +5,78 @@
   },
   {
     "type": "text",
-    "defaultValue": "Double-tap the watch and feel the time. The default is Terse Quarter at standard speed, with exact-minute ticks off; install it and start there. Nothing launches, nothing exits, and no background worker takes the watch's only worker slot. It works only while this face is on screen. Alternate haptic languages, chimes, and sound are optional settings below."
+    "defaultValue": "Start with the bright, large clock. Tap the watch twice in the same direction within about a second to feel the time. Keep this face on screen while listening. To change anything, open PulseTime Face settings in the Pebble phone app, choose your options, and tap Save to watch."
   },
   {
     "type": "section",
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Advanced · Haptic language"
+        "defaultValue": "Learn the first pattern"
+      },
+      {
+        "type": "text",
+        "defaultValue": "The starting pattern counts the hour with short pulses, pauses, then counts completed quarters with longer pulses. At 3:30, feel three short pulses, a pause, then two long pulses. At 3:00 there are no quarter pulses. It reports the completed quarter, so 3:44 feels like 3:30 until you enable exact minutes. Haptic hours always use 1–12, even when the visible clock uses 24-hour time."
+      },
+      {
+        "type": "text",
+        "defaultValue": "Practice while looking at the clock. Count the hour first, then the quarter. Try Slow if pulses run together. For guided examples, pattern comparisons, and button shortcuts, open the separate PulseTime watchapp."
+      },
+      {
+        "type": "text",
+        "defaultValue": "The face uses double-taps. Pebble keeps its normal side-button actions: it does not let a watchface remap those buttons. Choose PulseTime in the watch’s Quick Launch settings for a shortcut to the interactive watchapp."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Make the clock easy to see"
+      },
+      {
+        "type": "select",
+        "messageKey": "STYLE",
+        "label": "Clock layout",
+        "defaultValue": "bold",
+        "options": [
+          {
+            "label": "Bold — hours above minutes",
+            "value": "bold"
+          },
+          {
+            "label": "Classic — time in one row",
+            "value": "classic"
+          }
+        ],
+        "description": "Bold uses large, thick digits on rectangle and round screens. Hours are the top pair; minutes are the bottom pair. The watch’s own 12/24-hour preference is used."
+      },
+      {
+        "type": "select",
+        "messageKey": "THEME",
+        "label": "Contrast",
+        "defaultValue": "bright",
+        "options": [
+          {
+            "label": "Bright — black on white",
+            "value": "bright"
+          },
+          {
+            "label": "Dark — white on black",
+            "value": "dark"
+          }
+        ],
+        "description": "Both choices use full contrast, including on the monochrome Pebble 2 SE. Bright is the default. This changes the colors, not the watch’s backlight setting."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Choose a pattern"
       },
       {
         "type": "select",
@@ -45,7 +109,7 @@
             "value": "morse_digits"
           }
         ],
-        "description": "The same six systems as the PulseTime app, from the same encoder. If you already know one, it reads identically here."
+        "description": "Start with Terse Quarter for fewer pulses. Five-Minute Ladder is exact but can be long. Decimal Place reads minute digits with a long pulse for zero. Binary and Morse suit people who already know those codes. Nearest-Quarter uses an offset and takes more practice. A motor has one strength; distinguish patterns by timing and pauses."
       },
       {
         "type": "select",
@@ -73,7 +137,7 @@
         "messageKey": "EXACT_MINUTES",
         "label": "Exact minutes (Terse Quarter only)",
         "defaultValue": false,
-        "description": "Adds short ticks for the leftover minutes inside the quarter. The other five systems are already exact to the minute."
+        "description": "Adds short ticks after the quarter for leftover minutes: 3:32 adds two ticks after the two quarter pulses. This takes longer, especially near the next quarter. The other systems already report exact minutes."
       }
     ]
   },
@@ -89,7 +153,7 @@
         "messageKey": "TAP_TELL",
         "label": "Double-tap to tell time",
         "defaultValue": true,
-        "description": "Tap the watch twice, in the same direction, within about a second. This is why the face exists, so it is on by default — but it does cost battery, because the watch has to keep its accelerometer listening all day. A single tap is deliberately ignored: one tap fires constantly during ordinary arm movement. The face also stays deaf while it is buzzing, since the motor shakes the watch hard enough to look like your gesture."
+        "description": "Tap twice in the same direction within about a second. Single taps and taps during playback are ignored. Turn this off if ordinary movement triggers it, or to reduce accelerometer use."
       }
     ]
   },
@@ -102,7 +166,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "The face can tell you the time on its own, with no gesture at all. On the hour it strikes just the hour, the way a chiming clock always has; at a quarter or a half it plays the whole time, because there the minutes are the point."
+        "defaultValue": "Chimes work while this face is on screen. On the hour they play the hour only; half-hour and quarter-hour chimes play the full time. For scheduled chimes that can open from another face or app, use the PulseTime watchapp."
       },
       {
         "type": "select",
@@ -338,7 +402,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "Quiet hours silence chimes only. A double-tap always answers, including at three in the morning — that is exactly when you most want to know without turning on a light. Set both to the same hour for no quiet period."
+        "defaultValue": "Quiet hours silence chimes only. A deliberate double-tap still answers. Set both hours to the same value to allow chimes all day."
       }
     ]
   },
@@ -351,7 +415,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "The Pebble Time 2 and Pebble 2 Duo have a speaker. Several time systems separate their fields by strength, and a Pebble motor has no strength control at all, so that dimension is lost when you feel it. On the speaker it returns as pitch — stronger means higher. Off by default, and the watch's mute setting is always obeyed."
+        "defaultValue": "On supported speaker-equipped watches, sound can play alongside the pulses. Higher pitches distinguish fields that would otherwise differ only in motor strength. Sound starts off and respects the watch’s mute setting."
       },
       {
         "type": "select",
@@ -395,13 +459,13 @@
       },
       {
         "type": "text",
-        "defaultValue": "Needs a watch with a speaker: Pebble Time 2 or Pebble 2 Duo. On every other Pebble, including Pebble Round 2, these settings do nothing."
+        "defaultValue": "A Pebble 2 SE has no speaker: it uses vibration. Watches without a supported speaker ignore sound options. If the speaker is muted, PulseTime uses vibration so a request still answers."
       }
     ]
   },
   {
     "type": "text",
-    "defaultValue": "Pebble motors have no strength control, so every system here relies on pulse length and rhythm only. No PulseTime system depends on strength alone."
+    "defaultValue": "Saving a pattern, speed, exact-minute, or sound change previews the current time. Display and chime changes save quietly. If a tap does not answer, return to this face, wait for any existing pattern to finish, and try again."
   },
   {
     "type": "submit",

@@ -14,6 +14,8 @@ var SYSTEMS = ['terse_quarter', 'five_minute_ladder', 'decimal_place', 'binary_c
 var SPEEDS = ['slow', 'standard', 'fast'];
 var CHIMES = ['off', 'hour', 'half', 'quarter'];
 var SOUNDS = ['off', 'with', 'only'];
+var STYLES = ['bold', 'classic'];
+var THEMES = ['bright', 'dark'];
 
 function pick(value, list) {
   var v = typeof value === 'number' ? list[value] : String(value);
@@ -37,6 +39,14 @@ function mirror(payload) {
   if (payload.SOUND !== undefined) {
     var sound = pick(payload.SOUND, SOUNDS);
     if (sound) settings.SOUND = sound;
+  }
+  if (payload.STYLE !== undefined) {
+    var style = pick(payload.STYLE, STYLES);
+    if (style) settings.STYLE = style;
+  }
+  if (payload.THEME !== undefined) {
+    var theme = pick(payload.THEME, THEMES);
+    if (theme) settings.THEME = theme;
   }
   if (payload.EXACT_MINUTES !== undefined) settings.EXACT_MINUTES = !!Number(payload.EXACT_MINUTES);
   if (payload.TAP_TELL !== undefined) settings.TAP_TELL = !!Number(payload.TAP_TELL);
