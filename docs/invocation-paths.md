@@ -34,8 +34,6 @@ target — PulseTime has no watchOS build.
 |---|---|---|
 | Glance loop | swipe up, tap | The default. The app vibrates on `onShow`. |
 | Published complication on a watch face | one tap | Built. The complication is a **launcher**: a face calls `Complications.exitTo(id)` and the system foregrounds PulseTime, which vibrates. Requires API 4.2.0; the Venu 2S is CIQ 5.0. |
-| **Watchface** (`appstores/pebble/pulsetime-face/`) | **none** | **Built.** It is already running and it can vibrate, so the gesture count is zero. Double-tap tells the time; chimes need no gesture at all. Costs being your watchface — and only works while the face is the *running* app, see below. |
-| **Chimes** via `wakeup_schedule()` (watchapp) | **none** | **Built.** The only mechanism that fires with no resident process at all and regardless of which watchface is showing. The system launches the app, it buzzes, it closes. |
 | App list | more | Fallback. |
 
 Hard limits:
@@ -65,14 +63,17 @@ Hard limits:
 
 | Path | Gestures | Notes |
 |---|---|---|
-| Quick Launch (long-press Up or Down) | one press | Zero background cost. The best default. **Each button can say something different** — see below. |
+| Quick Launch (long-press Up or Down) | one press | No resident worker. Both buttons default to whole time; separate replies require Time 2, 2 Duo, or Round 2. |
+| Watchface (`appstores/pebble/pulsetime-face/`) | double-tap | Already running; plays without another app launch. Gestures and chimes stop while another app or the launcher is open. |
+| Watchapp chimes via `wakeup_schedule()` | none | The system launches the app, it plays the scheduled time, then closes. No PulseTime process stays resident between chimes. |
 | Background worker + wrist gesture | one double-tap | The worker cannot vibrate (`pebble_worker.h` has no vibes API); it calls `worker_launch_app()`, and the app vibrates and auto-exits when `launch_reason() == APP_LAUNCH_WORKER`. Off by default. |
 | App list | more | Fallback. |
 
 **Quick Launch carries a button id.** `launch_button()` returns which button
 started the app, and `launch_get_quick_launch_action()` distinguishes HOLD from
 TAP from COMBO, so one install can answer more than one question: PulseTime uses
-hold-Up and hold-Down for hours-only and minutes-only. Both are available only on
+hold-Up and hold-Down for independently chosen replies, initially whole time.
+The SDK calls are available only on
 **emery (Pebble Time 2), flint (Pebble 2 Duo) and gabbro (Pebble Round 2)**; the
 frozen platforms define both as macros returning `0`, so the feature degrades to
 "always the whole time" with no conditional compilation and no crash. Verified in
@@ -98,7 +99,7 @@ Hard limits:
   carrying the pattern length plus a margin). Any future gesture trigger on any
   platform inherits this problem.
 - Unlike Garmin, a Pebble **watchface can vibrate** and receives accelerometer
-  taps. The PulseTime watchface is therefore the only true "no app at all"
+  taps. The PulseTime watchface is therefore the only current "no additional app launch"
   haptic clock available to us on any platform — at the cost of being the
   wearer's active face, and of a second store listing. **Built 2026-08-19**
   (`appstores/pebble/pulsetime-face/`, uuid `f9ee597e-…`), sharing the
@@ -111,16 +112,16 @@ Hard limits:
   PulseTime Face still selected but the launcher open, crossing the hour fired
   no chime, where the same crossing on the face did. It resumes by itself on the
   way back, so the practical scope is "answers whenever the wearer is on their
-  watchface", which is nearly always.
+  watchface".
 - **`wakeup_schedule()` is the one path that needs nothing resident**, and is
   what PulseTime's chimes use. Max **8** events per app, and no event within
   **one minute** of another already scheduled (`E_RANGE`, and the collision can
   be with *another app's* wakeup), so a recurring chime is a rolling window
   topped up on every launch — and since each chime is itself a launch, the chain
-  sustains itself. Unlike a worker it costs nothing while idle and does not take
-  the watch's single worker slot. Available on **every** platform including the
-  frozen ones, so it is the only major PulseTime feature that behaves
-  identically on a Pebble 2 SE and a Pebble Time 2. `pebble_worker.h` does also
+  sustains itself. It does not keep a process resident or take
+  the watch's single worker slot. Available on **every** supported Pebble
+  platform, including Pebble 2 SE and Time 2. Battery impact has not been measured.
+  `pebble_worker.h` does also
   expose `tick_timer_service_subscribe()`, so a worker was the alternative, at
   the price of running all day for the same result.
 - **Carry the intended time in the wakeup cookie.** A wakeup can land a second
@@ -135,14 +136,16 @@ Hard limits:
 
 ## Consequences for the product
 
-1. Latency, not capability, is the design problem. Every path is
-   "foreground something, then buzz"; the work is making that invisible.
-2. Battery is a real trade: the Pebble worker runs continuously, Quick Launch
-   costs nothing. Offer both, default to the free one.
+1. Invocation speed and pattern recognition both determine whether a time check
+   is useful. The [haptic comparison](../appstores/pebble/pulsetime/HAPTICS.md)
+   separates encoder timing from physical recognition, which remains untested.
+2. The Pebble worker runs continuously; Quick Launch needs no resident worker.
+   Quick Launch is the default recommendation. Battery differences remain unmeasured.
 3. Store shape follows: both the Connect IQ store and the Pebble appstore list
    **one app per listing**, so the watchface is a separate submission from the
    watchapp, with its own artwork, copy, and review.
 4. **Quick Launch carries a button id and an action kind**, so on Pebble one
-   install can serve more than one intent — PulseTime uses hold-Up and hold-Down
-   for hours-only and minutes-only. No other platform we ship to reports which
+   install can serve more than one intent on Time 2, 2 Duo, and Round 2.
+   Both scopes start at whole time; 2 SE and older targets always launch that way.
+   No other platform currently supported by PulseTime reports which
    affordance started the app.
