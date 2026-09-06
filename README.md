@@ -151,7 +151,9 @@ No network. No location.
 
 ## Pebble guided clock (1.1.0)
 
-The Pebble app now starts with a guided, replayable lesson. Hold Select for
+Start with the [Pebble wearer guide](appstores/pebble/pulsetime/GUIDE.md) for installation choices,
+button setup, and a first pattern. The app starts with a guided, replayable
+lesson. Hold Select for
 Learn pattern, Practice, Language, Speed, Display, Quick Launch, and Watch status.
 The app and watchface offer huge stacked digits or a single row, in black on
 white or white on black, on rectangular and round screens. Settings preserve
@@ -162,10 +164,11 @@ before adding exact minutes. Quick Launch setup is explained on the watch.
 Time 2 can recognize its launch button; Pebble 2 SE launches with the whole time
 and offers separate hour/minute buttons after opening.
 
-## Garmin and Pebble ports (2026-08-18)
+## Garmin and Pebble ports
 
-Play is blocked for now, so PulseTime also ships natively where the stores are
-open. Both ports run the same six systems from the same fixtures:
+Native Garmin and Pebble ports run the same six systems from the same fixtures.
+Build and validation notes below describe the available packages; a successful
+build does not establish store publication.
 
 - `appstores/garmin/pulsetime/` — a Connect IQ **device app with a glance** for
   the Venu 2S (`Attention.vibrate` is unavailable to watch faces and takes at
@@ -181,22 +184,25 @@ open. Both ports run the same six systems from the same fixtures:
   steps through its seven language rungs, while holding Select opens the learning and settings menu, including
   **practice** (a ladder of chosen times, so patterns can be learned against a
   known answer). Each language change answers with a short count of pulses
-  before playing the time, so it remains operable without sight. Bind both
-  Quick Launch buttons and each can say something different: `launch_button()`
-  reports which one was held, so hold-Up can give **just the hour** and hold-Down
-  **just the minutes**. An optional background worker (off by default) turns a
+  before playing the time. Those cues do not narrate menus or establish
+  independent blind onboarding. On **Time 2, 2 Duo, and Round 2**, each Quick
+  Launch button can have its own reply. Both default to the whole time.
+  **2 SE, Time/Steel, and the original Time Round** always launch with the whole
+  time; Up/Down still give separate fields once the clock is open. An optional
+  background worker (off by default) turns a
   double wrist-tap from any watchface into: launch, buzz, exit. It can also
   **chime** — on the hour, half or quarter — which needs no gesture and, unlike
   everything else here, does not depend on what the wearer is looking at:
   `wakeup_schedule()` has the watch launch PulseTime at the chosen moment with
-  nothing resident in between, so it costs no battery while it waits.
+  no PulseTime process resident between scheduled chimes. Battery impact has
+  not been measured.
   Canonical source: `appstores/pebble/pulsetime/BUILD.md`. Root-level
   CloudPebble import: [`lukeslp/pebble-pulsetime`](https://github.com/lukeslp/pebble-pulsetime).
 - `appstores/pebble/pulsetime-face/` — the same clock as a **watchface**, for
   wearers who want the time under a double-tap with nothing to open and no
-  scheduling involved. It shares the watchapp's encoder by symlink, so the two
-  can never drift. Note that a watchface only runs while it is the foreground
-  app: open any app, or the launcher, and it stops until you come back. For
+  scheduling involved. The canonical app and face use the same encoder through
+  a symlink; standalone mirror copies require a parity check. A watchface only
+  runs while it is the foreground app: open any app, or the launcher, and it stops until you come back. For
   chimes that survive that, use the watchapp's.
   Canonical source: `appstores/pebble/pulsetime-face/BUILD.md`. Root-level
   CloudPebble import:

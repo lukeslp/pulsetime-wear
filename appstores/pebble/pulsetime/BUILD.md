@@ -11,9 +11,9 @@ It also ships an optional **background worker** (`worker_src/c/worker.c`) so
 the time can be felt from any watchface without opening anything by hand.
 
 Targets: basalt, chalk, diorite, emery, flint, gabbro (every current Pebble
-except the 2013 aplite). Verified 2026-08-18: clean build for all six (worker
-binary included on every platform), runs in the `basalt`, `diorite`, and
-`chalk` emulators (`docs/*.png`).
+except the 2013 aplite). Start with the [wearer guide](GUIDE.md).
+See [1.1.0 validation](VALIDATION.md) for current build and emulator evidence;
+the dated checks below retain their original scope.
 
 ## Guided clock, version 1.1.0
 
@@ -76,7 +76,8 @@ a separate listing from PulseTime Face.
 ## How it behaves on the watch
 
 - **Quick Launch = tell time.** A normal first launch offers the guide, where
-  Select can always tell the current time. Later launches encode `localtime()`
+  Select tells the current time on the introduction and setup pages.
+  The lesson pages play their labeled examples. Later launches encode `localtime()`
   with the saved settings and vibrate immediately. It is a watchapp (not a watchface) so it can be
   bound to **Quick Launch** (hold Up or Down) — that is the intended gesture.
   On a worker (gesture) launch the vibration is started *before* the window,
@@ -119,9 +120,10 @@ as one sequence, and the phone's Clay page still sets either independently.
 plays a **chosen** time from a 22-rung ladder ordered easiest to hardest, so the
 wearer knows the answer before the pattern starts and can attend to its shape.
 
-This works **without sight**, which matters because the app is for people who
-cannot read the screen: you know the answer because you stepped to it. One press
-up is one rung up.
+Up moves one rung through the fixed ladder. Practice plays the target pattern
+but does not announce its time separately. The irregular sequence must be
+learned or read with assistance first; independent blind onboarding has not
+been validated. The phone guide provides screen-reader-readable instructions.
 
 The ladder walks bare hours → the quarters → minutes inside a quarter → then the
 boundaries that catch every system out: the 12/0 wrap at midnight and noon, and
@@ -170,7 +172,7 @@ pulse meaning "none"; silence would be indistinguishable from a fault. That
 reuses the decimal-place convention where digit zero is already one
 double-length pulse.
 
-Once the app is open, **Select always gives the whole time**, Up gives the hour,
+On the clock, **Select gives the whole current time**, Up gives the hour,
 and Down gives the minutes. A scoped launch therefore always has a direct path
 back to the full answer without leaving.
 
@@ -178,8 +180,8 @@ back to the full answer without leaving.
 
 `wakeup_schedule()` has the system launch PulseTime at a chosen moment, whether
 or not it is running and whatever watchface is showing. The app buzzes and
-closes itself. **Nothing is resident in between** — no worker, no process, no
-battery drawn while it waits, and the watch's single worker slot stays free.
+closes itself. **No PulseTime process is resident in between**, and the watch's single
+worker slot stays free. Battery impact has not been measured.
 
 This is the important distinction from the watchface variant. A watchface can
 chime, but only while it is the *foreground app*: open any app, or even the
@@ -251,16 +253,20 @@ is 140.
 Off by default — a watch that starts making noise by itself in a meeting is a
 worse product than a quiet one — and `speaker_is_muted()` is always obeyed.
 
-### Confirmation cues — operable without the screen
+### Confirmation cues and their limits
 
-The app is for people who cannot see the screen, so no setting may be confirmed
-by sight alone. Every change plays a **cue** before the time, in the same vibe
+Language and speed changes play a **cue** before the time, in the same vibe
 pattern (`vibes_enqueue_custom_pattern` is a no-op while a pattern plays, so two
 calls would drop the second):
 
 | Change | Cue | Count |
 |---|---|---|
-| Haptic language (hold Up/Down) | `PT_CUE_SHORT_MS` 60 ms pulses | 1–7, the language rung's 1-based index |
+| Haptic language (hold Up/Down or Language menu) | `PT_CUE_SHORT_MS` 60 ms pulses | 1–7, the language rung's 1-based index |
+| Speed menu | Long pulses | 1–3: Slow, Standard, Fast |
+
+Display changes save silently. Menu and guide navigation do not announce their
+labels by touch. Quick Launch scope changes preview the selected time phrase.
+These cues support familiar controls; they do not establish independent blind use.
 
 Cue pulses are identical and evenly spaced (`PT_CUE_GAP_MS` 150 ms), which no
 time system produces, and `PT_CUE_LEAD_MS` (500 ms) separates the cue from the
@@ -298,10 +304,10 @@ subscribed to the accelerometer all day, which uses battery. A Pebble also runs
 **only one worker at a time, across the whole watch** — turning this on may ask
 you to take the slot from another app, and another app can take it back later.
 
-**The zero-battery alternative is Quick Launch.** Settings > Quick Launch > Up
+**Quick Launch needs no background worker.** Settings > Quick Launch > Up
 (or Down) > PulseTime. Then a long press on that button from any watchface
 opens PulseTime and it tells the time immediately, with no worker running and
-no background cost at all. Quick Launch is the recommended default; the worker
+no accelerometer subscription between checks. Quick Launch is the recommended default; the worker
 exists for wearers who want a hands-free gesture and accept the trade.
 
 ### The gesture
@@ -319,8 +325,8 @@ A single tap does nothing; that is deliberate, because a single tap fires
 constantly during ordinary arm movement.
 
 The worker holds **no timers**. Every window is measured from a stored
-`time_ms()` stamp when the next tap arrives, so an idle worker costs nothing
-beyond the accelerometer subscription the tap service already needs. Its
+`time_ms()` stamp when the next tap arrives. The worker remains resident
+with an accelerometer subscription; its battery impact has not been measured. Its
 compiled size is 644 bytes per platform.
 
 ### Not buzzing at itself
@@ -382,12 +388,13 @@ AppMessage as the keys `SYSTEM` / `SPEED` (storage-id strings) and
 `EXACT_MINUTES` / `FLICK_LAUNCH` (0/1). The flick toggle's description states
 the costs in full: continuous worker, battery, one worker per watch, the app
 briefly opening because Pebble cannot vibrate from the background, and Quick
-Launch as the free alternative. The watch
+Launch as the alternative with no resident worker. The watch
 applies and persists them at once. Haptic changes preview the new pattern;
 display-only changes remain silent. On `ready` the
 phone sends `REQUEST`; the watch answers with its live settings, and after a
 deliberate hold-Up/hold-Down language change it pushes them too, so the Clay
-page never shows a stale choice.
+page can reflect those changes after successful delivery. Reconnect and reopen
+settings if the phone and watch disagree.
 
 Clay is **vendored** at `src/pkjs/vendor/pebble-clay.js` (v1.0.4, MIT, licence
 alongside). `pebble package install pebble-clay` works, but the published
@@ -400,8 +407,8 @@ app show the settings gear.
 ## Prerequisites
 
 ```sh
-uv tool install pebble-tool --python 3.14   # match the SDK venv's Python
-pebble sdk install latest                    # 4.33.1: toolchain + qemu-pebble
+uv tool install pebble-tool==5.0.39 --python 3.14   # match the SDK venv's Python
+pebble sdk install 4.33.1                    # 4.33.1: toolchain + qemu-pebble
 pebble sdk activate 4.33.1
 ```
 
@@ -511,14 +518,14 @@ pebble logs --cloudpebble
 ```
 
 Then bind PulseTime to Quick Launch: Settings > Quick Launch > Up (or Down)
-> PulseTime. That is the zero-battery way to tell the time from any watchface;
+> PulseTime. That tells the time from any watchface without a resident worker;
 turn on "Flick to tell time" in the config page only if the hands-free gesture
 is worth a worker running all day.
 
 ## Toolchain notes
 
 - pebble-tool must run on the same Python as the SDK venv (3.14 on this Mac).
-- QEMU is not bundled with pebble-tool; `pebble sdk install latest` provides
+- QEMU is not bundled with pebble-tool; `pebble sdk install 4.33.1` provides
   `toolchain/bin/qemu-pebble` (`PEBBLE_QEMU_PATH`).
 - The `ld: ... LOAD segment with RWX permissions` warnings are normal for the
   Pebble toolchain.

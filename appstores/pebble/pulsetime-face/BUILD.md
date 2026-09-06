@@ -1,7 +1,8 @@
 # PulseTime Face (.pbw)
 
-**The haptic clock as a watchface.** This is the only path on any watch
-PulseTime ships to where the time is felt with **no app starting at all**.
+**The haptic clock as a watchface.** Double-tap the active face to feel the
+time without launching the separate watchapp. Start with the
+[wearer guide](../pulsetime/GUIDE.md) to choose a package and learn the controls.
 
 ## Large time, version 1.1.0
 
@@ -57,7 +58,7 @@ the whole reason this project exists.
 
 ## What it buys, and what it costs
 
-- **Double-tap and feel the time.** No launch, no latency, nothing to exit.
+- **Double-tap and feel the time.** The face plays the answer without opening another app.
 - **Chimes**, without scheduling anything. Note the watchapp can chime too, via
   `wakeup_schedule()`, and its version keeps working when the wearer is in
   another app — so prefer that one unless the face is already your clock.
@@ -82,9 +83,8 @@ period:
 | Face on screen | 14:00 | chime fired (`scope=hours`) |
 | Face still the **selected** face, launcher open | 15:00 | **nothing** |
 
-So the honest scope of this face is: it answers whenever the wearer is looking
-at their watchface, which is nearly always, and it goes quiet the moment they
-are doing something else on the watch. It resumes by itself on the way back —
+The face answers only while it is visible. Opening another app or the launcher
+stops its gestures and chimes. It resumes by itself on the way back —
 there is nothing to restart.
 
 **If chimes need to survive that, the watchface is the wrong mechanism.** Two
@@ -94,8 +94,8 @@ watchapp rather than here:
 - **`wakeup_schedule()`** — launches the app at a set time *even when it is not
   running*. Max **8** scheduled events per app, and no event may be scheduled
   within **one minute** of another already-scheduled one (`E_RANGE`), so hourly
-  chimes mean keeping a rolling window topped up. Costs nothing at all while
-  idle: no resident process. **Built in the watchapp** — see
+  chimes mean keeping a rolling window topped up. No PulseTime process remains resident
+  between chimes; battery impact has not been measured. **Built in the watchapp** — see
   `../pulsetime/BUILD.md`. If chimes are what you want, that is the one to use.
 - **The background worker** — `pebble_worker.h` does expose
   `tick_timer_service_subscribe()`, so the existing worker could fire on the
@@ -150,7 +150,8 @@ to the same hour disables the quiet period.
 
 `src/c/encoder.c` and `src/c/encoder.h` are **symlinks** into
 `../pulsetime/src/c/`. One encoder, one host test, one set of fixtures — the
-watchapp and the watchface can never drift apart. `stage-release.sh` runs the
+canonical app and face compile the same source. Standalone mirrors need a
+parity check when their materialized copies change. `stage-release.sh` runs the
 watchapp's `tests/check-fixtures.sh`, refuses to build on a broken symlink, and
 then checks `nm` for `pt_encode_scoped` in every platform's ELF, because a
 silently-unlinked encoder is the one failure a symlink build could hide.
@@ -180,14 +181,15 @@ appstores/pebble/pulsetime-face/stage-release.sh
 
 ## Emulator preview
 
+After installation, select PulseTime Face in the emulator and confirm it is
+visible. Installation alone may leave the previous app on screen. For double
+taps, use the [single-connection example](../pulsetime/BUILD.md#driving-the-worker-gesture-in-the-emulator)
+with `emery` as the target. Separate CLI calls can miss the 1,200 ms window.
+
 ```sh
 export PEBBLE_QEMU_PATH="$HOME/Library/Application Support/Pebble SDK/SDKs/4.33.1/toolchain/bin/qemu-pebble"
 pebble install --emulator emery
 pebble logs --emulator emery
-
-# Two taps in a row. Do NOT sleep between them: each `pebble` invocation costs
-# most of a second, and a sleep pushes the gap past PT_TAP_WINDOW_MS.
-pebble emu-tap --emulator emery --direction y+; pebble emu-tap --emulator emery --direction y+
 
 # Settings, without needing the phone. send-app-message wants NUMERIC keys;
 # read them from build/js/message_keys.json (CHIME 10004, QUIET_FROM 10005,
