@@ -82,6 +82,25 @@ together. Compare on your own watch; neither choice is a proven winner for every
 wearer. The [language comparison](HAPTICS.md) explains all seven choices and
 their tradeoffs.
 
+## Tap the watch
+
+There is no special touch-sensitive spot. PulseTime detects a physical knock or
+flick through the watch's motion sensor. Try holding your wrist still and giving
+the bezel or case two light fingertip knocks, about half a second apart. Use
+the same spot both times; the double-tap detector expects the same movement axis.
+
+The current controls differ depending on what is open:
+
+| Where you are | Gesture |
+|---|---|
+| PulseTime app's main clock | One detected tap or flick reads the whole time |
+| PulseTime Face is on screen | Two taps read the time; enabled by default |
+| Another watchface | Two taps launch PulseTime only if you enable "Flick to tell time" in the app's phone settings; off by default |
+
+Wait until the vibration finishes, then another second before trying again.
+Use Select in lessons and menus. If the gesture is unreliable on your wrist,
+the app's buttons and Quick Launch give you another way to ask.
+
 ## Set up the side buttons
 
 In the watch's **Settings > Quick Launch > Up**, choose **PulseTime**. Repeat
@@ -116,8 +135,11 @@ other apps. Avoid enabling both chime sources for the same interval.
 
 - **Lost your place?** Back out to the app's clock and press Select for a fresh
   whole-time answer. Hold Select to reopen learning and settings.
-- **Phone and watch settings disagree?** Reconnect the phone, open the relevant
-  app on the watch, then reopen its phone settings.
+- **Phone and watch settings disagree?** A missed update from the watch can
+  leave older values in the app's phone form. Check every option before saving,
+  especially the language, speed, and exact-minute choice: saving can restore
+  the older values. Then verify the language on the watch and replay a known
+  lesson. Reopening the phone form alone does not guarantee fresh settings.
 - **No sound on 2 SE or a round watch?** Those targets use vibration. Optional
   pattern tones require Time 2 or 2 Duo and respect the watch's speaker mute.
 - **Learning without the screen?** Use this guide and the phone instructions
@@ -129,3 +151,16 @@ The [validation record](VALIDATION.md) covers builds, encoder checks, and
 emulator layouts. Version 1.2.0 has installed successfully on Time 2 and 2 SE.
 Wearer checks of readability and pattern recognition are underway; round
 hardware still needs a separate check.
+
+## Why I built PulseTime
+
+A friend who is visually impaired asked me to build a way to feel the time.
+That request became PulseTime. I want the clock to be useful to my friend and
+anyone else it helps.
+
+It also led me to the idea of vibration "fingerprints," or **haptic QRs**:
+learned patterns for information beyond time, such as a server's status.
+Pulse Lab, a separate phone app, has fictional examples and a local pattern
+builder for exploring rhythms. **Live server monitoring and automatic mappings
+from outside data to vibration are not implemented.** These Pebble packages
+tell the time.

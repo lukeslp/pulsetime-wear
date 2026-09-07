@@ -1,10 +1,13 @@
 # PulseTime
 
 A clock you can feel. PulseTime tells the local time through vibration on
-Wear OS, Pebble, and Garmin. I built it for blind and low-vision wearers, with
-known-time lessons to help you learn the rhythm.
+Wear OS, Pebble, and Garmin.
 
-**License:** MIT · A small open-source project for friends and anyone it helps.
+A friend who is visually impaired asked me to build a way to feel the time.
+That request became PulseTime: a clock with known-time lessons to help you
+learn the rhythm, and large, high-contrast digits for anyone who can use them.
+
+**License:** MIT · A small project for friends and anyone it helps.
 
 Created by **Luke Steuber**. PulseTime is a standalone project with its own
 packages and settings.
@@ -269,6 +272,16 @@ remaining wearer checks. The Pebble packages are ready for direct tester sharing
 store submissions remain pending.
 
 ## Later work
+
+Building PulseTime led me to another idea: give other information a recognizable
+vibration "fingerprint." I think of these as **haptic QRs**: learned patterns
+that could tell you something by touch, such as whether a server is healthy,
+struggling, or down.
+
+That broader use is still exploratory. Pulse Lab has fictional signal examples
+and a local pattern builder for trying out rhythms. **Live server monitoring
+and automatic mappings from outside data to vibration are not implemented.**
+The Pebble packages described here tell the time.
 
 Wear OS ambient chimes, expanded phone sync, and watchOS (Core Haptics, only if
 meaningfully better than Apple Taptic Time).

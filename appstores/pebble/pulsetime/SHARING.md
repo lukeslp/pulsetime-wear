@@ -2,8 +2,9 @@
 
 ## Short introduction
 
-I built PulseTime so you can feel the time on a Pebble. Start with a simple
-hour-and-quarter rhythm, then learn exact minutes at your own pace. During
+A friend who is visually impaired asked me to build a way to feel the time.
+That request became PulseTime. Start with a simple hour-and-quarter rhythm,
+then learn exact minutes at your own pace. During
 lessons and time checks, huge black-and-white digits follow the vibration so
 you can connect what you see with what you feel.
 
@@ -13,6 +14,17 @@ PulseTime Face lets you double-tap its clock to hear or feel the pattern;
 sound requires Time 2 or 2 Duo. Both work offline after installation.
 
 Created by Luke Steuber. MIT licensed.
+
+## Beyond the clock: an idea to explore
+
+Building PulseTime made me wonder about giving other information a vibration
+"fingerprint." I think of these as **haptic QRs**: learned patterns you could
+recognize by touch, perhaps to check whether a server is healthy or down.
+
+Pulse Lab, a separate phone app, has fictional examples and a local pattern
+builder for exploring rhythms. **Live server monitoring and automatic mappings
+from outside data to vibration are not implemented.** The Pebble packages in
+this kit tell the time.
 
 ## Send these files together
 
@@ -41,6 +53,12 @@ emulators. Readability, pattern recognition, and double-tap reliability still
 need wearer feedback; the face's 1.2.0 physical install is pending. The guide
 works with a phone screen reader, but watch menus do not speak their labels.
 Independent blind onboarding remains unverified.
+
+**Known settings issue:** a missed update from the watch can leave older values
+in the app's phone settings. Saving the form can restore those older choices,
+including the haptic language. Check every option before saving, then verify
+the language on the watch and replay a known lesson. Reopening the phone form
+alone does not guarantee fresh settings.
 
 Useful feedback names the watch, language, and speed, then describes the time
 you expected, the answer you felt, and any hard-to-read digit or label. Known
