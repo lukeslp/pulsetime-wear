@@ -24,6 +24,12 @@ export PATH="$HOME/.local/bin:$PATH"
 test -f "$HERE/src/c/encoder.c" || { echo "ERROR: src/c/encoder.c symlink is broken" >&2; exit 1; }
 test -f "$HERE/src/c/encoder.h" || { echo "ERROR: src/c/encoder.h symlink is broken" >&2; exit 1; }
 
+"$HERE/../pulsetime/tests/check-reading.sh"
+"$HERE/tests/check-display.sh"
+
+test -f "$HERE/src/c/reading.h"
+test -f "$HERE/src/c/readout.h"
+
 pebble sdk activate 4.33.1
 cd "$HERE"
 pebble clean >/dev/null 2>&1 || true
@@ -36,7 +42,7 @@ test -f "$PBW"
 missing=()
 for platform in basalt chalk diorite emery flint gabbro; do
   elf="$HERE/build/$platform/pebble-app.elf"
-  if [[ ! -f "$elf" ]] || ! nm "$elf" | grep -q pt_encode_scoped; then
+  if [[ ! -f "$elf" ]] || ! nm "$elf" | grep -q pt_encode_readable; then
     missing+=("$platform")
   fi
 done

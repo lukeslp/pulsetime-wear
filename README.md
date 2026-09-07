@@ -149,13 +149,15 @@ No network. No location.
 - [ ] Training completable without sight  
 - [ ] Tile content description announces the tell-time action  
 
-## Pebble guided clock (1.1.0)
+## Pebble guided clock (1.2.0)
 
 Start with the [Pebble wearer guide](appstores/pebble/pulsetime/GUIDE.md) for installation choices,
 button setup, and a first pattern. The app starts with a guided, replayable
 lesson. Hold Select for
 Learn pattern, Practice, Language, Speed, Display, Quick Launch, and Watch status.
-The app and watchface offer huge stacked digits or a single row, in black on
+During playback, the app and face show one giant, labeled numeral at a time,
+synchronized to the encoded phrases. Lessons and Practice use the same readout.
+The app and watchface also offer huge stacked digits or a single row, in black on
 white or white on black, on rectangular and round screens. Settings preserve
 existing haptic preferences.
 

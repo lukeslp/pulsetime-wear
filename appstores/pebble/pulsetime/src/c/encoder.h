@@ -80,6 +80,28 @@ size_t pt_encode_scoped(PtSystem system, PtSpeed speed, bool exact_minutes,
                         int hour, int minute, PtScope scope,
                         PtSegment *out, size_t cap);
 
+// Meaning alongside each segment, for a synchronized visual teaching aid.
+// This metadata never changes the motor waveform or its scope projection.
+typedef enum {
+  PT_PART_HOURS = 0, PT_PART_QUARTERS, PT_PART_FIVES,
+  PT_PART_TENS, PT_PART_ONES, PT_PART_EXTRA,
+  PT_PART_HOUR_BIT, PT_PART_MINUTE_BIT, PT_PART_LANDMARK,
+  PT_PART_BEFORE, PT_PART_AFTER, PT_PART_HOUR_DIGIT,
+  PT_PART_LANGUAGE, PT_PART_SPEED
+} PtReadingPart;
+
+typedef struct {
+  uint8_t part;
+  uint8_t value;
+  uint8_t detail; // binary weight, or position (1/2) in a two-digit Morse hour
+} PtReading;
+
+// `readings`, when non-NULL, has the same capacity as `out`. Its entries follow
+// their segments through hours/minutes projection, including an empty-field zero.
+size_t pt_encode_readable(PtSystem system, PtSpeed speed, bool exact_minutes,
+                          int hour, int minute, PtScope scope,
+                          PtSegment *out, PtReading *readings, size_t cap);
+
 // The relative strength of a pulse, as a MIDI note.
 //
 // Pebble's motor has no amplitude control, so the encoder's `layer` -- the third

@@ -15,7 +15,30 @@ except the 2013 aplite). Start with the [wearer guide](GUIDE.md).
 See [1.1.0 validation](VALIDATION.md) for current build and emulator evidence;
 the dated checks below retain their original scope.
 
-## Guided clock, version 1.1.0
+## Synchronized digits, version 1.2.0
+
+During a lesson, Practice, a time check, or a settings preview, one geometry-drawn
+numeral fills the screen. A short label identifies hours, quarters, minute digits,
+or another encoded unit. The same annotated encoder drives both the motor and
+visual deadlines. Existing waveform fixtures remain unchanged.
+
+The numeral describes the encoded group rather than counting each pulse.
+Two-digit group values appear one digit at a time, with the full value and digit
+position below. Binary displays each bit and its weight; nearest-quarter keeps
+its landmark and before/after meaning. Confirmation cues have their own labels.
+The overlay preserves Bright/Dark contrast, holds through gaps without flashing,
+and returns to the current screen on completion, stop, or navigation. Lessons
+and Practice request the watch's normal temporary backlight.
+
+```sh
+bash appstores/pebble/pulsetime/tests/check-reading.sh
+```
+
+This covers 90,720 day/speed/scope combinations, known examples, empty minute
+fields, Morse, binary, and twelve-hour boundaries. Every visual transition lands
+on an encoded pulse boundary. Physical display latency is a separate check.
+
+## Guided clock, introduced in 1.1.0
 
 A first launch from the launcher or phone opens **Learn pattern**. Quick Launch,
 worker, and chime launches keep their immediate time reply. Finish the guide

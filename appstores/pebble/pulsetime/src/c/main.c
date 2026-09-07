@@ -34,6 +34,7 @@
 
 #include "encoder.h"
 #include "display.h"
+#include "readout.h"
 
 #define PERSIST_SYSTEM 1
 #define PERSIST_SPEED 2
@@ -211,6 +212,8 @@ static int s_worker_checks_left = 0;
 static bool s_auto_exit = false; // the worker launched us: leave when done
 
 static PtSegment s_segments[PT_MAX_SEGMENTS];
+static PtReading s_readings[PT_MAX_SEGMENTS];
+static PtReadout s_readout;
 static uint32_t s_durations[PT_MAX_SEGMENTS * 2]; // must outlive the enqueue call
 static AppTimer *s_done_timer = NULL;
 static bool s_playing = false;
@@ -394,6 +397,7 @@ static const char *flick_line(void) {
 // ---- playback ---------------------------------------------------------------
 
 static void stop_playback(void) {
+  pt_readout_stop(&s_readout);
   vibes_cancel();
 #ifdef PBL_SPEAKER
   speaker_stop();
@@ -407,6 +411,7 @@ static void stop_playback(void) {
 }
 
 static void playback_done(void *data) {
+  pt_readout_stop(&s_readout);
   s_done_timer = NULL;
   s_playing = false;
   if (s_auto_exit) {
@@ -471,8 +476,8 @@ static bool wants_sound(void) {
 // supplies a chosen one.
 static void play_at(int hour, int minute, PtCueKind cue_kind, int cue_count, PtScope scope) {
   s_launch_scope = scope;
-  size_t n = pt_encode_scoped(s_system, s_speed, s_exact, hour, minute, scope,
-                              s_segments, PT_MAX_SEGMENTS);
+  size_t n = pt_encode_readable(s_system, s_speed, s_exact, hour, minute, scope,
+                                s_segments, s_readings, PT_MAX_SEGMENTS);
   uint32_t cue_ms = 0;
   size_t used = pt_cue_durations(cue_kind, cue_count, s_durations,
                                  ARRAY_LENGTH(s_durations), &cue_ms);
@@ -503,6 +508,7 @@ static void play_at(int hour, int minute, PtCueKind cue_kind, int cue_count, PtS
   }
 #endif
 
+  pt_readout_start(&s_readout, s_segments, s_readings, n, cue_kind, cue_count, cue_ms, s_dark);
   s_playing = true;
   s_played_hour = hour;
   s_played_minute = minute;
@@ -653,10 +659,9 @@ static void cycle_system(int delta) {
 // CHOSEN time from a ladder ordered easiest to hardest, so the wearer always
 // knows the answer before the pattern starts and can attend to the shape of it.
 //
-// This works without sight, which matters because the app is for people who
-// cannot read the screen: you know the answer because you stepped to it. One
-// press up is one rung up, and the pattern you feel is what that rung sounds
-// like in your chosen system.
+// Each step plays a known example, with a synchronized visual reading aid.
+// The ladder does not independently announce its target time without the
+// screen; first-use assistance may be needed for a blind wearer.
 //
 // The ladder walks: bare hours, then the quarters, then minutes inside a
 // quarter, then the boundaries that catch every system out -- the 12/0 wrap at
@@ -682,6 +687,7 @@ static Layer *s_practice_canvas;
 static int s_practice_index = 0;
 
 static void practice_play(void) {
+  light_enable_interaction();
   const PracticeStep step = PRACTICE_LADDER[s_practice_index];
   if (s_practice_canvas) layer_mark_dirty(s_practice_canvas);
   play_at(step.hour, step.minute, PT_CUE_NONE, 0, PT_SCOPE_FULL);
@@ -879,6 +885,7 @@ static void guide_draw(Layer *layer, GContext *ctx) {
 }
 
 static void guide_select(ClickRecognizerRef r, void *c) {
+  light_enable_interaction();
   if (s_playing) { stop_playback(); return; }
   if (s_guide_page == 1 || s_guide_page == 2 || s_guide_page == 3 || s_guide_page == 4 || s_guide_page == 5) {
     PtScope scope = s_guide_page == 1 ? PT_SCOPE_HOURS : s_guide_page == 3 ? PT_SCOPE_FULL : PT_SCOPE_MINUTES;
@@ -1258,6 +1265,10 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
     save_settings();
     if (s_canvas) layer_mark_dirty(s_canvas);
   }
+  if (display_changed) {
+    s_readout.dark = s_dark;
+    if (s_readout.layer) layer_mark_dirty(s_readout.layer);
+  }
   if (chime_changed) reschedule_chimes();
   if (requested) {
     send_settings_to_phone();
@@ -1289,6 +1300,7 @@ static void window_load(Window *window) {
   s_canvas = layer_create(layer_get_bounds(root));
   layer_set_update_proc(s_canvas, draw);
   layer_add_child(root, s_canvas);
+  if (s_playing) pt_readout_attach(&s_readout, window);
 }
 
 static void window_unload(Window *window) {
@@ -1358,6 +1370,7 @@ static void init(void) {
 
 static void deinit(void) {
   stop_playback();
+  pt_readout_deinit(&s_readout);
   if (s_guide_window) window_destroy(s_guide_window);
   if (s_menu_window) window_destroy(s_menu_window);
 #ifdef PBL_SPEAKER

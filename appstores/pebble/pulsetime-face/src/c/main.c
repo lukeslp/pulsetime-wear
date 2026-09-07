@@ -31,6 +31,7 @@
 
 #include "encoder.h"
 #include "display.h"
+#include "readout.h"
 
 #define PERSIST_SYSTEM 1
 #define PERSIST_SPEED 2
@@ -84,6 +85,8 @@ static bool s_bold = true;
 static bool s_bright = true;
 
 static PtSegment s_segments[PT_MAX_SEGMENTS];
+static PtReading s_readings[PT_MAX_SEGMENTS];
+static PtReadout s_readout;
 static uint32_t s_durations[PT_MAX_SEGMENTS * 2];
 static AppTimer *s_done_timer = NULL;
 static bool s_playing = false;
@@ -225,6 +228,7 @@ static size_t build_notes(const PtSegment *segs, size_t n) {
 #endif
 
 static void playback_done(void *data) {
+  pt_readout_stop(&s_readout);
   s_done_timer = NULL;
   s_playing = false;
   s_status[0] = '\0';
@@ -238,8 +242,8 @@ static void start_quiet_window(uint32_t span_ms) {
 }
 
 static void play_at(int hour, int minute, PtScope scope, const char *label) {
-  size_t n = pt_encode_scoped(s_system, s_speed, s_exact, hour, minute, scope,
-                              s_segments, PT_MAX_SEGMENTS);
+  size_t n = pt_encode_readable(s_system, s_speed, s_exact, hour, minute, scope,
+                                s_segments, s_readings, PT_MAX_SEGMENTS);
   size_t dn = pt_to_vibe(s_segments, n, s_durations, ARRAY_LENGTH(s_durations));
   if (dn == 0) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "PulseTimeFace: encode failed (%d:%02d)", hour, minute);
@@ -268,6 +272,7 @@ static void play_at(int hour, int minute, PtScope scope, const char *label) {
   }
 #endif
 
+  pt_readout_start(&s_readout, s_segments, s_readings, n, PT_CUE_NONE, 0, 0, !s_bright);
   const uint32_t total_ms = pt_duration_ms(s_segments, n);
   s_playing = true;
   snprintf(s_status, sizeof s_status, "%s", label);
@@ -510,6 +515,8 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   // watch never adopted.
   const bool requested = dict_find(iter, MESSAGE_KEY_REQUEST) != NULL;
   if (changed) {
+    s_readout.dark = !s_bright;
+    if (s_readout.layer) layer_mark_dirty(s_readout.layer);
     save_settings();
     if (s_canvas) layer_mark_dirty(s_canvas);
   }
@@ -556,6 +563,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
+  pt_readout_deinit(&s_readout);
   vibes_cancel();
 #ifdef PBL_SPEAKER
   speaker_stop();
