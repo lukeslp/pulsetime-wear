@@ -29,6 +29,8 @@
 
 typedef struct {
   PtSegment *out;
+  PtReading *readings;
+  PtReading reading;
   size_t cap;
   size_t count;
   bool overflow;
@@ -65,7 +67,12 @@ static void push(Builder *b, uint32_t on, uint32_t off, uint8_t layer) {
   b->out[b->count].on_ms = (uint16_t)on;
   b->out[b->count].off_ms = (uint16_t)off;
   b->out[b->count].layer = layer;
+  if (b->readings) b->readings[b->count] = b->reading;
   b->count++;
+}
+
+static void reading(Builder *b, PtReadingPart part, int value, int detail) {
+  b->reading = (PtReading){ (uint8_t)part, (uint8_t)value, (uint8_t)detail };
 }
 
 // pulse(on, off, options, layer)
@@ -97,11 +104,14 @@ static int hour12(int hour) {
 // Built at base speed, then withSpeed() rescales every non-zero on/off.
 static void terse_quarter(Builder *b, int hour, int minute, bool exact) {
   int h = hour12(hour), q = minute / 15, rem = minute % 15;
+  reading(b, PT_PART_HOURS, h, 0);
   for (int i = 0; i < h; i++) push(b, TQ_HOUR_ON, i < h - 1 ? TQ_HOUR_OFF : 0, LAYER_FULL);
+  reading(b, PT_PART_QUARTERS, q, 0);
   b->boundary = b->count;
   push(b, 0, TQ_GAP, 0);
   for (int i = 0; i < q; i++) push(b, TQ_QUARTER_ON, i < q - 1 ? TQ_QUARTER_OFF : 0, LAYER_FULL);
   if (exact && rem > 0) {
+    reading(b, PT_PART_EXTRA, rem, 0);
     push(b, 0, TQ_GAP / 2, 0);
     for (int i = 0; i < rem; i++) push(b, TQ_MINUTE_ON, i < rem - 1 ? TQ_MINUTE_OFF : 0, LAYER_FULL);
   }
@@ -116,11 +126,14 @@ static void terse_quarter(Builder *b, int hour, int minute, bool exact) {
 
 // ---- Five-Minute Ladder --------------------------------------------------
 static void five_minute_ladder(Builder *b, int hour, int minute) {
+  reading(b, PT_PART_HOURS, hour12(hour), 0);
   counted(b, hour12(hour), 240, 190, LAYER_FULL, 5);
   b->boundary = b->count;
   gap(b, FIELD_GAP);
+  reading(b, PT_PART_FIVES, minute / 5, 0);
   counted(b, minute / 5, 145, 145, LAYER_MID, 5);
   if (minute % 5 > 0) {
+    reading(b, PT_PART_EXTRA, minute % 5, 0);
     gap(b, GROUP_GAP);
     counted(b, minute % 5, 75, 110, LAYER_LOW, 0);
   }
@@ -133,27 +146,31 @@ static void add_digit(Builder *b, int digit, uint32_t on, uint8_t layer) {
 }
 
 static void decimal_place(Builder *b, int hour, int minute) {
+  reading(b, PT_PART_HOURS, hour12(hour), 0);
   counted(b, hour12(hour), 230, 180, LAYER_FULL, 5);
   b->boundary = b->count;
   gap(b, FIELD_GAP);
+  reading(b, PT_PART_TENS, minute / 10, 0);
   add_digit(b, minute / 10, 155, LAYER_MID);
   gap(b, GROUP_GAP);
+  reading(b, PT_PART_ONES, minute % 10, 0);
   add_digit(b, minute % 10, 80, LAYER_LOW);
 }
 
 // ---- Binary Clock --------------------------------------------------------
-static void add_bits(Builder *b, int value, int width) {
+static void add_bits(Builder *b, int value, int width, PtReadingPart part) {
   for (int bit = width - 1; bit >= 0; bit--) {
     bool one = (value & (1 << bit)) != 0;
+    reading(b, part, one ? 1 : 0, 1 << bit);
     pulse(b, one ? 210 : 75, SHORT_GAP, one ? LAYER_FULL : LAYER_LOW);
   }
 }
 
 static void binary_clock(Builder *b, int hour, int minute) {
-  add_bits(b, hour12(hour), 4);
+  add_bits(b, hour12(hour), 4, PT_PART_HOUR_BIT);
   b->boundary = b->count;
   gap(b, FIELD_GAP);
-  add_bits(b, minute, 6);
+  add_bits(b, minute, 6, PT_PART_MINUTE_BIT);
 }
 
 // ---- Nearest-Quarter Offset ----------------------------------------------
@@ -166,12 +183,15 @@ static void nearest_quarter(Builder *b, int hour, int minute) {
   if (hour == 23 && landmark_hour == 0) absolute_landmark = 24 * 60;
   int offset = absolute_now - absolute_landmark;
 
+  reading(b, PT_PART_HOURS, hour12(landmark_hour), 0);
   counted(b, hour12(landmark_hour), 230, 180, LAYER_FULL, 5);
   b->boundary = b->count;
   gap(b, FIELD_GAP);
   int landmark_count = landmark == 0 ? 1 : landmark / 15 + 1;
+  reading(b, PT_PART_LANDMARK, landmark_count, 0);
   counted(b, landmark_count, 150, 140, LAYER_MID, 0);
   if (offset != 0) {
+    reading(b, offset < 0 ? PT_PART_BEFORE : PT_PART_AFTER, abs(offset), 0);
     gap(b, GROUP_GAP);
     if (offset > 0) {
       pulse(b, 75, 100, LAYER_LOW);
@@ -207,12 +227,14 @@ static void morse_digits(Builder *b, int hour, int minute) {
 
   size_t hlen = strlen(hour_text);
   for (size_t i = 0; i < hlen; i++) {
+    reading(b, PT_PART_HOUR_DIGIT, hour_text[i] - '0', hlen == 2 ? (int)i + 1 : 0);
     add_code(b, hour_text[i] - '0');
     if (i + 1 < hlen) gap(b, GROUP_GAP);
   }
   b->boundary = b->count;
   gap(b, FIELD_GAP);
   for (size_t i = 0; i < 2; i++) {
+    reading(b, i == 0 ? PT_PART_TENS : PT_PART_ONES, min_text[i] - '0', 0);
     add_code(b, min_text[i] - '0');
     if (i + 1 < 2) gap(b, GROUP_GAP);
   }
@@ -250,12 +272,16 @@ static size_t apply_scope(Builder *b, PtScope scope) {
   }
   if (has_pulse) {
     kept = end - start;
-    if (start > 0) memmove(b->out, b->out + start, kept * sizeof(PtSegment));
+    if (start > 0) {
+      memmove(b->out, b->out + start, kept * sizeof(PtSegment));
+      if (b->readings) memmove(b->readings, b->readings + start, kept * sizeof(PtReading));
+    }
     b->out[kept - 1].off_ms = 0; // the field ends here now: no trailing silence
   } else {
     b->out[0].on_ms = (uint16_t)at_least(scale_ms(PT_ZERO_FIELD_ON_MS, b->mult), 1);
     b->out[0].off_ms = 0;
     b->out[0].layer = first_layer;
+    if (b->readings) b->readings[0] = b->reading;
     kept = 1;
   }
   b->count = kept;
@@ -270,13 +296,19 @@ size_t pt_encode(PtSystem system, PtSpeed speed, bool exact_minutes,
 size_t pt_encode_scoped(PtSystem system, PtSpeed speed, bool exact_minutes,
                         int hour, int minute, PtScope scope,
                         PtSegment *out, size_t cap) {
+  return pt_encode_readable(system, speed, exact_minutes, hour, minute, scope, out, NULL, cap);
+}
+
+size_t pt_encode_readable(PtSystem system, PtSpeed speed, bool exact_minutes,
+                          int hour, int minute, PtScope scope,
+                          PtSegment *out, PtReading *readings, size_t cap) {
   if (!out || cap == 0) return 0;
   if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return 0;
   if ((unsigned)system >= PT_SYSTEM_COUNT) system = PT_SYSTEM_TERSE_QUARTER;
   if ((unsigned)speed >= PT_SPEED_COUNT) speed = PT_SPEED_STANDARD;
   if ((unsigned)scope > PT_SCOPE_MINUTES) scope = PT_SCOPE_FULL;
 
-  Builder b = { .out = out, .cap = cap, .count = 0, .overflow = false,
+  Builder b = { .out = out, .readings = readings, .cap = cap, .count = 0, .overflow = false,
                 .mult = speed_multiplier(speed), .boundary = PT_NO_BOUNDARY };
   switch (system) {
     case PT_SYSTEM_TERSE_QUARTER: terse_quarter(&b, hour, minute, exact_minutes); break;

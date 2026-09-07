@@ -83,6 +83,20 @@ int main(void) {
       }
     }
   }
+  const GRect screens[] = { {{0,0},{144,168}}, {{0,0},{200,228}},
+    {{0,0},{180,180}}, {{0,0},{260,260}}, {{7,9},{130,100}} };
+  for (unsigned i = 0; i < sizeof screens / sizeof screens[0]; i++) {
+    PtReadoutLayout layout;
+    assert(pt_readout_layout(screens[i],i == 2 || i == 3,&layout));
+    s_area = screens[i];
+    s_radius = i == 2 ? 90 : (i == 3 ? 130 : 0);
+    // Include full label rectangles, not just the rendered numeral's ink.
+    graphics_fill_rect(NULL,layout.heading,0,0);
+    graphics_fill_rect(NULL,layout.caption,0,0);
+    for (int digit = 0; digit < 10; digit++) pt_draw_digit(NULL,layout.digit,digit);
+    assert(layout.digit.size.h >= screens[i].size.h / 2);
+  }
+  puts("PASS: giant digits and both labels fit all rectangular/round screens and reduced bounds.");
   GRect area = GRect(5,7,190,170);
   for (int stacked = 0; stacked < 2; stacked++) {
     // Midnight/noon and afternoon conversion match the wearer's clock format.

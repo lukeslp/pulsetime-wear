@@ -28,6 +28,25 @@ Lessons play examples, not the current time. The guide's introduction and setup
 pages play the current time. Haptic hours use 1–12 with no AM/PM marker, even when
 the visual clock uses 24-hour time.
 
+## Follow the vibration with your eyes
+
+While an answer plays, **one very large numeral** replaces the lesson or clock.
+The label tells you what it means. In the default 3:32 lesson, a large **3** stays
+through the three hour pulses, then a large **2** stays through the two quarter
+pulses. `QUARTERS` and `2 x 15 min` explain why that second numeral means :30.
+With Decimal Place Rhythm, the same example reads **3 → 3 → 2**: hours, minute
+tens, minute ones.
+
+These are the values being encoded, not a running pulse counter. A two-digit
+value such as twelve appears as **1**, then **2**; the caption keeps `12` visible
+and identifies which digit you are seeing. Binary shows each 0/1 with its weight.
+Nearest-quarter labels retain the landmark and before/after direction.
+
+The display stays steady through pauses. Bright/Dark preferences keep maximum
+black/white contrast. Your usual buttons still stop, replay, or navigate; the
+lesson or clock returns when playback ends. The watchface shows the same readout
+when it plays a pattern, then returns to its clock.
+
 ## Daily buttons
 
 These controls apply on the app's clock screen:

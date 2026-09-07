@@ -4,7 +4,15 @@
 time without launching the separate watchapp. Start with the
 [wearer guide](../pulsetime/GUIDE.md) to choose a package and learn the controls.
 
-## Large time, version 1.1.0
+## Synchronized digits, version 1.2.0
+
+A deliberate double-tap, chime, or pattern preview temporarily replaces the clock
+with one very large numeral and its encoded unit. The face shares `reading.h`
+and `readout.h` with the app, as well as the encoder and digit renderer. Numerals
+follow the unchanged vibration timings; completion restores the normal face.
+Dark and Bright preferences retain full contrast. No system button is captured.
+
+## Large time, introduced in 1.1.0
 
 Bright bold starts with black digits on white, hours above minutes. The phone's
 PulseTime Face settings offer a classic row and a dark inverse palette. All text
@@ -153,7 +161,7 @@ to the same hour disables the quiet period.
 canonical app and face compile the same source. Standalone mirrors need a
 parity check when their materialized copies change. `stage-release.sh` runs the
 watchapp's `tests/check-fixtures.sh`, refuses to build on a broken symlink, and
-then checks `nm` for `pt_encode_scoped` in every platform's ELF, because a
+then checks `nm` for `pt_encode_readable` in every platform's ELF, because a
 silently-unlinked encoder is the one failure a symlink build could hide.
 
 ## Sound
@@ -169,7 +177,7 @@ default; `speaker_is_muted()` always obeyed.
 cd appstores/pebble/pulsetime-face
 pebble build
 ls -la build/pulsetime-face.pbw
-nm build/emery/pebble-app.elf | grep pt_encode_scoped   # shared encoder linked
+nm build/emery/pebble-app.elf | grep pt_encode_readable   # shared encoder linked
 ```
 
 Release build with staged artifact and checksum:

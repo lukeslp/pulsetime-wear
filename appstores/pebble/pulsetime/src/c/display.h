@@ -96,4 +96,26 @@ static inline void pt_draw_large_time(GContext *ctx, GRect area, int hour, int m
   pt_draw_digit(ctx, GRect(x, y, digit_w, digit_h), minute % 10);
 }
 
+// One numeral occupies the central reading area; two short labels explain its
+// unit and position. Round-screen rectangles stay within the physical circle.
+typedef struct { GRect heading, digit, caption; } PtReadoutLayout;
+static inline bool pt_readout_layout(GRect bounds, bool round, PtReadoutLayout *out) {
+  if (!out || bounds.size.w < 40 || bounds.size.h < 60) return false;
+  const int w = bounds.size.w, h = bounds.size.h;
+  const bool big = h >= 200;
+  const int edge = round ? h / 13 : 2;
+  const int label_h = big ? 28 : 20, caption_h = big ? 22 : 18;
+  const int label_w = round ? w / 2 : w - 8;
+  const int label_x = bounds.origin.x + (w - label_w) / 2;
+  const int top = bounds.origin.y + edge;
+  const int bottom = bounds.origin.y + h - edge - caption_h;
+  out->heading = GRect(label_x, top, label_w, label_h);
+  out->caption = GRect(label_x, bottom, label_w, caption_h);
+  int digit_h = bottom - (top + label_h) - 4;
+  int digit_w = digit_h * 6 / 7;
+  if (digit_w > w - 8) digit_w = w - 8;
+  out->digit = GRect(bounds.origin.x + (w - digit_w) / 2, top + label_h + 2, digit_w, digit_h);
+  return digit_h >= 7 && digit_w >= 5;
+}
+
 #endif // PULSETIME_DISPLAY_H

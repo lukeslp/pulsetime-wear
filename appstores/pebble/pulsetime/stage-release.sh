@@ -20,6 +20,9 @@ export PATH="$HOME/.local/bin:$PATH"
 # The Kotlin encoders are the source of truth; refuse to ship a drifted port.
 "$HERE/tests/check-fixtures.sh"
 
+"$HERE/tests/check-reading.sh"
+"$HERE/../pulsetime-face/tests/check-display.sh"
+
 pebble sdk activate 4.33.1
 cd "$HERE"
 pebble clean >/dev/null 2>&1 || true
