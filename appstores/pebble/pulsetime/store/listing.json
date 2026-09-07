@@ -1,0 +1,14 @@
+{
+  "name": "PulseTime Public Beta",
+  "version": "1.2.0",
+  "category": "daily",
+  "type": "watchapp",
+  "uuid": "e69d82c1-73f1-4b29-a50f-06d17edd13b2",
+  "author": "Luke Steuber",
+  "supportEmail": "luke@lukesteuber.com",
+  "descriptionFile": "description.md",
+  "releaseNotesFile": "release-notes.md",
+  "source": "",
+  "iconSmall": "icon-small.png",
+  "iconLarge": "icon-large.png"
+}
