@@ -1,3 +1,31 @@
+# PulseTime Public Beta: published 1.2.0
+
+Date: 2026-09-07. [Public Pebble app listing](https://apps.repebble.com/1624684ac5dd46ac85eee2a6).
+The listing and its 1.2.0 release both report Published. Its store title is
+**PulseTime Public Beta**; the installed app name remains **PulseTime**.
+The separate watchface has not been published.
+
+- A fresh SDK 4.33.1 / CLI 5.0.39 build passed all 420 encoder, 420 motor,
+  420 cued, and 840 scoped fixtures, 90,720 synchronized-reading cases,
+  57,600 clock-layout cases, giant-digit bounds, and the phone contract.
+- The published PBW contains the six app and worker binaries for basalt,
+  chalk, diorite, emery, flint, and gabbro. ZIP integrity, version 1.2.0,
+  watchapp identity, and UUID `e69d82c1-73f1-4b29-a50f-06d17edd13b2` passed.
+- The anonymous public download matches the local published build byte for
+  byte. SHA-256: `11450dc54117f44f5c1d48f55909f30197748d0dbd8cd1480a1601f5732ef711`.
+- Fresh app screenshots cover all six emulators. Store images show the guide
+  and synchronized digits, including the known 3:32 lesson on Time 2.
+- The listing explains first use, buttons, taps, feedback, and known beta
+  limits. Remote-endpoint vibration mappings are explicitly future work.
+
+This publication adds listing assets and documentation; the 1.2.0 application
+code remains unchanged from the source described below. The new PBW was not
+installed on physical watches during publication. Earlier Time 2 and 2 SE
+installs are recorded below with their original package hash. On-wrist pattern
+recognition, round hardware, and independent blind onboarding still need checks.
+
+---
+
 # Pebble 1.2.0: synchronized large digits
 
 Date: 2026-09-06. Both packages retain their UUIDs, existing settings, and haptic
@@ -63,7 +91,8 @@ physical install of the 1.2.0 face remain pending.
 The large display describes each encoded group; it does not count every pulse.
 Two-digit group values change on pulse boundaries partway through the same
 phrase, while the caption keeps the whole value visible. The learned vibration
-timings remain unchanged. Neither package has a store release yet.
+timings remain unchanged. These installs preceded the public app release
+recorded above.
 
 ---
 
@@ -146,5 +175,5 @@ operating-system assignments remain a wearer setup step; the 2 SE cannot
 report which button launched the app. A Pebble cannot provide spoken guidance
 on hardware without a speaker; phone instructions support learning there.
 
-No store submission is claimed. Release packages are staged locally after
-validation; developer-account upload remains a human action.
+These 1.1.0 checks preceded store publication. The current 1.2.0 public app
+release is recorded at the top of this file.

@@ -402,8 +402,10 @@ applies and persists them at once. Haptic changes preview the new pattern;
 display-only changes remain silent. On `ready` the
 phone sends `REQUEST`; the watch answers with its live settings, and after a
 deliberate hold-Up/hold-Down language change it pushes them too, so the Clay
-page can reflect those changes after successful delivery. Reconnect and reopen
-settings if the phone and watch disagree.
+page can reflect those changes after successful delivery. A missed update can
+leave older values in the phone form; saving can restore them. Check every
+option before saving, then verify the language on the watch and replay a known
+lesson. Reopening the phone form alone does not guarantee fresh settings.
 
 Clay is **vendored** at `src/pkjs/vendor/pebble-clay.js` (v1.0.4, MIT, licence
 alongside). `pebble package install pebble-clay` works, but the published
