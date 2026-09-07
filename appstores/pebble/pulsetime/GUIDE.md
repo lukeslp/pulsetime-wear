@@ -5,9 +5,19 @@ asking the time. **PulseTime Face** is an optional second package: choose it as
 your watchface for a large clock and double-tap playback. The app and face save
 their own settings, so set your preferred language and display in each.
 
-Install the PBW through your paired Pebble phone app. Open each package's
-settings from its own settings gear. The clock and its lessons work on the watch
-without an internet connection after installation.
+## Install or update
+
+Save `pulsetime.pbw`, the Pebble app package, on your phone. Open or share the
+file with the Pebble app paired to your watch, then open **PulseTime** from the
+watch's app list. If you use more than one Pebble, select the watch you want to
+update in the phone app first. Installing an update keeps your saved settings.
+
+For the optional face, open `pulsetime-face.pbw` the same way, then choose
+**PulseTime Face** as your watchface. Each package has its own settings gear in
+the phone app. The clock and lessons work offline after installation.
+
+Version **1.2.0** supports Time / Time Steel, Time Round, 2 / 2 SE, Time 2,
+2 Duo, and Round 2. It does not support the original 2013 Pebble or Pebble Steel.
 
 ## Learn one answer
 
@@ -24,7 +34,7 @@ without an internet connection after installation.
 5. Press Down on the final **Ready** page to finish. Hold Select from the clock
    to revisit **Learn pattern** or choose **Practice** with known times.
 
-Lessons play examples, not the current time. The guide's introduction and setup
+Each lesson plays its labeled example. The guide's introduction and setup
 pages play the current time. Haptic hours use 1–12 with no AM/PM marker, even when
 the visual clock uses 24-hour time.
 
@@ -37,7 +47,7 @@ pulses. `QUARTERS` and `2 x 15 min` explain why that second numeral means :30.
 With Decimal Place Rhythm, the same example reads **3 → 3 → 2**: hours, minute
 tens, minute ones.
 
-These are the values being encoded, not a running pulse counter. A two-digit
+Each numeral stays visible for its vibration group. A two-digit
 value such as twelve appears as **1**, then **2**; the caption keeps `12` visible
 and identifies which digit you are seeing. Binary shows each 0/1 with its weight.
 Nearest-quarter labels retain the landmark and before/after direction.
@@ -116,5 +126,6 @@ other apps. Avoid enabling both chime sources for the same interval.
   needed; independent blind onboarding has not been validated.
 
 The [validation record](VALIDATION.md) covers builds, encoder checks, and
-emulator layouts. Physical readability and pattern recognition still need a
-separate check on Time 2, 2 SE, and a round watch.
+emulator layouts. Version 1.2.0 has installed successfully on Time 2 and 2 SE.
+Wearer checks of readability and pattern recognition are underway; round
+hardware still needs a separate check.

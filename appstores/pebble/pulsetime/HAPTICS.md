@@ -74,7 +74,7 @@ Whole-time playback at :00 ends after the hours, while :15 adds a separated
 quarter pulse. **Use Select for the whole time when unsure, and keep Quick
 Launch on whole time until both cases have been compared on the wrist.**
 
-The shared encoder remains unchanged so an already learned language stays
+The vibration timings remain unchanged so an already learned language stays
 consistent across watchapp, watchface, and the other PulseTime platforms.
 Any future zero-marker change needs a deliberate migration across that shared
 contract and evidence from wearers, including on Pebble 2 SE.

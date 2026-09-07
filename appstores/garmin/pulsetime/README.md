@@ -18,11 +18,11 @@ License: MIT. A small open-source project for friends and anyone it helps.
 2. Tap it. The full view opens and the watch **vibrates the time immediately**
    in the selected system.
 3. Tap the screen or press Start/Enter to **repeat**. Swipe up/down or press
-   Down/Up to **switch time systems** (the choice is saved). Back exits, and
+   Down/Up to **switch time systems**. The app saves your choice. Back exits, and
    any pattern still queued stops.
 
-The screen shows the time large, the active system, and the repeat hint. If
-vibration is switched off in the watch settings, the hint says so.
+The screen shows large time digits, the active system, and the repeat hint.
+The hint also reports when the watch's vibration setting is off.
 
 ## The complication
 
@@ -37,12 +37,11 @@ PulseTime publishes one complication so a watch face can carry it:
 | Value | the current local time, `h:mm` or `HH:mm`, following the watch's 12/24-hour setting |
 | Icon | `complication_icon.svg`, the three pulse bars without the launcher disc |
 
-**Adding it on the Venu 2S.** Hold the touchscreen on the watch face, choose
-**Edit**, pick a data slot, and scroll its list to **PulseTime** under the
-Connect IQ entries. Any Connect IQ watch face that reads complications can host
-it the same way. Tap the complication and the watch launches PulseTime, which
-**buzzes the time as soon as the view appears** - the same `onShow` path as
-opening the app by hand, so nothing about the entry point changes what you feel.
+**Using a compatible watch face.** Look for **PulseTime** in the face's data-slot
+editor. The simulator confirms publication; appearance in the Venu 2S editor
+and tap-to-launch still need a hardware check. If the face offers it, tapping
+the complication should open PulseTime and play through the same `onShow` path
+as opening the app. The app list remains available if the face cannot host it.
 
 **What it cannot do.** Connect IQ has no way to vibrate from a background
 process, so the complication is a launcher, not a background haptic: the app has
@@ -55,7 +54,7 @@ given, or the `--:--` placeholder from the resource before the first run. Read
 the complication as a labelled button that happens to remember the last time it
 spoke, not as a live clock.
 
-## The 8-profile limit and why the seams are inaudible
+## Splitting patterns at the 8-profile limit
 
 `Toybox.Attention.vibrate()` takes at most **eight** `VibeProfile`s per call.
 A full pattern is up to 32 segments (about 64 profiles), so `PulsePlayer`:
@@ -83,7 +82,7 @@ Strength maps to duty cycle: Soft / Standard / Strong = base duty **45 / 70 /
 100**. With **Layered strength** on, each pulse's duty is
 `round(base x layer)` where layer is the encoder's relative strength
 (100 / 72 / 50 / 45 percent); otherwise every pulse uses the base duty.
-Duty is clamped to 1..100.
+The player clamps duty to 1..100.
 
 ## Settings (Garmin Connect / Connect IQ app settings)
 
@@ -170,8 +169,8 @@ appstores/garmin/scripts/build-venu2s.sh            # add --harness for the test
 ```
 
 Sideload: copy `dist/pulsetime-venu2s.prg` to the watch's `GARMIN/APPS/`
-folder over USB (or use the Ambient Time `sideload-venu2s.py` helper). Settings
-are edited from Garmin Connect once the app is on the watch.
+folder over USB (or use the Ambient Time `sideload-venu2s.py` helper). Edit
+settings in Garmin Connect once the app is on the watch.
 
 ## Test harness
 
@@ -194,7 +193,7 @@ truncates. Monkey C `Float` is also single precision, and the port uses
 `(ms * mult).toNumber()` (truncation, never rounding). The fixtures confirm the
 two agree on every case (for example 150 x 0.78 -> 116, 200 x 0.78 -> 156).
 
-## Limitations (honest)
+## Limits and remaining checks
 
 - **An app, not a watch face.** `Attention.vibrate` is unavailable to watch
   faces on Connect IQ, so PulseTime cannot buzz from the face itself. The
@@ -205,14 +204,15 @@ two agree on every case (for example 150 x 0.78 -> 116, 200 x 0.78 -> 156).
   complication's value only refreshes while the app is running.
 - **Strength is duty cycle.** Garmin exposes vibration strength only as a
   0-100 duty cycle; the mapping to Wear OS amplitudes is approximate and
-  motor-dependent. Layered strength is still perceptible on the Venu 2S motor,
-  but no system depends on amplitude alone.
+  motor-dependent. Perception of layered strength still needs a wrist check;
+  no system depends on amplitude alone.
 - **No mid-chunk cancel.** The platform has no vibrate-cancel call. Stopping
   (Back, or a replay) drops the queued chunks and stops the timer, but the
   chunk already handed to the motor (at most eight profiles, well under two
   seconds) finishes on its own.
-- **No device evidence yet.** Compile is clean and the harness passes in the
-  simulator; whether the Venu 2S motor resolves 58 ms pulses at 45 percent
+- **Sideloaded; wrist checks pending.** The device evidence records a Venu 2S
+  sideload, and the harness passes in the simulator. Whether its motor resolves
+  58 ms pulses at 45 percent
   duty distinctly is a physical-device question, as with every PulseTime port.
   The complication is in the same position: `updateComplication` was verified to
   succeed at runtime in the simulator, but that the complication appears in the

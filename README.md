@@ -1,18 +1,42 @@
 # PulseTime
 
-Eyes-free haptic clock for blind and low-vision users, implemented natively for
-Wear OS, Pebble, and Garmin. Each platform offers a short vibration pattern for
-the current local time through the invocation path its operating system
-actually permits.
+A clock you can feel. PulseTime tells the local time through vibration on
+Wear OS, Pebble, and Garmin. I built it for blind and low-vision wearers, with
+known-time lessons to help you learn the rhythm.
 
 **License:** MIT · A small open-source project for friends and anyone it helps.
 
-This project is standalone. It is not part of Ambient Time and shares no
-package IDs, App Groups, or product coupling.
+Created by **Luke Steuber**. PulseTime is a standalone project with its own
+packages and settings.
+
+## Try PulseTime on Pebble
+
+Install **PulseTime 1.2.0**, then open it from the watch's app list. The first
+launch opens **Learn pattern**. Press Down for the 3:32 lesson and Select to
+play it. Hold Select from the clock to return to learning and settings.
+
+During lessons and time checks, one huge black-and-white numeral follows each
+vibration group. In the default pattern, **3 hours + 2 quarters means about
+3:30**. The clock still shows the exact minute between answers.
+
+![Time 2 emulator: a large 3 labeled HOURS during the 3:32 lesson](appstores/pebble/pulsetime/docs/readout/time2-hours.png)
+![Time Round emulator: a large 2 labeled QUARTERS, with the caption 2 x 15 min](appstores/pebble/pulsetime/docs/readout/round-quarters.png)
+
+Start with the [Pebble wearer guide](appstores/pebble/pulsetime/GUIDE.md) for
+installation, side-button setup, and recovery. The optional **PulseTime Face**
+package gives you double-tap playback from its clock face. Both packages support
+rectangular and round screens, with large clock digits in bright or dark layouts.
+
+Version 1.2.0 builds for all six supported Pebble targets. The app has installed
+successfully on Time 2 and 2 SE; on-wrist readability and pattern recognition
+checks are underway. See the [validation record](appstores/pebble/pulsetime/VALIDATION.md)
+for the exact coverage, or the [sharing notes](appstores/pebble/pulsetime/SHARING.md)
+for the package list and a short introduction you can send with it.
 
 ## Time systems
 
-PulseTime now includes six selectable haptic time languages:
+PulseTime includes six haptic time languages. Pebble offers seven menu choices
+because Terse Quarter appears with and without exact-minute ticks:
 
 - **Terse Quarter:** hours, quarters, and optional leftover-minute ticks
 - **Five-Minute Ladder:** hours, five-minute steps, and leftover minutes
@@ -21,8 +45,8 @@ PulseTime now includes six selectable haptic time languages:
 - **Nearest-Quarter Offset:** a quarter-hour landmark plus before/after minutes
 - **Morse Digits:** displayed digits as standard Morse numerals
 
-The intentionally simple starting point is **Terse Quarter, Standard speed,
-approximate to the quarter**. Exact-minute ticks, alternate languages, sound,
+Start with **Terse Quarter, Standard speed, approximate to the quarter**.
+Exact-minute ticks, alternate languages, sound,
 scheduled chimes, and gesture workers are opt-in. Existing installs keep every
 saved choice. No system depends on amplitude alone.
 
@@ -149,20 +173,17 @@ No network. No location.
 - [ ] Training completable without sight  
 - [ ] Tile content description announces the tell-time action  
 
-## Pebble guided clock (1.2.0)
+## Pebble daily use
 
 Start with the [Pebble wearer guide](appstores/pebble/pulsetime/GUIDE.md) for installation choices,
 button setup, and a first pattern. The app starts with a guided, replayable
 lesson. Hold Select for
 Learn pattern, Practice, Language, Speed, Display, Quick Launch, and Watch status.
-During playback, the app and face show one giant, labeled numeral at a time,
-synchronized to the encoded phrases. Lessons and Practice use the same readout.
-The app and watchface also offer huge stacked digits or a single row, in black on
-white or white on black, on rectangular and round screens. Settings preserve
-existing haptic preferences.
+Select asks for the whole time, Up for hours, and Down for minutes. Press the
+same reply button again to stop; another reply button replaces the answer.
 
 Start with quarter time; [compare the measured haptic options](appstores/pebble/pulsetime/HAPTICS.md)
-before adding exact minutes. Quick Launch setup is explained on the watch.
+before adding exact minutes. The watch's Quick Launch guide walks through setup.
 Time 2 can recognize its launch button; Pebble 2 SE launches with the whole time
 and offers separate hour/minute buttons after opening.
 
@@ -172,14 +193,14 @@ Native Garmin and Pebble ports run the same six systems from the same fixtures.
 Build and validation notes below describe the available packages; a successful
 build does not establish store publication.
 
-- `appstores/garmin/pulsetime/` — a Connect IQ **device app with a glance** for
+- `appstores/garmin/pulsetime/`: a Connect IQ **device app with a glance** for
   the Venu 2S (`Attention.vibrate` is unavailable to watch faces and takes at
-  most eight VibeProfiles per call, so patterns are chunked at silences and
-  chained with a timer; strength = duty cycle). Glance → tap → feel the time,
+  most eight VibeProfiles per call, so the player splits patterns at silences
+  and chains them with a timer; strength = duty cycle). Glance → tap → feel the time,
   or add the **PulseTime complication** to a watch face and tap that; tap/press
   repeats, swipe/Up/Down cycles systems; settings in the Connect IQ phone app.
   `appstores/garmin/pulsetime/README.md`.
-- `appstores/pebble/pulsetime/` — a C **watchapp** for basalt/chalk/diorite/
+- `appstores/pebble/pulsetime/`: a C **watchapp** for basalt/chalk/diorite/
   emery/flint/gabbro. Bind it to Quick Launch; Select plays the whole time, Up
   plays only the hour, and Down plays only the minutes. These everyday buttons
   never change a learned language accidentally. Holding Up/Down deliberately
@@ -193,14 +214,13 @@ build does not establish store publication.
   time; Up/Down still give separate fields once the clock is open. An optional
   background worker (off by default) turns a
   double wrist-tap from any watchface into: launch, buzz, exit. It can also
-  **chime** — on the hour, half or quarter — which needs no gesture and, unlike
-  everything else here, does not depend on what the wearer is looking at:
+  **chime** on the hour, half hour, or quarter hour, even while another app is open:
   `wakeup_schedule()` has the watch launch PulseTime at the chosen moment with
   no PulseTime process resident between scheduled chimes. Battery impact has
   not been measured.
   Canonical source: `appstores/pebble/pulsetime/BUILD.md`. Root-level
   CloudPebble import: [`lukeslp/pebble-pulsetime`](https://github.com/lukeslp/pebble-pulsetime).
-- `appstores/pebble/pulsetime-face/` — the same clock as a **watchface**, for
+- `appstores/pebble/pulsetime-face/`: the same clock as a **watchface**, for
   wearers who want the time under a double-tap with nothing to open and no
   scheduling involved. The canonical app and face use the same encoder through
   a symlink; standalone mirror copies require a parity check. A watchface only
@@ -210,9 +230,8 @@ build does not establish store publication.
   CloudPebble import:
   [`lukeslp/pebble-pulsetime-face`](https://github.com/lukeslp/pebble-pulsetime-face).
 - On the Pebble Time 2 and Pebble 2 Duo, PulseTime can also play the pattern
-  through the **speaker**. That is not decoration: several systems separate
-  their fields by relative strength, and a Pebble motor has no strength control
-  at all, so on the speaker that lost dimension returns as pitch.
+  through the **speaker**. Tones use pitch to distinguish the encoder's strength
+  layers, which a Pebble vibration motor cannot reproduce.
 - `appstores/shared/pulsetime-patterns.mjs` is a reference port that writes
   `appstores/shared/fixtures/patterns.{json,txt}` (420 cases) and
   `patterns-scoped.{json,txt}` (840 hours-only / minutes-only cases);
@@ -223,30 +242,31 @@ build does not establish store publication.
 No Pebble or Garmin background process can vibrate, so every "no app to open"
 path on those two is really a launcher: the Garmin complication and the Pebble
 worker each foreground the app, which buzzes immediately. The single exception
-is the Pebble watchface, which is already running and is allowed to vibrate —
-unlike a Connect IQ watch face, which is barred from `Attention.vibrate()`.
+is the Pebble watchface, which can vibrate while it is on screen.
+A Connect IQ watch face cannot call `Attention.vibrate()`.
 `docs/invocation-paths.md` records the verified per-platform rules and the
 gesture paths that follow from them.
 
 ### Pebble submission order
 
-PulseTime is deliberately two Pebble products, not one package with two modes:
+PulseTime has two separate Pebble packages:
 
 1. Submit **PulseTime** as an app first. Quick Launch, Practice, scheduled
-   chimes, and the optional worker are the complete accessible utility and work
+   chimes, and the optional worker belong to the interactive app and work
    regardless of the selected watchface.
 2. Submit **PulseTime Face** as a watchface second. It is the optional
-   zero-launch double-tap experience for someone willing to use it as their
+   double-tap clock for someone who wants to use it as their
    current face; its tap and unscheduled chime behavior pauses whenever another
    app or the launcher is in the foreground.
 
 The listings must keep their distinct UUIDs and explain the tradeoff plainly;
 neither listing bundles or replaces the other.
 
-## Platforms track
+## Release status
 
-`scaffolded` → `built` → `validated` → `device-tested` → `store-staged` → **stop**  
-(Play upload/publish is a human gate.)
+The [platform summary](PLATFORMS.md) distinguishes builds, device installs, and
+remaining wearer checks. The Pebble packages are ready for direct tester sharing;
+store submissions remain pending.
 
 ## Later work
 

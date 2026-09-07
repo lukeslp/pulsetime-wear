@@ -1,7 +1,7 @@
 # PulseTime Play intake
 
 - Product: PulseTime 0.3.0
-- Maintainer: PulseTime contributors
+- Maintainer: Luke Steuber
 - License: MIT
 - Play Console account: `lucas.steuber@gmail.com`, the same developer account used for Alt Text Intelligence
 - Play package: `com.lukesteuber.pulsetime.wear`
@@ -22,7 +22,7 @@ The release requires TalkBack labels, logical focus order, usable touch targets,
   before production access.
 - `com.lukesteuber.pulsetime.wear` is not yet registered under Android developer
   verification.
-- The `platforms` command is not installed, so Gradle, Android SDK, Java 21, and ADB checks provide the release evidence directly.
+- Gradle, Android SDK, Java 21, and ADB checks provide the Android release evidence.
 - The Play package ID becomes permanent after the first upload.
 - The phone and Wear bundles must keep unique version codes and the same upload certificate.
 - Back up the upload keystore and its Keychain password before the first Play upload.
