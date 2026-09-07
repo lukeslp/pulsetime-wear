@@ -1,5 +1,9 @@
 # Share PulseTime for Pebble
 
+Install or share [**PulseTime Public Beta**](https://apps.repebble.com/1624684ac5dd46ac85eee2a6).
+The store listing includes first-use steps and known beta limits. The app
+appears as **PulseTime** on the watch.
+
 ## Short introduction
 
 A friend who is visually impaired asked me to build a way to feel the time.
@@ -60,13 +64,20 @@ including the haptic language. Check every option before saving, then verify
 the language on the watch and replay a known lesson. Reopening the phone form
 alone does not guarantee fresh settings.
 
+Send feedback and ideas to [luke@lukesteuber.com](mailto:luke@lukesteuber.com).
+I would also like to hear what you would connect to a vibration fingerprint,
+such as a remote endpoint, and what each pattern should mean.
+
 Useful feedback names the watch, language, and speed, then describes the time
 you expected, the answer you felt, and any hard-to-read digit or label. Known
 examples and unlimited replay are a good place to start.
 
 ## Distribution status
 
-The three source repositories are private and have no GitHub release assets.
-Their links require repository access. Use the tester archive for direct
-sharing until a public download is available. Pebble app and watchface store
-submissions remain pending.
+The app is published as [PulseTime Public Beta](https://apps.repebble.com/1624684ac5dd46ac85eee2a6), version 1.2.0.
+Share that link for the app. The optional watchface remains a separate direct
+tester package; its store listing is pending.
+
+The three source repositories remain private and have no GitHub release assets.
+Their links require repository access. The offline tester archive includes
+both packages, the full guide, and checksums.

@@ -7,14 +7,18 @@ their own settings, so set your preferred language and display in each.
 
 ## Install or update
 
-Save `pulsetime.pbw`, the Pebble app package, on your phone. Open or share the
-file with the Pebble app paired to your watch, then open **PulseTime** from the
-watch's app list. If you use more than one Pebble, select the watch you want to
-update in the phone app first. Installing an update keeps your saved settings.
+Install [**PulseTime Public Beta**](https://apps.repebble.com/1624684ac5dd46ac85eee2a6) from the Pebble app store.
+It appears as **PulseTime** in your watch's app list. If you use more than one
+Pebble, select the watch you want to update in the phone app first. Installing
+an update keeps your saved settings.
 
-For the optional face, open `pulsetime-face.pbw` the same way, then choose
-**PulseTime Face** as your watchface. Each package has its own settings gear in
-the phone app. The clock and lessons work offline after installation.
+If you have the offline tester kit, you can instead save `pulsetime.pbw` on your
+phone and open or share it with the Pebble app paired to your watch.
+
+The optional **PulseTime Face** is a separate tester package; it does not yet
+have a public store listing. Open `pulsetime-face.pbw` from the kit the same
+way, then choose it as your watchface. Each package has its own settings gear
+in the phone app. The clock and lessons work offline after installation.
 
 Version **1.2.0** supports Time / Time Steel, Time Round, 2 / 2 SE, Time 2,
 2 Duo, and Round 2. It does not support the original 2013 Pebble or Pebble Steel.
@@ -23,8 +27,10 @@ Version **1.2.0** supports Time / Time Steel, Time Round, 2 / 2 SE, Time 2,
 
 1. Open PulseTime from the watch's app list. Its first normal launch opens
    **Learn pattern**. Select on the introduction tells the current time.
-2. Press Down for the **3:32** lesson. Select plays the labeled example; press
-   it again to stop. Down advances, Up returns, and Back leaves the guide.
+2. Press Down for the **3:32 hours** lesson. Down again reaches the minute
+   phrase, then Down once more reaches the whole answer. Select plays the
+   current example; press it again to stop. Down advances, Up returns, and
+   Back leaves the guide.
 3. Keep **Terse Quarter / Standard** initially. At 3:32, three hour pulses,
    a pause, and two quarter pulses mean **about 3:30**. This answer covers
    3:30–3:44; the visual clock still shows the current minute.
@@ -164,3 +170,13 @@ Pulse Lab, a separate phone app, has fictional examples and a local pattern
 builder for exploring rhythms. **Live server monitoring and automatic mappings
 from outside data to vibration are not implemented.** These Pebble packages
 tell the time.
+
+## Share your feedback
+
+This is a public beta. Send feedback and ideas to
+[luke@lukesteuber.com](mailto:luke@lukesteuber.com). Include your watch model,
+pattern and speed, the time you expected, and what you felt. Confusing controls
+and hard-to-read labels are useful reports too.
+
+For future vibration fingerprints, what would you want to recognize by touch?
+A remote endpoint's status is one idea; those connections are not implemented.

@@ -1,0 +1,18 @@
+{
+  "name": "PulseTime Public Beta",
+  "version": "1.2.0",
+  "category": "daily",
+  "type": "watchapp",
+  "uuid": "e69d82c1-73f1-4b29-a50f-06d17edd13b2",
+  "author": "Luke Steuber",
+  "supportEmail": "luke@lukesteuber.com",
+  "descriptionFile": "description.txt",
+  "releaseNotesFile": "release-notes.md",
+  "source": "",
+  "iconSmall": "icon-small.png",
+  "iconLarge": "icon-large.png",
+  "appId": "1624684ac5dd46ac85eee2a6",
+  "storeUrl": "https://apps.repebble.com/1624684ac5dd46ac85eee2a6",
+  "downloadUrl": "https://appstore-api.repebble.com/api/assets/pbw/1624684ac5dd46ac85eee2a6/1.2.0/d82bfa3a-c77c-44c0-965f-ec30216b14db.pbw",
+  "publishedPbwSha256": "11450dc54117f44f5c1d48f55909f30197748d0dbd8cd1480a1601f5732ef711"
+}

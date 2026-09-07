@@ -14,9 +14,14 @@ packages and settings.
 
 ## Try PulseTime on Pebble
 
-Install **PulseTime 1.2.0**, then open it from the watch's app list. The first
-launch opens **Learn pattern**. Press Down for the 3:32 lesson and Select to
-play it. Hold Select from the clock to return to learning and settings.
+Install [**PulseTime Public Beta**](https://apps.repebble.com/1624684ac5dd46ac85eee2a6) from the Pebble app store.
+Version **1.2.0** appears as **PulseTime** in the watch's app list. The first
+launch opens **Learn pattern**. Press Down for the 3:32 hours lesson, Down again
+for minutes, and Down once more for the whole answer. Select plays the current
+example. Hold Select from the clock to return to learning and settings.
+
+I welcome feedback and ideas at [luke@lukesteuber.com](mailto:luke@lukesteuber.com).
+Tell me your watch model, what you expected, and what you felt.
 
 During lessons and time checks, one huge black-and-white numeral follows each
 vibration group. In the default pattern, **3 hours + 2 quarters means about
@@ -254,7 +259,7 @@ gesture paths that follow from them.
 
 PulseTime has two separate Pebble packages:
 
-1. Submit **PulseTime** as an app first. Quick Launch, Practice, scheduled
+1. **PulseTime Public Beta** is published as an app. Quick Launch, Practice, scheduled
    chimes, and the optional worker belong to the interactive app and work
    regardless of the selected watchface.
 2. Submit **PulseTime Face** as a watchface second. It is the optional
@@ -268,8 +273,9 @@ neither listing bundles or replaces the other.
 ## Release status
 
 The [platform summary](PLATFORMS.md) distinguishes builds, device installs, and
-remaining wearer checks. The Pebble packages are ready for direct tester sharing;
-store submissions remain pending.
+remaining wearer checks. [PulseTime Public Beta](https://apps.repebble.com/1624684ac5dd46ac85eee2a6)
+is live in the Pebble app store. The optional PulseTime Face is available in
+the direct tester kit; its separate store listing remains pending.
 
 ## Later work
 
