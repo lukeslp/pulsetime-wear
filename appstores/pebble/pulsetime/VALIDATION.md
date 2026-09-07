@@ -16,7 +16,7 @@ encoded unit and any necessary digit-position or binary-weight caption.
 - The phone contract passes. All 57,600 existing clock-renderer cases pass,
   plus giant-digit and caption bounds on rectangular, circular, and reduced areas.
 - Both staging scripts run the readout and renderer checks before packaging.
-  The face checks that the annotated encoder is linked on every platform.
+  The face checks every platform binary for the annotated encoder.
 
 ## Observed for 1.2.0
 
@@ -43,16 +43,27 @@ Screenshots: [Time 2 hours](docs/readout/time2-hours.png),
 [Round 2 face playing](docs/readout/round2-face-playing.png),
 [Round 2 face restored](docs/readout/round2-face-return.png).
 
-The physical Time 2 responded through Developer Connection and accepted the
-1.2.0 test build. Its initial screenshot still showed Pebble's Ping screen, so
-that screenshot establishes connectivity and display size, not readout quality.
-Physical readability, display-to-motor latency, and tactile recognition remain
-separate wearer checks. No physical 2 SE or round-watch check is claimed.
+## Installed on physical watches
+
+Time 2 and 2 SE both accepted the same final **1.2.0 watchapp** through Developer
+Connection. Each transfer reported `App install succeeded`. The package comes
+from committed source `289d45e`, merged into the canonical repository as
+`dea2d51`; the merged tree matches the release source exactly.
+
+The Time 2's initial screenshot showed Pebble's Ping screen. The readout images
+above come from emulators. Luke is testing readability, display-to-motor timing,
+and pattern recognition on both watches. Round-watch hardware checks and a
+physical install of the 1.2.0 face remain pending.
+
+| Package | SHA-256 |
+|---|---|
+| `pulsetime.pbw` | `84b74b820c12476fe9ce0a49378558a5dd989d84b40c8570d5256aaf36befb6e` |
+| `pulsetime-face.pbw` | `203426e5cf0aee3153ea03049e5c8b37bd9ef0fc466f910b29a7dedad83ba654` |
 
 The large display describes each encoded group; it does not count every pulse.
 Two-digit group values change on pulse boundaries partway through the same
-phrase, while the caption keeps the whole value visible. No timing was added to
-the learned haptic language. No store upload is claimed.
+phrase, while the caption keeps the whole value visible. The learned vibration
+timings remain unchanged. Neither package has a store release yet.
 
 ---
 

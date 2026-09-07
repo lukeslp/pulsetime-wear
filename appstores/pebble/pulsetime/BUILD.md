@@ -12,7 +12,7 @@ the time can be felt from any watchface without opening anything by hand.
 
 Targets: basalt, chalk, diorite, emery, flint, gabbro (every current Pebble
 except the 2013 aplite). Start with the [wearer guide](GUIDE.md).
-See [1.1.0 validation](VALIDATION.md) for current build and emulator evidence;
+See [1.2.0 validation](VALIDATION.md) for current build and emulator evidence;
 the dated checks below retain their original scope.
 
 ## Synchronized digits, version 1.2.0
@@ -102,26 +102,23 @@ a separate listing from PulseTime Face.
   Select tells the current time on the introduction and setup pages.
   The lesson pages play their labeled examples. Later launches encode `localtime()`
   with the saved settings and vibrate immediately. It is a watchapp (not a watchface) so it can be
-  bound to **Quick Launch** (hold Up or Down) — that is the intended gesture.
-  On a worker (gesture) launch the vibration is started *before* the window,
-  AppMessage buffers, and service subscriptions are set up, because that is the
-  one path where the wearer is waiting on nothing else.
+  bound to **Quick Launch** (hold Up or Down).
+  A worker launch starts vibration before setting up the window, AppMessage
+  buffers, and service subscriptions to reduce the delay after a gesture.
 - **Select** plays the whole time with a fresh reading (`vibes_cancel()` first).
 - **Up** plays only the hour; **Down** plays only the minutes. These ordinary
   presses never alter a learned language. **Back** exits.
 - **Hold Up / Down** deliberately cycles the haptic language. **Hold Select**
   opens the learning and settings menu. Speed is available there and on the phone.
 
-**BACK on the clock is left entirely alone.** A long press on it is swallowed by the system's
-own back-out before any handler runs — verified on the emery emulator, where the
-app simply exits — and subscribing to BACK at all risks a screen the wearer
-cannot leave. The menu is on hold-Select; its Back handler pops a submenu and then exits.
+The clock leaves **Back** to the system. On the emery emulator, holding Back
+exits before an app handler can run. Hold Select opens the menu; Back then
+leaves a submenu and returns to the clock.
 
-### The system cycle has seven rungs, not six
+### Seven language choices
 
-Terse Quarter appears twice, with and without exact minutes, because it
-genuinely feels like two different systems and a hidden toggle is a setting
-nobody finds:
+Terse Quarter appears twice so both quarter-time and exact-minute playback are
+easy to find:
 
 | Rung | System | Cue |
 |---|---|---|
@@ -133,15 +130,14 @@ nobody finds:
 | 6 | Nearest-Quarter Offset | 6 |
 | 7 | Morse Digits | 7 |
 
-`s_system` and `s_exact` stay separate settings — only the *cycle* treats them
+`s_system` and `s_exact` stay separate settings; only the *cycle* treats them
 as one sequence, and the phone's Clay page still sets either independently.
 
 ### Practice
 
-`Hold Select > Practice`. A haptic clock is only useful once its patterns are legible, and
-"now" is the worst possible teacher: you cannot choose it and it moves. Practice
-plays a **chosen** time from a 22-rung ladder ordered easiest to hardest, so the
-wearer knows the answer before the pattern starts and can attend to its shape.
+Choose `Hold Select > Practice` to replay known times. Its 22-step sequence
+starts with bare hours and moves to quarters, exact minutes, and hour boundaries.
+The fixed answer lets the wearer concentrate on the pattern.
 
 Up moves one rung through the fixed ladder. Practice plays the target pattern
 but does not announce its time separately. The irregular sequence must be
@@ -163,32 +159,31 @@ AppQuickLaunchAction launch_get_quick_launch_action(void);  // HOLD | TAP | COMB
 ```
 
 So one install bound to both Quick Launch slots can answer two different
-questions — hold Up for the hour, hold Down for the minutes. `QL_UP` and
+questions: hold Up for the hour, hold Down for the minutes. `QL_UP` and
 `QL_DOWN` (Clay selects, persist keys 5 and 6) choose what each button plays;
 both default to the whole time, so no existing binding changes behaviour.
 
-**Availability, checked in the 4.33.1 headers rather than assumed:**
+**Availability in the 4.33.1 headers:**
 
 | Platform | Device | `launch_button` | Speaker | Touch |
 |---|---|---|---|---|
 | emery | Pebble Time 2 | yes | yes | yes |
-| flint | Pebble 2 Duo | yes | yes | — |
-| gabbro | Pebble Round 2 | yes | — | yes |
-| basalt / chalk / diorite / aplite | classic | `#define launch_button(...) (0)` | — | — |
+| flint | Pebble 2 Duo | yes | yes | no |
+| gabbro | Pebble Round 2 | yes | no | yes |
+| basalt / chalk / diorite / aplite | classic | `#define launch_button(...) (0)` | no | no |
 
 The frozen platforms are `FROZEN_AT_REVISION: 89` in
 `common/tools/pebble_sdk_platform.py`, and their headers define both launch
 calls as macros returning `0` (which is `BUTTON_ID_BACK`). The scope settings
-therefore never match there and every launch plays the whole time — no `#ifdef`
-needed, but the config page says so plainly rather than leaving a dead setting.
+therefore never match there and every launch plays the whole time. The phone
+settings explain this limit; the implementation needs no `#ifdef`.
 
-A scope is a **projection** of the pattern, not a new haptic vocabulary:
-hours-only is exactly the hour phrase of the chosen system, minutes-only is
-exactly its minute phrase. Nothing extra has to be learned.
+A scope selects a field from the existing pattern. Hours-only plays the chosen
+system's hour phrase; minutes-only plays its minute phrase.
 
 `pt_encode_scoped()` splits at the boundary each encoder records
 (`Builder.boundary`). That index has to be recorded rather than found, because
-**"the first silence segment" is not the boundary** — past five hours the hour
+**"the first silence segment" is not the boundary**: past five hours the hour
 field carries group gaps of its own. An empty field (five-minute ladder at
 `:00`, terse quarter before `:15`) plays one `PT_ZERO_FIELD_ON_MS` (300 ms)
 pulse meaning "none"; silence would be indistinguishable from a fault. That
@@ -206,23 +201,17 @@ or not it is running and whatever watchface is showing. The app buzzes and
 closes itself. **No PulseTime process is resident in between**, and the watch's single
 worker slot stays free. Battery impact has not been measured.
 
-This is the important distinction from the watchface variant. A watchface can
-chime, but only while it is the *foreground app*: open any app, or even the
-launcher, and it is unloaded along with its tick subscription. The wakeup path
-has no such condition.
-
-It does **not** break the platform rule — Pebble still cannot vibrate from a
-background context. What it does is make the app appear without being asked,
-which is the part that matters.
+The watchface variant chimes only while it is on screen. Opening the launcher
+or another app unloads it. Scheduled watchapp chimes work across those changes
+because the system launches PulseTime briefly to play the answer.
 
 | Constant | Value | Why |
 |---|---|---|
 | `PT_WAKEUP_MAX` | 8 | Pebble's hard per-app limit on scheduled wakeups. |
 | `PT_WAKEUP_PROBES` | 96 | Candidate slots examined; quiet hours can eat a long run, so this must exceed the limit comfortably. |
 
-So a recurring chime is **not** "schedule forever" — it is a rolling window,
-topped up on every launch. Since each chime *is* a launch, the chain sustains
-itself and the wearer never has to open the app. Coverage at any moment:
+Recurring chimes use a rolling window that refills on every launch, including
+each scheduled chime. Coverage at any moment:
 hourly ≈ 8 hours ahead, half-hourly ≈ 4, quarter-hourly ≈ 2.
 
 Details that are easy to get wrong:
@@ -231,11 +220,10 @@ Details that are easy to get wrong:
   woken app read the clock. A wakeup can land a second either side of the
   boundary, and announcing "12:59" when the wearer expected one o'clock is
   exactly the kind of error that destroys trust in a clock you cannot see.
-- **A negative `WakeupId` is usually `E_RANGE`** — another app already owns a
+- **A negative `WakeupId` is usually `E_RANGE`**: another app already owns a
   wakeup within a minute of that slot. Skip it and take the next candidate;
   never treat it as fatal.
-- **Quiet hours are applied at scheduling time**, not at wake time. Booking a
-  wakeup only to ignore it would waste one of the eight slots.
+- **The scheduler skips quiet hours** to preserve the eight available slots.
 - **The screen reports the number actually scheduled**, e.g. `Chime hourly (8)`,
   not the setting. "Chimes are on" and "a chime will really happen" are
   different claims, and only the second is worth anything.
@@ -246,15 +234,14 @@ Details that are easy to get wrong:
 ### Sound: the dimension the motor cannot carry
 
 `PBL_SPEAKER` is defined for **emery (Pebble Time 2)** and **flint (Pebble 2
-Duo)** only — *not* gabbro, despite it being new hardware. Verify with
+Duo)** only. Gabbro has no speaker support. Verify with
 `nm build/<platform>/pebble-app.elf | grep -i speaker` after a build: the
 speaker path links on emery and flint and nowhere else, so the `#ifdef` is doing
 real work rather than compiling the feature out everywhere unnoticed.
 
-The point is not that a clock can beep. Four of the six systems separate their
-fields by **relative strength** (`layer` 100 / 72 / 50 / 45) and a Pebble motor
-has **no amplitude control at all**, so that whole dimension is lost on the
-vibration channel. `pt_layer_midi_note()` gives it back as **pitch**:
+Four of the six systems carry **relative strength** (`layer` 100 / 72 / 50 / 45),
+which a Pebble motor cannot reproduce. `pt_layer_midi_note()` maps those layers
+to **pitch**:
 
 | Layer | Note | Used for |
 |---|---|---|
@@ -268,13 +255,12 @@ order. The confirmation cue sits above all of them at E5 (76), staying as
 distinct by ear as it is by touch.
 
 Notes are built from the **segments**, not from the vibe durations, because
-`pt_to_vibe` merges silences and discards the layer — precisely the information
+`pt_to_vibe` merges silences and discards the layer, the information
 the speaker exists to carry. `SPEAKER_MAX_NOTES` is 256 and the worst case here
 is 140.
 
 `SOUND` is off / with vibration / instead of vibration, `VOLUME` is 30/65/100 %.
-Off by default — a watch that starts making noise by itself in a meeting is a
-worse product than a quiet one — and `speaker_is_muted()` is always obeyed.
+Sound starts off. Playback always respects `speaker_is_muted()`.
 
 ### Confirmation cues and their limits
 
@@ -298,7 +284,7 @@ compatibility, but the on-watch Speed menu emits it before previewing a new spee
 
 `pt_cue_durations()` lives in `src/c/encoder.c`, not in `main.c`, so the host
 test covers it and the watchface variant can reuse it.
-- A **wrist flick** (`accel_tap_service`) also repeats — but not while a
+- A **wrist flick** (`accel_tap_service`) also repeats, except while a
   pattern is playing, since the motor shakes the watch hard enough to register
   as a tap and would otherwise loop.
 - **Flick to tell time** (off by default) runs the background worker described
@@ -324,7 +310,7 @@ so a worker can never buzz on its own. All it can do is watch the
 accelerometer and call `worker_launch_app()`. That means PulseTime has to open
 on screen for a moment to vibrate, and the worker has to stay resident and
 subscribed to the accelerometer all day, which uses battery. A Pebble also runs
-**only one worker at a time, across the whole watch** — turning this on may ask
+**only one worker at a time, across the whole watch**. Turning this on may ask
 you to take the slot from another app, and another app can take it back later.
 
 **Quick Launch needs no background worker.** Settings > Quick Launch > Up
@@ -347,7 +333,7 @@ A **double tap on the same accelerometer axis**. Constants live at the top of
 A single tap does nothing; that is deliberate, because a single tap fires
 constantly during ordinary arm movement.
 
-The worker holds **no timers**. Every window is measured from a stored
+The worker holds **no timers**. It measures each window from a stored
 `time_ms()` stamp when the next tap arrives. The worker remains resident
 with an accelerometer subscription; its battery impact has not been measured. Its
 compiled size is 644 bytes per platform.
@@ -358,9 +344,9 @@ The 5 s cooldown is not enough on its own: a slow Morse Digits pattern runs
 well past it, and the motor shakes the watch hard enough to look like a
 gesture. So the app sends the worker a `PT_WORKER_MSG_SUPPRESS`
 (`app_worker_send_message`) message carrying the pattern length plus
-`PT_WORKER_QUIET_MARGIN_MS` (1200 ms) every time it plays, and the worker stays
-deaf for exactly that long. The message type is defined in both `src/c/main.c`
-and `worker_src/c/worker.c` — **keep the two in sync**.
+`PT_WORKER_QUIET_MARGIN_MS` (1200 ms) every time it plays, and the worker ignores
+taps for exactly that long. The message type is defined in both `src/c/main.c`
+and `worker_src/c/worker.c`; **keep the two in sync**.
 
 ### Launch reason and auto-exit
 
@@ -371,7 +357,7 @@ without touching anything. Any button press cancels the auto-exit, so a wearer
 who wants to change the system mid-gesture keeps the app open. A launch from
 the menu, Quick Launch, or the phone never auto-exits.
 
-### Saying the truth about the worker
+### Confirming worker state
 
 The app never claims the worker started when it did not. `app_worker_launch()`
 is asynchronous, so `apply_flick_setting()` records what came back and a repeat
@@ -380,7 +366,7 @@ against `app_worker_is_running()`:
 
 | `AppWorkerResult` | Screen line | Second line |
 |---|---|---|
-| `SUCCESS` / `ALREADY_RUNNING` | `Flick: on` | — (verified within ~9 s, or it falls back to off) |
+| `SUCCESS` / `ALREADY_RUNNING` | `Flick: on` | Verified within ~9 s, or it falls back to off |
 | `ASKING_CONFIRMATION` | `Flick: waiting` | "Confirm on the watch to let PulseTime run the worker." |
 | `DIFFERENT_APP` | `Flick: blocked` | "Another app's worker is running. A watch allows only one." |
 | `NO_WORKER` | `Flick: unavailable` | "This build has no background worker." |
@@ -462,7 +448,7 @@ ls -la build/pulsetime.pbw
 unzip -l build/pulsetime.pbw | grep pebble-worker.bin   # six lines, one per platform
 ```
 
-The worker is built because `worker_src/` exists — `wscript` checks for the
+The worker builds because `worker_src/` exists: `wscript` checks for the
 directory and adds a `bin_type='worker'` build per platform. Nothing in
 `package.json` switches it on. A PBW without `<platform>/pebble-worker.bin` in
 every platform folder is a broken release; `stage-release.sh` refuses to stage

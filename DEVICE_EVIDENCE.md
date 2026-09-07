@@ -1,4 +1,22 @@
-# Device evidence — PulseTime Wear
+# PulseTime device evidence
+
+## Current Pebble build: 1.2.0
+
+The watchapp installed successfully on **Time 2 and Pebble 2 SE** through
+Developer Connection. Both received the same committed-source package, with
+SHA-256 `84b74b820c12476fe9ce0a49378558a5dd989d84b40c8570d5256aaf36befb6e`.
+Luke is testing the large digits alongside the vibration patterns.
+
+Both app and face build for all six targets. Emulator checks cover the large
+playback digits, labels, round-screen clipping, and return to the previous
+screen. The [1.2.0 validation record](appstores/pebble/pulsetime/VALIDATION.md)
+contains the screenshots and test counts. Physical readability, tactile
+recognition, and Quick Launch checks remain open. The 1.2.0 face has emulator
+coverage; its physical install remains pending.
+
+The dated records below describe earlier versions and retain their original
+observations. Use the [wearer guide](appstores/pebble/pulsetime/GUIDE.md) for
+current controls.
 
 ## Store-staged (local)
 

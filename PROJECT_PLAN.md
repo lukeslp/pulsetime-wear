@@ -1,10 +1,10 @@
-# PulseTime — project plan
+# PulseTime project plan
 
 ## Objective
 
-Standalone Wear OS haptic clock for blind/low-vision users. Six selectable
-haptic time systems, Tile-first invocation, training + calibration. No Ambient Time
-coupling.
+A haptic clock for blind and low-vision wearers on Wear OS, Pebble, and Garmin.
+Six time languages share the same encoding fixtures. Each platform offers
+controls suited to its watch; Pebble also has an optional watchface.
 
 ## Architecture
 
@@ -28,26 +28,28 @@ coupling.
 | M5 | Device evidence + AAB stage | AAB staged; Pixel Watch 2 installed; haptic and TalkBack QA pending human review |
 | M6 | Companion learning and remote watch demos | built; paired-device QA pending |
 
-## Wearable ports (2026-08-18)
+## Wearable ports
 
 | ID | Item | Status |
 |----|------|--------|
 | W1 | Reference encoder port + fixtures pinned to Kotlin (`PortFixturesTest`) | done |
 | W2 | Garmin Venu 2S device app with glance, 8-profile chunker, settings | built, harness 420/420, sideloaded |
-| W3 | Pebble watchapp, Clay config, host test | built, 420/420, on the Time 2; root CloudPebble mirror pushed |
+| W3 | Pebble watchapp, phone settings, host checks | 1.2.0 built for all six targets and installed on Time 2 and 2 SE; standalone mirror matches |
 | W4 | Garmin complication → launch on tap; Pebble worker flick-launch | built, both sideloaded/installed; wrist verification open |
-| W4b | Pebble PulseTime *watchface* variant (the only true no-app haptic path) | **built**, encoder shared by symlink, tap + chime + quiet hours verified on the emery emulator, installed on the Time 2; root CloudPebble mirror pushed |
+| W4b | Pebble PulseTime Face | 1.2.0 built for all six targets; round playback and return verified in emulators; earlier face installed on Time 2 |
 | W6 | Eyes-free operation: confirmation cues, speed and practice on the wrist | done, verified on emulator + Time 2 |
-| W7 | Hours-only / minutes-only per Quick Launch button (`launch_button()`) | done, 840 scoped fixtures; **wrist check open** — no emulator can trigger a real Quick Launch |
+| W7 | Hours-only / minutes-only per Quick Launch button (`launch_button()`) | done, 840 scoped fixtures; wrist check open because emulators cannot trigger a real Quick Launch |
 | W8 | Speaker output on emery/flint: relative strength becomes pitch | done; wrist check open |
-| W9 | `wakeup_schedule()` chimes in the **watchapp** — the only path that fires with nothing resident and regardless of which watchface is showing (8 events max, 1-minute exclusion window) | **built**, rolling 8-slot window topped up on every launch, quiet hours applied at scheduling time; works on every platform including the frozen ones |
-| W5 | Store submissions (Connect IQ, Pebble appstore) | human gate — now **three** listings: Garmin app, Pebble watchapp, Pebble watchface; submit the Pebble app before the optional face |
+| W10 | Guided setup, bright/dark clock layouts, synchronized single digits | 1.2.0 merged; 90,720 reading cases and 57,600 clock-layout cases pass; wearer checks underway |
+| W9 | Watchapp chimes via `wakeup_schedule()` (8 events max, 1-minute exclusion window) | built; rolling 8-slot window refills on every launch and skips quiet hours; no resident process between chimes |
+| W5 | Store submissions (Connect IQ, Pebble appstore) | pending; three listings: Garmin app, Pebble watchapp, Pebble watchface; submit the Pebble app before the optional face |
 
 ## Outstanding
 
-0. Pebble wrist QA, which is now the gate on almost everything: Quick Launch
-   scopes (unreachable from any emulator), the watchface's false-trigger rate
-   over a real day, speaker legibility, and the Pebble 2 SE degradation path.
-   See `DEVICE_EVIDENCE.md`.
-1. Human haptic and TalkBack QA on the installed Pixel Watch 2
-2. Human Play internal-track upload (replace debug signing with upload keystore)
+1. Finish Time 2 and 2 SE wearer checks: digit readability, vibration recognition,
+   Quick Launch replies, sound on Time 2, and gesture false triggers over a day.
+   Check round hardware when available. See [device evidence](DEVICE_EVIDENCE.md).
+2. Share the Pebble tester package with the wearer guide, then prepare the app
+   and face store listings. See [sharing notes](appstores/pebble/pulsetime/SHARING.md).
+3. Complete haptic and TalkBack checks on Pixel Watch 2, then collect current
+   Wear screenshots for the signed phone and Wear OS closed-test bundles.
