@@ -57,11 +57,11 @@ authorized merely by creating a build; prepare the exact candidate first.
 ### Candidate verified September 9, 2026
 
 Version 1.3.0 PBW SHA-256:
-`f0447deb7dca0b50fe77f987e32eb3d50afcb9a849cce976a9de12c09d7d5228`.
+`c84b03ae06137100378423ccb5c21f9d3ddd24864ad698c62804ccec3b89ca1c`.
 The local tester kit is under
-`appstores/dist/pebble/signals-1.3.0/f0447deb7dca/` with its source archive,
+`appstores/dist/pebble/signals-1.3.0/c84b03ae0613/` with its source archive,
 guide, custom-feed contract, candidate release notes, checksum manifest, and
-30 native interaction frames per target (plus five emulator navigation captures).
+30 native interaction frames per target.
 
 - SDK 4.33.1 builds exactly emery, flint, and gabbro, including their workers.
 - Favorite signal is opt-in for either Quick Launch button; existing time
@@ -69,6 +69,13 @@ guide, custom-feed contract, candidate release notes, checksum manifest, and
   All three targets passed weather and custom favorite-menu checks. The SDK's
   emery emulator has no system Settings app, so assigning the OS shortcut and
   checking its cold-start phone handshake remain physical Time 2 checks.
+- A follow-up review reproduced premature Unknown when settings occupied the
+  outbox for longer than the assumed 150 ms. Requests now retry BUSY under a
+  fixed 18-second deadline. The host regression compiles the production C
+  callbacks and covers busy begin/send, readiness, cancellation, source
+  changes, and timeout. It fails against 9712f2a and passes with the fix.
+  All three native emulator runs passed again on the hash above. This host
+  test exercises the handshake callbacks, not the OS button assignment.
 - Custom samples now carry bounded labels and unit text. Departures and
   resource-use presets preserve timestamps and validate measurement ranges;
   parser and phone tests cover both. Native lessons display both examples on

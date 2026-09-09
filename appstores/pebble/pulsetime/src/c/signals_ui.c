@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Time preferences use keys 1-14. Store only bounded, normalized readings;
+// Time preferences use keys 1-15. Store only bounded, normalized readings;
 // no URL, coordinate, or credential is part of the watch wire format.
 #define PERSIST_SIGNAL_HISTORY 40
 
@@ -23,7 +23,7 @@ static PsReading s_reading;
 static PsReading s_history[4];
 static PsPattern s_pattern;
 static uint32_t s_durations[PS_MAX_STEPS];
-static AppTimer *s_timer, *s_timeout, *s_expiry;
+static AppTimer *s_timer, *s_timeout, *s_expiry, *s_retry;
 static void (*s_stop_time)(void);
 static void (*s_quiet)(uint32_t);
 static void render(Layer *layer, GContext *ctx);
@@ -47,6 +47,8 @@ static void stop(void) {
 static void cancel_request(void) {
   s_startup_wait = false;
   s_waiting = false;
+  if (s_retry) app_timer_cancel(s_retry);
+  s_retry = NULL;
   if (s_timeout) app_timer_cancel(s_timeout);
   s_timeout = NULL;
   if (s_expiry) app_timer_cancel(s_expiry);
@@ -77,23 +79,38 @@ static void unknown(const char *why) {
   snprintf(s_reading.detail, sizeof s_reading.detail, "%s", why);
 }
 static void expired(void *unused) {
+  if (s_retry) app_timer_cancel(s_retry);
+  s_retry = NULL;
   s_startup_wait = false;
   s_timeout = NULL; s_waiting = false; ++s_request;
   unknown("Phone unavailable. Open Pebble on phone, then hold Select to retry.");
   if (ps_ui_active() && s_view == VIEW_LIVE) play();
 }
+static void send_request(void *unused) {
+  s_retry = NULL;
+  if (!s_waiting || !ps_ui_active() || s_view != VIEW_LIVE) return;
+  DictionaryIterator *out;
+  AppMessageResult result = app_message_outbox_begin(&out);
+  if (result == APP_MSG_OK) {
+    char query[24];
+    snprintf(query, sizeof query, "%lu:%u", (unsigned long)s_request, s_channel);
+    dict_write_cstring(out, MESSAGE_KEY_SIG_REQUEST, query);
+    result = app_message_outbox_send();
+  }
+  if (result == APP_MSG_BUSY) {
+    // Settings may still own the single outbox. Keep the original deadline.
+    s_retry = app_timer_register(100, send_request, NULL);
+  } else if (result != APP_MSG_OK) {
+    if (s_timeout) app_timer_cancel(s_timeout);
+    expired(NULL);
+  }
+}
 static void request(void) {
   stop(); cancel_request(); s_summary = false; s_detail = false;
   unknown("Waiting for phone...");
   s_waiting = true;
-  DictionaryIterator *out;
-  if (app_message_outbox_begin(&out) != APP_MSG_OK) { expired(NULL); return; }
-  char query[24];
-  // The request counter is seeded with time at app start, not reused across pages.
-  snprintf(query, sizeof query, "%lu:%u", (unsigned long)s_request, s_channel);
-  dict_write_cstring(out, MESSAGE_KEY_SIG_REQUEST, query);
-  if (app_message_outbox_send() != APP_MSG_OK) { expired(NULL); return; }
   s_timeout = app_timer_register(18000, expired, NULL);
+  send_request(NULL);
   redraw();
 }
 static void tick(void *unused) {
@@ -416,13 +433,10 @@ void ps_ui_open_source(bool dark, void (*stop_time)(void), void (*quiet)(uint32_
     s_timeout = app_timer_register(18000, expired, NULL); redraw();
   }
 }
-static void startup_request(void *unused) { s_timeout = NULL; request(); }
 void ps_ui_phone_ready(void) {
   if (!s_startup_wait || !ps_ui_active()) return;
   s_startup_wait = false;
-  if (s_timeout) app_timer_cancel(s_timeout);
-  // Let the settings reply vacate the single outbox before requesting data.
-  s_timeout = app_timer_register(150, startup_request, NULL);
+  request();
 }
 bool ps_ui_inbox(DictionaryIterator *iter) {
   Tuple *t = dict_find(iter, MESSAGE_KEY_SIG_DATA);

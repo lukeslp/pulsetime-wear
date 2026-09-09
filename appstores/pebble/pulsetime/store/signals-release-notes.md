@@ -16,6 +16,8 @@ for direct access. Existing time shortcuts remain unchanged until selected.
 Custom samples can show names and units, with presets for departures in minutes
 and CPU, memory, and disk usage in percent. The comparison exercise now contains
 eight balanced trials and reports separate timeline and summary scores.
+Signal requests now wait for a busy phone-message channel instead of reporting
+unavailable immediately; cancellation and the request deadline still apply.
 
 Weather has a three-step setup and uses the phone's location after enabling
 it and granting Pebble location access. Detected coordinates are rounded for
