@@ -7,10 +7,16 @@
 var Clay = require('./vendor/pebble-clay');
 var clayConfig = require('./config.json');
 var clay = new Clay(clayConfig, null, {autoHandleEvents: false});
+var locate = require('./location');
+var setupGeneration = 0, cancelSetup = null;
+function phoneLocation(success, failure) {
+  return locate(typeof navigator === 'undefined' ? null : navigator.geolocation, success, failure);
+}
 function settings() {
   try { return JSON.parse(localStorage.getItem('clay-settings')) || {}; } catch (e) { return {}; }
 }
 var signals = require('./signals').create({settings: settings, now: Date.now,
+  locate: phoneLocation,
   xhr: function () { return new XMLHttpRequest(); },
   send: function (data, success, failure) { Pebble.sendAppMessage(data, success, failure); }});
 var watchKeys = ['SYSTEM','SPEED','EXACT_MINUTES','FLICK_LAUNCH','QL_UP','QL_DOWN',
@@ -18,6 +24,11 @@ var watchKeys = ['SYSTEM','SPEED','EXACT_MINUTES','FLICK_LAUNCH','QL_UP','QL_DOW
 var formBaseline = null;
 Pebble.addEventListener('showConfiguration', function () {
   formBaseline = settings();
+  clay.config.forEach(function (section) {
+    (section.items || []).forEach(function (item) {
+      if (item.id === 'weather-status') item.defaultValue = formBaseline.WEATHER_STATUS || 'Location has not been checked yet.';
+    });
+  });
   Pebble.openURL(clay.generateUrl());
 });
 Pebble.addEventListener('webviewclosed', function (event) {
@@ -34,7 +45,21 @@ Pebble.addEventListener('webviewclosed', function (event) {
         if (watchKeys.indexOf(key) !== -1) changed[key] = typeof value === 'boolean' ? (value ? 1 : 0) : value;
       }
     });
+    if (!current.WEATHER_LOCATION) current.WEATHER_LOCATION = 'phone';
     clay.setSettings(current); signals.cancel();
+    var revision = ++setupGeneration;
+    if (cancelSetup) cancelSetup(); cancelSetup = null;
+    if (current.WEATHER_ENABLED === true || current.WEATHER_ENABLED === 1) {
+      if (current.WEATHER_LOCATION === 'fixed') clay.setSettings({WEATHER_STATUS: 'Fixed place selected. Phone location will not be requested.'});
+      else {
+        clay.setSettings({WEATHER_STATUS: 'Checking phone location. Reopen settings to see the result.'});
+        cancelSetup = phoneLocation(function () {
+          if (revision === setupGeneration) clay.setSettings({WEATHER_STATUS: 'Location is ready. Ask for Weather on your watch.'});
+        }, function (message) {
+          if (revision === setupGeneration) clay.setSettings({WEATHER_STATUS: message});
+        });
+      }
+    } else clay.setSettings({WEATHER_STATUS: 'Weather is off. Time and lessons remain available.'});
     if (Object.keys(changed).length) Pebble.sendAppMessage(changed, function () {}, function () {});
     formBaseline = null;
   } catch (e) { console.log('PulseTime: settings were not saved; invalid response.'); }

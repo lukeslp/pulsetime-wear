@@ -24,8 +24,9 @@ available. Hold Select for the menu, then choose Signals.
 - Freshness: validate source timestamps and expiry. Show last-known data as
   old and play the unknown motif when it expires. No successful fetch may
   silently turn stale upstream data into a current reading.
-- Phone setup: manual weather location, optional authenticated URLs, clear
-  explanation of what leaves the phone. Credentials stay on the phone.
+- Phone setup: a weather/location walkthrough, opt-in phone location, and
+  permission recovery instructions. Fixed locations and authenticated URLs
+  belong under Advanced. Credentials stay on the phone; no Drummer token input.
 - Release: build all three targets, independently verify the source archive,
   exercise real companion requests and failures, capture native layouts,
   package truthful release notes and installation instructions. Physical
@@ -56,9 +57,9 @@ authorized merely by creating a build; prepare the exact candidate first.
 ### Candidate verified September 9, 2026
 
 Version 1.3.0 PBW SHA-256:
-`343768595ce589079fae18af612208066f0b3dc7ba555731f46ebf70bbaa7f0c`.
+`18337afa5d208c862b15d169e5bf35d175a8b6110144190ba70d980847d36a5b`.
 The local tester kit is under
-`appstores/dist/pebble/signals-1.3.0/343768595ce5/` with its source archive,
+`appstores/dist/pebble/signals-1.3.0/18337afa5d20/` with its source archive,
 guide, candidate release notes, checksum manifest, and 24 native frames per target.
 
 - SDK 4.33.1 builds exactly emery, flint, and gabbro, including their workers.
@@ -75,6 +76,20 @@ guide, candidate release notes, checksum manifest, and 24 native frames per targ
   without unsolicited playback, unknown replay, a missing-source response,
   and persisted last-known history after restarting the app. A timer callback
   rechecks wall-clock freshness to handle early boundary delivery on Flint.
+- Phone location is now declared in capabilities and requested through
+  PebbleKit JS after saving the weather walkthrough. Each requested forecast
+  gets one position, rounded to two decimal places; detected coordinates are
+  not persisted. Existing manual-location installs retain their behavior until
+  the new setup is saved. Fixed place and HTTPS feeds are at the bottom under
+  Advanced. The Drummer token input is removed; existing private configuration
+  remains usable, and the bridge's authorization has not been weakened.
+  Tests cover denial, unavailable/stale positions, timeout, cancellation,
+  disabling during setup, stale callbacks, approximate coordinates, and
+  location-to-weather handoff. The actual Clay page rendered at 390px without
+  horizontal overflow or script errors. Native live-weather checks used a
+  fixed test location; they do not prove a phone OS permission prompt or GPS.
+  The documented location API is described in the official
+  [PebbleKit JS guide](https://developer.rebble.io/guides/communication/using-pebblekit-js/).
 - 9,600 signal combinations passed bounds, deterministic rendering, field
   alignment, strict parsing, and expiry checks under address/undefined sanitizers.
   All five state rhythms remain distinct after removing amplitude information.

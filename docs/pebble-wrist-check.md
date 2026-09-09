@@ -6,7 +6,8 @@ have been collected yet. Test one watch at a time; do not transfer a result
 from one model to another.
 
 Candidate PBW SHA-256:
-`343768595ce589079fae18af612208066f0b3dc7ba555731f46ebf70bbaa7f0c`
+Use the current candidate hash in [the verification ledger](pebble-signals.md)
+and copy it into the setup record below before testing.
 
 ## Record the setup
 

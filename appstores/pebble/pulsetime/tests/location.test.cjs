@@ -1,0 +1,33 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+let timeout, cleared = 0, request, successes = [], failures = [];
+const sandbox = {module:{exports:{}}, Date, setTimeout:f=>{timeout=f;return 1;},clearTimeout:()=>cleared++};
+vm.runInNewContext(fs.readFileSync(require.resolve('../src/pkjs/location'),'utf8'), sandbox);
+const locate=sandbox.module.exports;
+const geo={getCurrentPosition:(success,failure,options)=>{request={success,failure,options};}};
+const yes=x=>successes.push(JSON.parse(JSON.stringify(x))), no=x=>failures.push(x);
+let cancel=locate(geo,yes,no);
+assert.equal(request.options.enableHighAccuracy,false);
+request.success({coords:{latitude:45.523123,longitude:-122.676789},timestamp:Date.now()});
+assert.deepEqual(successes,[{latitude:45.52,longitude:-122.68}]);
+timeout();assert.equal(failures.length,0,'success settles timeout');
+cancel=locate(geo,yes,no);cancel();request.success({coords:{latitude:0,longitude:0}});
+assert.equal(successes.length,1,'cancel ignores late location');
+locate(geo,yes,no);request.failure({code:1});assert.match(failures.at(-1),/Allow Pebble location/);
+locate(geo,yes,no);timeout();const n=failures.length;request.success({coords:{latitude:0,longitude:0}});assert.equal(failures.length,n);assert.equal(successes.length,1);
+locate(geo,yes,no);request.success({coords:{latitude:NaN,longitude:0}});assert.match(failures.at(-1),/No current location/);
+locate(geo,yes,no);request.success({coords:{latitude:1,longitude:2},timestamp:Date.now()-600000});assert.match(failures.at(-1),/No current location/);
+locate(null,yes,no);assert.match(failures.at(-1),/Fixed place/);assert(cleared>0);
+
+const {create}=require('../src/pkjs/signals');
+let config={}, geoCalls=0, fetches=0, callback, rejected, cancelled=0, sent=[];
+const client=create({settings:()=>config,now:Date.now,locate:(ok,fail)=>{geoCalls++;callback=ok;rejected=fail;return()=>cancelled++;},
+ xhr:()=>{fetches++;return {open:(method,url)=>assert(url.includes('latitude=45.52&longitude=-122.68')),send(){},abort(){}};},send:(data,ok)=>{sent.push(data);ok();}});
+client.request('1:1');assert.equal(geoCalls,0);assert.equal(fetches,0);
+config={WEATHER_ENABLED:true};client.request('2:1');assert.equal(geoCalls,0,'old consent must not request new phone location');
+config={WEATHER_ENABLED:true,WEATHER_LOCATION:'phone'};client.request('2:1');assert.equal(geoCalls,1);assert.equal(fetches,0);
+client.cancel();callback({latitude:45.52,longitude:-122.68});assert.equal(fetches,0);assert(cancelled);
+client.request('3:1');rejected('Permission denied');assert.equal(fetches,0);assert(sent.at(-1).SIG_DATA.includes('Permission denied'));
+client.request('4:1');callback({latitude:45.52,longitude:-122.68});assert.equal(fetches,1);
+console.log('Location: consent, rounding, denied/unavailable/stale/timeout, cancellation and weather handoff passed.');

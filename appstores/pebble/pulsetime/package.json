@@ -19,7 +19,8 @@
       "gabbro"
     ],
     "capabilities": [
-      "configurable"
+      "configurable",
+      "location"
     ],
     "watchapp": {
       "watchface": false
@@ -48,7 +49,8 @@
       "DRUMMER_URL",
       "DRUMMER_TOKEN",
       "SIGNAL_URL",
-      "SIGNAL_TOKEN"
+      "SIGNAL_TOKEN",
+      "WEATHER_LOCATION"
     ],
     "resources": {
       "media": [

@@ -10,11 +10,23 @@ Hold Select from the clock, choose **Signals**, then choose Weather,
 Drummer, or Custom signal. Select replays or stops. Hold Select refreshes;
 Up and Down switch source. Back returns to the menu. Hold Down shows details.
 
-In the phone app, open PulseTime's settings. Weather is off until enabled;
-enter latitude and longitude for the place you want. The phone sends that
-location to [Open-Meteo](https://open-meteo.com/) only when weather is requested.
-The forecast covers rain, not snowfall. A data source needs an HTTPS URL and
-may use a bearer token. Those settings stay on the phone.
+In the phone app, open PulseTime's settings and follow **Weather · Set up in
+three steps**. Enable weather, save, and allow location for the Pebble phone
+app if prompted. Saving checks location without fetching weather. Reopen
+settings to see whether location is ready or how to fix denied access.
+Then choose Weather on the watch. Time and lessons need no location access.
+
+Each weather request gets one phone position and sends approximate coordinates
+to [Open-Meteo](https://open-meteo.com/). No detected-location history is saved.
+Weather covers rain, not snowfall. Turn weather off to stop location requests;
+the phone's settings control Pebble's system permission. Existing fixed-place
+installs keep their previous behavior until this new setup is saved.
+
+**Advanced · Fixed place and data feeds**, at the bottom of settings, contains
+optional manual coordinates and HTTPS sources. Custom feeds may use a bearer
+token stored on the phone. The Drummer token input has been removed; already
+configured private connections keep their existing credential. Time and
+weather require no feed URL or token.
 
 One short opening tap means weather, two mean Drummer, three mean custom.
 Weather then plays three equal windows for the next two, four, and six hours:

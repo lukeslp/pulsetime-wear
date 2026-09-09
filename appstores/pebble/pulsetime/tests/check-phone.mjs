@@ -11,10 +11,13 @@ const updates = [];
 const messages = [];
 let stored = {};
 let cancellations = 0;
+let locationRequests = [], clayInstance;
 const plain = value => JSON.parse(JSON.stringify(value));
 
 function Clay(actualConfig) {
   assert.equal(actualConfig, config);
+  this.config = plain(actualConfig);
+  clayInstance = this;
   this.setSettings = settings => {
     updates.push(plain(settings));
     Object.assign(stored, plain(settings));
@@ -25,6 +28,7 @@ vm.runInNewContext(source, {
   require(name) {
     if (name === './vendor/pebble-clay') return Clay;
     if (name === './config.json') return config;
+    if (name === './location') return (_geo, success, failure) => { const r = {success, failure, cancelled: false}; locationRequests.push(r); return () => { r.cancelled = true; }; };
     if (name === './signals') return {create: () => ({cancel: () => cancellations++, request: () => {}})};
     throw new Error(`Unexpected import: ${name}`);
   },
@@ -86,6 +90,9 @@ assert.deepEqual(updates.at(-1), {
   SYSTEM: 'terse_quarter', EXACT_MINUTES: true, FLICK_LAUNCH: false,
   THEME: 'dark', STYLE: 'classic', QUIET_FROM: '22', QUIET_TO: '7', VOLUME: '2'
 });
+assert(!fields.has('DRUMMER_TOKEN'), 'No Drummer token field in public settings');
+assert.equal(fields.get('WEATHER_LOCATION').defaultValue, 'phone');
+assert.equal(config.at(-2).items[0].defaultValue, 'Advanced · Fixed place and data feeds');
 assert.equal(fields.get('SYSTEM').defaultValue, 'terse_quarter');
 assert.equal(fields.get('EXACT_MINUTES').defaultValue, false);
 assert.equal(fields.get('SPEED').defaultValue, 'standard');
@@ -119,3 +126,17 @@ events.webviewclosed({response: JSON.stringify({SIGNAL_TOKEN: 'literal%token'})}
 assert.equal(stored.SIGNAL_TOKEN, 'literal%token');
 assert.deepEqual(metadata.pebble.targetPlatforms, ['emery', 'flint', 'gabbro']);
 console.log('Phone contract: choices, defaults, stable ids, private settings, and stale-form merge passed.');
+
+assert.equal(stored.WEATHER_LOCATION, 'phone');
+const pendingLocation = locationRequests.at(-1);
+events.webviewclosed({response: JSON.stringify({WEATHER_ENABLED: false})});
+assert(pendingLocation.cancelled);
+pendingLocation.success({latitude:45,longitude:-122});
+assert.equal(stored.WEATHER_STATUS, 'Weather is off. Time and lessons remain available.');
+events.showConfiguration();
+assert.equal(clayInstance.config.flatMap(x => x.items || []).find(x => x.id === 'weather-status').defaultValue, stored.WEATHER_STATUS);
+const count = locationRequests.length;
+events.webviewclosed({response: JSON.stringify({WEATHER_ENABLED:true, WEATHER_LOCATION:'fixed'})});
+assert.equal(locationRequests.length,count);
+assert(!JSON.stringify(messages).includes('WEATHER_STATUS'));
+console.log('Setup: disabling cancels location, stale success cannot restore ready, fixed mode skips permission, and rendered status stays current.');

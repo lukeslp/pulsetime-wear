@@ -11,7 +11,11 @@ Learn named examples with visible pulse timing, compare the timeline with
 a first-rain-and-peak summary, feel four stock-inspired references, and try
 an untimed recognition exercise. Existing time lessons remain available.
 
-Weather requires an enabled location in the phone settings. Feed URLs and
+Weather has a three-step setup and uses the phone's location after enabling
+it and granting Pebble location access. Detected coordinates are rounded for
+the forecast and are not saved as location history. Fixed-place weather and
+custom HTTPS sources are under Advanced at the bottom of settings. There is
+no Drummer token input. Feed URLs and
 optional credentials stay on the phone. Requests are explicit. Old readings
 remain labeled after refresh failures and app restarts, and replay uses the
 unknown rhythm. Expiry never starts an unsolicited vibration.

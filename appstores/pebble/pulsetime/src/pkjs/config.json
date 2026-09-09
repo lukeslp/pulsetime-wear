@@ -4,83 +4,6 @@
     "defaultValue": "PulseTime"
   },
   {
-    "type": "section",
-    "items": [
-      {
-        "type": "heading",
-        "defaultValue": "Signals \u00b7 Weather and your data"
-      },
-      {
-        "type": "text",
-        "defaultValue": "Signals are requested only when you open a source on the watch or refresh it. Weather sends your manually entered coordinates to Open-Meteo. Other feeds contact the HTTPS URL you choose. Feed credentials stay on this phone. Hold Select on the clock, then choose Signals."
-      },
-      {
-        "type": "toggle",
-        "messageKey": "WEATHER_ENABLED",
-        "label": "Enable weather requests",
-        "defaultValue": false
-      },
-      {
-        "type": "input",
-        "messageKey": "WEATHER_LAT",
-        "label": "Latitude",
-        "defaultValue": "",
-        "attributes": {
-          "type": "text"
-        }
-      },
-      {
-        "type": "input",
-        "messageKey": "WEATHER_LON",
-        "label": "Longitude",
-        "defaultValue": "",
-        "attributes": {
-          "type": "text"
-        }
-      },
-      {
-        "type": "input",
-        "messageKey": "DRUMMER_URL",
-        "label": "Drummer HTTPS feed",
-        "defaultValue": "",
-        "attributes": {
-          "type": "text"
-        }
-      },
-      {
-        "type": "input",
-        "messageKey": "DRUMMER_TOKEN",
-        "label": "Drummer feed token (optional)",
-        "defaultValue": "",
-        "attributes": {
-          "type": "password"
-        }
-      },
-      {
-        "type": "input",
-        "messageKey": "SIGNAL_URL",
-        "label": "Custom HTTPS feed",
-        "defaultValue": "",
-        "attributes": {
-          "type": "text"
-        }
-      },
-      {
-        "type": "input",
-        "messageKey": "SIGNAL_TOKEN",
-        "label": "Custom feed token (optional)",
-        "defaultValue": "",
-        "attributes": {
-          "type": "password"
-        }
-      },
-      {
-        "type": "text",
-        "defaultValue": "A feed returns a current state or three values, never code or vibration commands. Failed or old data plays Unknown. Weather is a model forecast in three two-hour windows, not an exact rain-onset warning."
-      }
-    ]
-  },
-  {
     "type": "text",
     "defaultValue": "Feel the time without reading the screen. Start with Terse Quarter at Standard speed; it reports the start of the current quarter hour. Your existing saved choices are kept. Use the guide below before choosing an exact-minute language."
   },
@@ -89,7 +12,39 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Start here \u00b7 Learn one pattern"
+        "defaultValue": "Weather · Set up in three steps"
+      },
+      {
+        "type": "text",
+        "defaultValue": "1. Choose Enable weather below, then Save settings. PulseTime will ask the Pebble phone app for your location. The phone controls its permission prompt; allow location there if asked. Time and lessons work without location."
+      },
+      {
+        "type": "toggle",
+        "messageKey": "WEATHER_ENABLED",
+        "label": "Enable weather",
+        "defaultValue": false
+      },
+      {
+        "type": "text",
+        "defaultValue": "2. Location is used only for weather you request. An approximate position is sent to Open-Meteo to get rain forecasts. No location history is saved. Turn weather off here to stop requests. You can also change Pebble’s location access in your phone settings."
+      },
+      {
+        "type": "text",
+        "id": "weather-status",
+        "defaultValue": "Location has not been checked yet."
+      },
+      {
+        "type": "text",
+        "defaultValue": "3. On your watch, hold Select → Signals → Weather. Hold Select to refresh. If access was denied, allow location for the Pebble app in phone settings and try again. Keep the phone connected. Bluetooth pairing is handled by the Pebble app; no account or token is needed for weather."
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Start here · Learn one pattern"
       },
       {
         "type": "text",
@@ -114,7 +69,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Display \u00b7 Large and clear"
+        "defaultValue": "Display · Large and clear"
       },
       {
         "type": "select",
@@ -123,11 +78,11 @@
         "defaultValue": "bold",
         "options": [
           {
-            "label": "Bold \u00b7 large time",
+            "label": "Bold · large time",
             "value": "bold"
           },
           {
-            "label": "Classic \u00b7 time on one row",
+            "label": "Classic · time on one row",
             "value": "classic"
           }
         ],
@@ -140,11 +95,11 @@
         "defaultValue": "bright",
         "options": [
           {
-            "label": "Bright \u00b7 black on white",
+            "label": "Bright · black on white",
             "value": "bright"
           },
           {
-            "label": "Dark \u00b7 white on black",
+            "label": "Dark · white on black",
             "value": "dark"
           }
         ],
@@ -157,7 +112,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Haptic language \u00b7 Choose by feel"
+        "defaultValue": "Haptic language · Choose by feel"
       },
       {
         "type": "select",
@@ -166,27 +121,27 @@
         "defaultValue": "terse_quarter",
         "options": [
           {
-            "label": "Terse Quarter \u00b7 start here (15-minute time)",
+            "label": "Terse Quarter · start here (15-minute time)",
             "value": "terse_quarter"
           },
           {
-            "label": "Five-Minute Ladder \u00b7 count fives",
+            "label": "Five-Minute Ladder · count fives",
             "value": "five_minute_ladder"
           },
           {
-            "label": "Decimal Place \u00b7 try for exact minutes",
+            "label": "Decimal Place · try for exact minutes",
             "value": "decimal_place"
           },
           {
-            "label": "Binary Clock \u00b7 advanced, shortest",
+            "label": "Binary Clock · advanced, shortest",
             "value": "binary_clock"
           },
           {
-            "label": "Nearest-Quarter Offset \u00b7 advanced",
+            "label": "Nearest-Quarter Offset · advanced",
             "value": "nearest_quarter"
           },
           {
-            "label": "Morse Digits \u00b7 for Morse readers",
+            "label": "Morse Digits · for Morse readers",
             "value": "morse_digits"
           }
         ],
@@ -231,7 +186,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Quick Launch \u00b7 Set up side buttons"
+        "defaultValue": "Quick Launch · Set up side buttons"
       },
       {
         "type": "text",
@@ -288,7 +243,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Optional \u00b7 Sound"
+        "defaultValue": "Optional · Sound"
       },
       {
         "type": "text",
@@ -345,7 +300,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Optional \u00b7 Chimes"
+        "defaultValue": "Optional · Chimes"
       },
       {
         "type": "text",
@@ -594,7 +549,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Optional \u00b7 Flick to tell time"
+        "defaultValue": "Optional · Flick to tell time"
       },
       {
         "type": "toggle",
@@ -610,7 +565,85 @@
     "defaultValue": "A different duration sequence is not proof that every pulse is easy to distinguish. Practice on your own watch. Start with whole-time playback and Standard speed, then choose the language and contrast you understand most reliably."
   },
   {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Advanced · Fixed place and data feeds"
+      },
+      {
+        "type": "text",
+        "defaultValue": "Optional. Weather normally uses this phone’s location. Choose Fixed place only to forecast somewhere else. Custom data feeds are for people who manage an HTTPS source; they are not needed for time or weather."
+      },
+      {
+        "type": "select",
+        "messageKey": "WEATHER_LOCATION",
+        "label": "Weather location",
+        "defaultValue": "phone",
+        "options": [
+          {
+            "label": "This phone (recommended)",
+            "value": "phone"
+          },
+          {
+            "label": "Fixed place",
+            "value": "fixed"
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "messageKey": "WEATHER_LAT",
+        "label": "Fixed place latitude",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "WEATHER_LON",
+        "label": "Fixed place longitude",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "DRUMMER_URL",
+        "label": "Drummer HTTPS feed",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "SIGNAL_URL",
+        "label": "Custom HTTPS feed",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "SIGNAL_TOKEN",
+        "label": "Custom feed token (optional)",
+        "defaultValue": "",
+        "attributes": {
+          "type": "password"
+        }
+      },
+      {
+        "type": "text",
+        "defaultValue": "Custom feeds receive explicit requests only. Optional custom credentials stay on this phone. A failed or old reading becomes Unknown."
+      }
+    ]
+  },
+  {
     "type": "submit",
-    "defaultValue": "Save to watch"
+    "defaultValue": "Save settings"
   }
 ]

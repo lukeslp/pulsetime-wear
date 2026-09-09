@@ -40,6 +40,6 @@ requests[1].resolve(good); assert(sent[0].SIG_DATA.startsWith('1|2|2|'));assert(
 client.request('3:2');client.cancel();requests[2].resolve(good);assert.equal(sent.length,1,'closed page reply discarded');
 client.request('4:2');requests[3].resolve(good,503);assert.equal(sent.at(-1).SIG_DATA.split('|')[8],'0','transport failure is unknown, not down');
 config={};client.request('5:1');assert.equal(requests.length,4,'disabled weather makes no network request');
-config={WEATHER_ENABLED:true,WEATHER_LAT:'0',WEATHER_LON:'0'};client.request('6:1');assert(requests[4].url.includes('latitude=0&longitude=0'));
+config={WEATHER_ENABLED:true,WEATHER_LOCATION:'fixed',WEATHER_LAT:'0',WEATHER_LON:'0'};client.request('6:1');assert(requests[4].url.includes('latitude=0&longitude=0'));
 requests[4].resolve(forecast);assert(sent.at(-1).SIG_DATA.includes('|0|1|3|1|1|'));
 console.log('Signal source validation, forecast windows, consent, auth isolation, failures and stale-reply cancellation passed.');

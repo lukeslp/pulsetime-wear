@@ -266,7 +266,7 @@ static void render(Layer *layer, GContext *ctx) {
       "Select: play / stop\nHold Select: refresh\nUp / Down: source\nBack: return",
       "Each 1.4s slot\nmeans 2 hours.\nQuiet means dry\nbetween opening\nand closing cues.",
       "Hold Up: summary\nHold Down: details\nUnknown:\nlong-short-long",
-      "Phone: Pebble app >\nPulseTime settings.\nEnable weather;\nenter coordinates.\nOr add a feed URL.",
+      "Phone: Pebble app >\nPulseTime settings.\nEnable weather,\nsave, then allow\nphone location.",
       "Play on request.\nOld data: unknown.\nRain forecast only;\nsnow isn't included."
     };
     snprintf(body, sizeof body, "%s", pages[s_example]); footer = "Select: next page";
@@ -285,7 +285,7 @@ static void render(Layer *layer, GContext *ctx) {
     }
   } else if (s_waiting) { snprintf(body, sizeof body, "Checking...\nPhone must be connected."); footer = "Select: cancel"; }
   else if (s_reading.state == PS_UNKNOWN || (s_view == VIEW_LIVE && !ps_fresh(&s_reading, (uint32_t)time(NULL)))) {
-    snprintf(body, sizeof body, "Unknown\nNo current reading");
+    snprintf(body, sizeof body, "Unknown\n%s", s_view == VIEW_LIVE ? s_reading.detail : "No current reading");
     if (s_view == VIEW_LIVE && s_history[s_channel].observed) {
       const PsReading *last = &s_history[s_channel];
       uint32_t now = (uint32_t)time(NULL);

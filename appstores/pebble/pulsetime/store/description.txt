@@ -33,7 +33,7 @@ I am testing short, replayable vibration phrases for information beyond time. A 
 
 An authenticated HTTPS source can supply service health or three ordered samples. The Drummer example distinguishes healthy, busy, degraded, down, and unknown. A failed connection means unknown, not a confirmed outage. Old readings remain labeled, and checking a source is an explicit action rather than a background alert.
 
-The candidate includes named lessons, visible pulse timing, stock-inspired references, and a recognition exercise. Weather is opt-in with a manually chosen location; feed URLs and optional credentials stay on the phone. Pattern comfort and recognition still need physical-watch testing. Playback currently controls timing, not per-step strength. Contact luke@lukesteuber.com if you would like to help test on Time 2, 2 Duo, or Round 2.
+The candidate includes named lessons, visible pulse timing, stock-inspired references, and a recognition exercise. A three-step walkthrough enables weather and explains the Pebble phone app's location permission. Weather uses an approximate phone position; fixed places and custom HTTPS feeds are under Advanced. There is no Drummer token input. Feed credentials stay on the phone. Pattern comfort and recognition still need physical-watch testing. Playback currently controls timing, not per-step strength. Contact luke@lukesteuber.com if you would like to help test on Time 2, 2 Duo, or Round 2.
 
 Known beta limits
 

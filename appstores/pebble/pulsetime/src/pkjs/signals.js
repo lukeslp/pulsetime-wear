@@ -49,7 +49,7 @@ function wire(reading, id, channel) {
 }
 
 function create(deps) {
-  var generation = 0, active = null, sending = false, pending = [];
+  var generation = 0, active = null, cancelLocation = null, sending = false, pending = [];
   function pump() {
     if (sending || !pending.length) return;
     var item = pending.shift();
@@ -58,7 +58,11 @@ function create(deps) {
     function done() { sending = false; pump(); }
     deps.send({SIG_DATA: item.data}, done, done);
   }
-  function cancel() { generation++; pending = []; if (active) active.abort(); active = null; }
+  function cancel() {
+    generation++; pending = [];
+    if (active) active.abort(); active = null;
+    if (cancelLocation) cancelLocation(); cancelLocation = null;
+  }
   function request(payload) {
     if (typeof payload !== 'string' || !/^\d{1,10}:[123]$/.test(payload)) return;
     var parts = payload.split(':'), id = Number(parts[0]), channel = Number(parts[1]);
@@ -73,17 +77,34 @@ function create(deps) {
     function fail(message) { respond(unknown(label, message, Math.floor(deps.now() / 1000))); }
     if (channel === 1) {
       if (config.WEATHER_ENABLED !== true && config.WEATHER_ENABLED !== 1) { fail('Enable weather in phone settings.'); return; }
+      // Existing manual-coordinate installs keep their old behavior until
+      // the wearer saves the new location walkthrough.
+      if (config.WEATHER_LOCATION === 'phone') {
+        if (!deps.locate) { fail('Location unavailable. Check Pebble permission on phone.'); return; }
+        cancelLocation = deps.locate(function (position) {
+          if (ticket !== generation) return;
+          fetchWeather(position.latitude, position.longitude);
+        }, function (message) { if (ticket === generation) fail(message); });
+        return;
+      }
       var lat = Number(config.WEATHER_LAT), lon = Number(config.WEATHER_LON);
       if (String(config.WEATHER_LAT || '').trim() === '' || String(config.WEATHER_LON || '').trim() === '' ||
           !isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) { fail('Set latitude and longitude on phone.'); return; }
-      url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
-        '&hourly=rain,showers&forecast_days=2&timezone=UTC&timeformat=unixtime&precipitation_unit=mm';
+      fetchWeather(lat, lon); return;
     } else {
       url = config[channel === 2 ? 'DRUMMER_URL' : 'SIGNAL_URL'];
       token = config[channel === 2 ? 'DRUMMER_TOKEN' : 'SIGNAL_TOKEN'] || '';
       if (!url) { fail('Set the HTTPS feed in phone settings.'); return; }
       if (!https(url) || typeof token !== 'string' || /[\r\n]/.test(token) || token.length > 512) { fail('Invalid HTTPS feed settings.'); return; }
     }
+    fetchSource();
+    function fetchWeather(lat, lon) {
+      url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+        '&hourly=rain,showers&forecast_days=2&timezone=UTC&timeformat=unixtime&precipitation_unit=mm';
+      fetchSource();
+    }
+    function fetchSource() {
+    if (ticket !== generation) return;
     var xhr = deps.xhr(), settled = false;
     active = xhr;
     function finish() { if (settled || ticket !== generation) return false; settled = true; active = null; return true; }
@@ -99,10 +120,11 @@ function create(deps) {
     };
     xhr.onerror = xhr.ontimeout = function () { if (finish()) fail('No connection to source.'); };
     try {
-      xhr.open('GET', url, true); xhr.timeout = 12000;
+      xhr.open('GET', url, true); xhr.timeout = channel === 1 ? 8000 : 12000;
       if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
       xhr.send();
     } catch (e) { if (finish()) fail('Could not request this source.'); }
+    }
   }
   return {request: request, cancel: cancel};
 }

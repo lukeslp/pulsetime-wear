@@ -39,7 +39,7 @@ def run(platform, private_config=None):
     state = Path(tempfile.mkdtemp(prefix='signals-emulator-', dir=ROOT / 'build'))
     out = ROOT / 'build/signals-evidence'; out.mkdir(exist_ok=True)
     profile = state / platform; (profile / 'localstorage').mkdir(parents=True)
-    settings = {'WEATHER_ENABLED': True, 'WEATHER_LAT': '40.7128', 'WEATHER_LON': '-74.0060'}
+    settings = {'WEATHER_ENABLED': True, 'WEATHER_LOCATION': 'fixed', 'WEATHER_LAT': '40.7128', 'WEATHER_LON': '-74.0060'}
     if private_config:
         configured = json.loads(Path(private_config).read_text())
         for key in ('DRUMMER_URL', 'DRUMMER_TOKEN', 'SIGNAL_URL', 'SIGNAL_TOKEN'):
