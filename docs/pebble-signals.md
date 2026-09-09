@@ -59,7 +59,7 @@ Version 1.3.0 PBW SHA-256:
 `99e67d5344e111688de8ca6abbe0b2fc1c7a2f478667fcec5a97e9ec5bc6d7e9`.
 The local tester kit is under
 `appstores/dist/pebble/signals-1.3.0/99e67d5344e1/` with its source archive,
-checksum manifest, and 18 native frames per target.
+checksum manifest, and 20 native frames per target.
 
 - SDK 4.33.1 builds exactly emery, flint, and gabbro, including their workers.
 - All three isolated native emulator runs used the packaged companion to
@@ -67,6 +67,9 @@ checksum manifest, and 18 native frames per target.
   produced current readings and exercised lessons, summary, reference,
   playback, trial, and help pages. Small-display help and round-frame layouts
   were visually inspected and corrected. These are not physical motor checks.
+  A second run verified authenticated Drummer and custom-channel requests on
+  all three targets. The custom channel used the same private bridge as a
+  contract check; no unrelated hosted sensor integration is being claimed.
 - 9,600 signal combinations passed bounds, deterministic rendering, field
   alignment, strict parsing, and expiry checks under address/undefined sanitizers.
   All five state rhythms remain distinct after removing amplitude information.
@@ -75,8 +78,11 @@ checksum manifest, and 18 native frames per target.
   private settings, and stale configuration forms.
 - Six bridge tests cover classification, timestamp-preserving adapters,
   auth, and unknown routes. Executing the bridge's real collector on Drummer
-  returned healthy for both configured gateways. No persistent bridge or
-  public proxy route has been installed yet.
+  returned healthy for both configured gateways. The private bridge is now
+  installed behind `https://api.dr.eamer.dev/pulsetime-signals/v1/status`;
+  unauthenticated requests return 401 and authenticated requests return 200.
+  Deployed `server.py` SHA-256 is
+  `a5d2026040b209e1c5e6f65dc14a43721788f71ffc497150e4c677d94a80784f`.
 - The portable source archive builds independently. All 10 app, worker,
   resource, and companion payloads match after excluding SDK CRC, timestamp,
   and verified GNU build-ID bytes. Resources and JavaScript match byte for
@@ -90,10 +96,9 @@ Run `tests/check-native-signals.py <target>` with pebble-tool's Python from
 the Pebble app directory, then `python3 tests/package-signals.py`. Packaging
 rejects emulator evidence that does not match the exact candidate PBW.
 
-Remaining: private bridge deployment and end-to-end Drummer/custom requests,
-physical comfort and recognition on named new watches, and supported amplitude
-playback. Drummer's infrastructure checkout has unrelated uncommitted edits
-and differs from live Caddy; any deployment must preserve both sets of changes.
+Remaining: physical comfort and recognition on named new watches, and supported
+amplitude playback. Drummer's unrelated infrastructure edits and existing
+source/live differences were preserved during the additive bridge deployment.
 The proposed upstream export patch and read-only diagnostic are in
 [pebble-amplitude-export](pebble-amplitude-export/README.md).
 

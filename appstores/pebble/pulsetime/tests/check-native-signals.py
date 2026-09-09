@@ -30,19 +30,25 @@ from libpebble2.protocol.logs import AppLogMessage, AppLogShippingControl
 from libpebble2.communication.transports.qemu.protocol import QemuButton
 
 
-def run(platform):
+def run(platform, private_config=None):
     pbw = ROOT / 'build/pulsetime.pbw'
     digest = hashlib.sha256(pbw.read_bytes()).hexdigest()
     app = UUID(json.loads((ROOT / 'package.json').read_text())['pebble']['uuid'])
     state = Path(tempfile.mkdtemp(prefix='signals-emulator-', dir=ROOT / 'build'))
     out = ROOT / 'build/signals-evidence'; out.mkdir(exist_ok=True)
     profile = state / platform; (profile / 'localstorage').mkdir(parents=True)
+    settings = {'WEATHER_ENABLED': True, 'WEATHER_LAT': '40.7128', 'WEATHER_LON': '-74.0060'}
+    if private_config:
+        configured = json.loads(Path(private_config).read_text())
+        for key in ('DRUMMER_URL', 'DRUMMER_TOKEN', 'SIGNAL_URL', 'SIGNAL_TOKEN'):
+            if key in configured: settings[key] = configured[key]
     with dbm.dumb.open(str(profile / 'localstorage' / str(app)), 'c') as storage:
-        storage['clay-settings'] = json.dumps({'WEATHER_ENABLED': True, 'WEATHER_LAT': '40.7128', 'WEATHER_LON': '-74.0060'})
+        storage['clay-settings'] = json.dumps(settings)
     emulator.get_sdk_persist_dir = lambda *args: str(profile)
     emulator.get_emulator_info_path = lambda: str(state / 'emulators.json')
     emulator.get_default_account = lambda: SimpleNamespace(is_logged_in=False)
     bridge_log = (out / f'{platform}-bridge.log').open('w')
+    os.chmod(bridge_log.name, 0o600)
     emulator.ManagedEmulatorTransport._get_output = lambda self: bridge_log
     cmd = ScreenshotCommand(); cmd._set_debugging(0)
     watch = None; logs = []; frames = []
@@ -88,6 +94,15 @@ def run(platform):
         capture('live-weather')
         live_weather = any('signal 1 state 1' in line for line in logs[start:])
         click('Down', 1); capture('weather-details'); click('Back')
+        authenticated_channels = []
+        if private_config:
+            for channel in (2, 3):
+                start = len(logs); click('Down')
+                deadline = time.monotonic() + 21
+                while time.monotonic() < deadline and not any(f'signal {channel} state' in line for line in logs[start:]): time.sleep(.1)
+                capture('drummer' if channel == 2 else 'custom')
+                assert any(f'signal {channel} state {state}' in line for line in logs[start:] for state in range(1, 5)), 'Authenticated source did not return a current state'
+                authenticated_channels.append(channel)
         click('Back')  # signals menu
         for _ in range(3): click('Down')
         click('Select'); capture('lesson-dry'); click('Down'); capture('lesson-rain-early')
@@ -102,6 +117,7 @@ def run(platform):
         assert any('signal 1 state' in line for line in logs), 'Never reached signal playback'
         assert not any('crash' in line.lower() or 'fault' in line.lower() for line in logs)
         report = dict(platform=platform, pbwSHA256=digest, liveWeather=live_weather,
+                      authenticatedChannels=authenticated_channels,
                       testLocation='New York City', frames=frames, logs=logs,
                       checkedAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                       limits='Native emulator and packaged companion; no physical perception evidence.')
@@ -111,9 +127,21 @@ def run(platform):
     finally:
         if watch: cmd._close_pebble_connection(watch); cmd.pebble = None
         shutdown(); bridge_log.close()
+        if private_config:
+            # The emulator can log syscall arguments at debug level. Keep no
+            # credential in those diagnostics or its disposable phone storage.
+            log_path = Path(bridge_log.name)
+            content = log_path.read_text(errors='replace')
+            for key in ('DRUMMER_TOKEN', 'SIGNAL_TOKEN'):
+                if settings.get(key): content = content.replace(settings[key], '[redacted]')
+            log_path.write_text(content)
+            for suffix in ('.dat', '.dir', '.bak'):
+                (profile / 'localstorage' / (str(app) + suffix)).unlink(missing_ok=True)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('platform', choices=['emery', 'flint', 'gabbro'])
-    run(parser.parse_args().platform)
+    parser.add_argument('--private-config', help='Private phone settings JSON outside the repository; never included in reports')
+    args=parser.parse_args()
+    run(args.platform, args.private_config)

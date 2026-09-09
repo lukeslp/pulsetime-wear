@@ -68,6 +68,20 @@ authentication, and unknown routes.
 
 ## Deployment boundary
 
+The private bridge was installed on Drummer on September 9, 2026, at
+`https://api.dr.eamer.dev/pulsetime-signals/v1/status`. Unauthenticated requests
+return 401. `/health` returns a content-free process check. The source is
+`/home/coolhand/apps/pulsetime-signals/`; the unit uses port 5018 on loopback.
+Gateway v1 and v2 are the selected checks. The deployment token is in the
+protected environment file described above. No public listing was created.
+
+The route was added directly to live Caddy, validated, adapted with the existing
+HTTP-01 transformation, then reloaded. An equivalent additive route was placed
+in the infrastructure source while preserving its unrelated existing changes.
+Before/after checks confirmed both gateway APIs and the main site remained
+available. Backups are under
+`/home/coolhand/backups/pulsetime-signals-20260909T062452Z/`.
+
 Deploy the reviewed `server.py`, `config.json`, and unit from this repository.
 Add one path under an existing HTTPS host, stripping its prefix before proxying
 to `127.0.0.1:5018`. Back up the live Caddy file, validate, then reload. Check
