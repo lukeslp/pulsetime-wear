@@ -56,10 +56,10 @@ authorized merely by creating a build; prepare the exact candidate first.
 ### Candidate verified September 9, 2026
 
 Version 1.3.0 PBW SHA-256:
-`99e67d5344e111688de8ca6abbe0b2fc1c7a2f478667fcec5a97e9ec5bc6d7e9`.
+`343768595ce589079fae18af612208066f0b3dc7ba555731f46ebf70bbaa7f0c`.
 The local tester kit is under
-`appstores/dist/pebble/signals-1.3.0/99e67d5344e1/` with its source archive,
-checksum manifest, and 20 native frames per target.
+`appstores/dist/pebble/signals-1.3.0/343768595ce5/` with its source archive,
+guide, candidate release notes, checksum manifest, and 24 native frames per target.
 
 - SDK 4.33.1 builds exactly emery, flint, and gabbro, including their workers.
 - All three isolated native emulator runs used the packaged companion to
@@ -70,6 +70,11 @@ checksum manifest, and 20 native frames per target.
   A second run verified authenticated Drummer and custom-channel requests on
   all three targets. The custom channel used the same private bridge as a
   contract check; no unrelated hosted sensor integration is being claimed.
+  The refined candidate adds named lessons, a pulse timing strip, and a
+  distinct first-window/peak summary. Each target passed actual idle expiry
+  without unsolicited playback, unknown replay, a missing-source response,
+  and persisted last-known history after restarting the app. A timer callback
+  rechecks wall-clock freshness to handle early boundary delivery on Flint.
 - 9,600 signal combinations passed bounds, deterministic rendering, field
   alignment, strict parsing, and expiry checks under address/undefined sanitizers.
   All five state rhythms remain distinct after removing amplitude information.
@@ -116,4 +121,24 @@ methods hardcode `isPublished=true`, even when its flag is false. New-app
 creation also hardcodes `visible=true`. The current upstream
 [publish implementation](https://github.com/coredevices/pebble-tool/blob/main/pebble_tool/commands/publish.py)
 has the same behavior. A draft path requires an explicit false publication
-field and a verified unpublished response. No store write was performed.
+field and a verified unpublished response. No Signals release was uploaded.
+
+### Store icon refreshed September 9, 2026
+
+Luke requested a store icon. The existing 144px pulse artwork was re-uploaded
+through the official developer site's session-authenticated multipart PATCH
+at `/api/dashboard/apps/1624684ac5dd46ac85eee2a6` using `iconLarge`.
+The dashboard's Firebase session endpoint accepted the existing CLI account;
+the developer site's API is distinct from the earlier unsuccessful API-host
+dashboard GET. Title, description, visibility, small icon, release records,
+platforms, companion records, and screenshot asset contents were preserved.
+
+The public API now references large icon `9703adb9-c030-4c06-990a-8aaa829185e8.png`.
+Its public CDN returns HTTP 200; SHA-256 is
+`64e5abdb963a62164981616a67dc5975100d18ea374df6278f0c6bdd245d6565`.
+The old and new served images are byte-identical and contain the full pulse
+mark, so an initially suspected damaged image was not confirmed. Re-upload
+refreshes the asset reference; it does not establish the cause of a missing
+icon in a client. The public web page still referenced the old URL immediately
+after the change. No browser/client rendering check was possible while the
+Mac was locked. Published time app 1.2.0 remains unchanged.

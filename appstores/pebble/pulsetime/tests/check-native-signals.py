@@ -25,7 +25,9 @@ from pebble_tool.commands.screenshot import ScreenshotCommand
 from pebble_tool.commands.install import ToolAppInstaller
 from pebble_tool.commands.emucontrol import send_data_to_qemu
 import pebble_tool.sdk.emulator as emulator
-from libpebble2.protocol.apps import AppRunState, AppRunStateStart
+from libpebble2.protocol.apps import AppRunState, AppRunStateStart, AppRunStateStop
+from libpebble2.communication.transports.websocket import MessageTargetPhone
+from libpebble2.communication.transports.websocket.protocol import AppConfigResponse, AppConfigSetup, WebSocketPhonesimAppConfig
 from libpebble2.protocol.logs import AppLogMessage, AppLogShippingControl
 from libpebble2.communication.transports.qemu.protocol import QemuButton
 
@@ -103,6 +105,18 @@ def run(platform, private_config=None):
                 capture('drummer' if channel == 2 else 'custom')
                 assert any(f'signal {channel} state {state}' in line for line in logs[start:] for state in range(1, 5)), 'Authenticated source did not return a current state'
                 authenticated_channels.append(channel)
+                if channel == 2:
+                    # The real bridge reading expires after at most 60 seconds.
+                    # Waiting on the live watch proves idle expiry is visible
+                    # and does not start unsolicited playback.
+                    start = len(logs); deadline = time.monotonic() + 65
+                    while time.monotonic() < deadline and not any('reading expired; display only' in line for line in logs[start:]): time.sleep(.1)
+                    assert any('reading expired; display only' in line for line in logs[start:]), 'Idle expiry did not update the native page'
+                    assert not any('signal 2 state' in line for line in logs[start:]), 'Expiry started unsolicited playback'
+                    capture('drummer-old')
+                    start = len(logs); click('Select'); time.sleep(.3)
+                    assert any('signal 2 state 0' in line for line in logs[start:]), 'Old reading did not replay unknown'
+                    capture('drummer-old-replay')
         click('Back')  # signals menu
         for _ in range(3): click('Down')
         click('Select'); capture('lesson-dry'); click('Down'); capture('lesson-rain-early')
@@ -113,11 +127,34 @@ def run(platform, private_config=None):
         click('Select', 1); capture('trial-answer')
         click('Back'); click('Down'); click('Select')
         for page in range(5): capture(f'help-{page + 1}'); click('Select')
+        if private_config:
+            # Change only this isolated phone's source configuration. A missing
+            # URL exercises a real companion failure without disrupting a host.
+            watch.transport.send_packet(WebSocketPhonesimAppConfig(config=AppConfigSetup()), target=MessageTargetPhone())
+            time.sleep(1)
+            watch.transport.send_packet(WebSocketPhonesimAppConfig(config=AppConfigResponse(
+                data=json.dumps({'DRUMMER_URL': ''}))), target=MessageTargetPhone())
+            time.sleep(1); click('Back')
+            for _ in range(6): click('Up')
+            start = len(logs); click('Select'); time.sleep(3)
+            assert any('signal 2 state 0' in line for line in logs[start:]), 'Missing source did not become unknown'
+            capture('drummer-failed-refresh')
+            start = len(logs)
+            watch.send_packet(AppRunState(data=AppRunStateStop(uuid=app))); time.sleep(1)
+            watch.send_packet(AppRunState(data=AppRunStateStart(uuid=app))); time.sleep(3)
+            click('Select', 1)
+            for _ in range(7): click('Down')
+            click('Select'); click('Down'); click('Select'); time.sleep(3)
+            assert any('signal history loaded: 2' in line for line in logs[start:]), 'Restart lost Drummer history'
+            assert any('signal 2 state 0' in line for line in logs[start:]), 'Restart treated failed source as current'
+            capture('drummer-history-after-restart')
         assert hashlib.sha256(pbw.read_bytes()).hexdigest() == digest
         assert any('signal 1 state' in line for line in logs), 'Never reached signal playback'
         assert not any('crash' in line.lower() or 'fault' in line.lower() for line in logs)
         report = dict(platform=platform, pbwSHA256=digest, liveWeather=live_weather,
                       authenticatedChannels=authenticated_channels,
+                      idleExpiryChecked=2 in authenticated_channels,
+                      failedSourceAndRestartChecked=bool(private_config),
                       testLocation='New York City', frames=frames, logs=logs,
                       checkedAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                       limits='Native emulator and packaged companion; no physical perception evidence.')

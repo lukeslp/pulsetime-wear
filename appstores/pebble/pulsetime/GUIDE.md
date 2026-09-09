@@ -22,6 +22,9 @@ quiet for dry, sparse patter for light rain, denser patter for heavier rain.
 A closing pulse ends the answer. Long-short-long means unknown. Quiet alone
 is never a successful answer. Hold Up compares the timeline with a summary:
 count the first wet window, then feel the strongest predicted rain.
+Each window lasts 1.4 seconds. The three strips beneath the forecast show
+the pulse timing, and a moving mark follows playback. Summary names the
+first wet window and peak rain; it does not predict an exact onset time.
 
 Use **Learn signals** for known examples and **Try without looking** for an
 untimed four-choice weather exercise. It still needs visual setup and answer
@@ -30,6 +33,8 @@ it does not reproduce OS braking or per-step strength. Set overall vibration
 strength in the watch's system settings and use **Playback** to feel two taps.
 
 Readings expire. An old or unavailable response plays unknown; a network
+failure retains the last reading as **Old data**, including after reopening
+the app. Expiry updates the screen without starting a vibration. A network
 failure does not mean Drummer is down. Drummer's down rhythm describes failed
 selected services when its observer is reachable. This prototype's patterns
 still need comfort and recognition checks on actual watches.

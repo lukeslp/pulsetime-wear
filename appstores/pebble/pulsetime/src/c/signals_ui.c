@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Time preferences use keys 1-14. Store only bounded, normalized readings;
+// no URL, coordinate, or credential is part of the watch wire format.
+#define PERSIST_SIGNAL_HISTORY 40
+
 typedef enum { VIEW_MENU, VIEW_LIVE, VIEW_LESSON, VIEW_REFERENCE, VIEW_HELP, VIEW_TRIAL, VIEW_CALIBRATE } View;
 static Window *s_window;
 static Layer *s_layer;
@@ -14,9 +18,10 @@ static unsigned s_channel, s_example, s_choice, s_answer, s_trial, s_correct;
 static uint32_t s_request, s_started;
 static uint8_t s_strength = 65;
 static PsReading s_reading;
+static PsReading s_history[4];
 static PsPattern s_pattern;
 static uint32_t s_durations[PS_MAX_STEPS];
-static AppTimer *s_timer, *s_timeout;
+static AppTimer *s_timer, *s_timeout, *s_expiry;
 static void (*s_stop_time)(void);
 static void (*s_quiet)(uint32_t);
 static void render(Layer *layer, GContext *ctx);
@@ -41,9 +46,26 @@ static void cancel_request(void) {
   s_waiting = false;
   if (s_timeout) app_timer_cancel(s_timeout);
   s_timeout = NULL;
+  if (s_expiry) app_timer_cancel(s_expiry);
+  s_expiry = NULL;
   ++s_request;
   // A newer request cancels the phone's older operation. Do not occupy the
   // single outbox with a cancel immediately before sending that new request.
+}
+static void reading_expired(void *unused) {
+  s_expiry = NULL;
+  if (ps_ui_active() && s_view == VIEW_LIVE) {
+    // Firmware timers and the wall clock can cross the second boundary at
+    // slightly different moments. Only announce expiry once freshness agrees.
+    if (ps_fresh(&s_reading, (uint32_t)time(NULL))) {
+      s_expiry = app_timer_register(250, reading_expired, NULL);
+      return;
+    }
+    // Expiry changes the display, never starts a vibration.
+    if (s_playing) stop();
+    APP_LOG(APP_LOG_LEVEL_INFO, "signal reading expired; display only");
+    redraw();
+  }
 }
 static void unknown(const char *why) {
   memset(&s_reading, 0, sizeof s_reading);
@@ -80,11 +102,12 @@ static void play(void) {
   if (!ps_ui_active() || s_waiting) return;
   if (s_playing) { stop(); return; }
   if (s_stop_time) s_stop_time();
-  if (s_view == VIEW_LIVE && !ps_fresh(&s_reading, (uint32_t)time(NULL))) s_reading.state = PS_UNKNOWN;
+  PsReading playback = s_reading;
+  if (s_view == VIEW_LIVE && !ps_fresh(&playback, (uint32_t)time(NULL))) playback.state = PS_UNKNOWN;
   bool valid;
   if (s_view == VIEW_REFERENCE) valid = ps_reference(s_example, s_strength, &s_pattern);
   else if (s_view == VIEW_CALIBRATE) valid = ps_reference(0, s_strength, &s_pattern);
-  else valid = ps_pattern(&s_reading, s_summary, s_strength, &s_pattern);
+  else valid = ps_pattern(&playback, s_summary, s_strength, &s_pattern);
   if (!valid) return;
   // SDK 4.33.1 does not export the amplitude API. Keep every amplitude in the
   // pattern for the supported-export implementation; never invent a firmware address.
@@ -93,7 +116,7 @@ static void play(void) {
   vibes_cancel();
   vibes_enqueue_custom_pattern((VibePattern){.durations = s_durations, .num_segments = n});
   APP_LOG(APP_LOG_LEVEL_INFO, "signal %lu state %u: %lu ms, timing renderer", (unsigned long)s_reading.channel,
-          s_reading.state, (unsigned long)s_pattern.total);
+          playback.state, (unsigned long)s_pattern.total);
   s_playing = true; s_started = now_ms();
   if (s_quiet) s_quiet(s_pattern.total + 500);
   s_timer = app_timer_register(100, tick, NULL); redraw();
@@ -163,8 +186,9 @@ static void summary(ClickRecognizerRef r, void *ctx) {
   }
 }
 static void back(ClickRecognizerRef r, void *ctx) {
-  stop(); cancel_request();
+  stop();
   if (s_detail) { s_detail = false; redraw(); return; }
+  cancel_request();
   if (s_view == VIEW_MENU) { window_stack_pop(true); return; }
   s_view = VIEW_MENU; layer_set_hidden(menu_layer_get_layer(s_menu), false); redraw();
 }
@@ -180,6 +204,33 @@ static void clicks(void *ctx) {
 static void text(GContext *ctx, const char *s, const char *font, GRect box) {
   graphics_draw_text(ctx, s, fonts_get_system_font(font), box, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 }
+static void rail(GContext *ctx, int x, int y, int width) {
+  uint32_t t = 0, elapsed = s_playing ? now_ms() - s_started : UINT32_MAX;
+  int cell = (width - 8) / 3;
+  graphics_context_set_stroke_color(ctx, s_dark ? GColorWhite : GColorBlack);
+  graphics_context_set_fill_color(ctx, s_dark ? GColorWhite : GColorBlack);
+  for (unsigned field = 0; field < 3; ++field) {
+    uint32_t from = s_pattern.field_start[field], to = s_pattern.field_end[field];
+    if (to <= from) continue;
+    int left = x + field * (cell + 4);
+    graphics_draw_rect(ctx, GRect(left, y, cell, 8));
+    t = 0;
+    for (size_t i = 0; i < s_pattern.count; ++i) {
+      uint32_t end = t + s_pattern.duration[i];
+      if (s_pattern.amplitude[i] && end > from && t < to) {
+        uint32_t a = t > from ? t : from, b = end < to ? end : to;
+        int l = 1 + (a - from) * (cell - 2) / (to - from);
+        int r = 1 + (b - from) * (cell - 2) / (to - from);
+        graphics_fill_rect(ctx, GRect(left + l, y + 2, r > l ? r - l : 1, 4), 0, GCornerNone);
+      }
+      t = end;
+    }
+    if (elapsed >= from && elapsed < to) {
+      int cursor = (elapsed - from) * (cell - 1) / (to - from);
+      graphics_draw_line(ctx, GPoint(left + cursor, y - 2), GPoint(left + cursor, y + 9));
+    }
+  }
+}
 static void render(Layer *layer, GContext *ctx) {
   GRect b = layer_get_bounds(layer);
   graphics_context_set_fill_color(ctx, s_dark ? GColorBlack : GColorWhite);
@@ -188,7 +239,7 @@ static void render(Layer *layer, GContext *ctx) {
   int x = PBL_IF_ROUND_ELSE(38, 5), y = PBL_IF_ROUND_ELSE(32, 0);
   int w = b.size.w - 2 * x, h = b.size.h - 2 * y;
   if (s_view == VIEW_MENU) return;
-  const char *title = s_view == VIEW_LIVE ? TOPICS[s_channel] : s_view == VIEW_LESSON ? "Learn signals" :
+  const char *title = s_view == VIEW_LIVE ? TOPICS[s_channel] : s_view == VIEW_LESSON ? LESSONS[s_example] :
     s_view == VIEW_REFERENCE ? "Feel references" : s_view == VIEW_HELP ? "How it works" :
     s_view == VIEW_TRIAL ? "Try by touch" : "Playback";
   text(ctx, title, FONT_KEY_GOTHIC_24_BOLD, GRect(x, y, w, 30));
@@ -201,13 +252,19 @@ static void render(Layer *layer, GContext *ctx) {
         snprintf(body, sizeof body, "%s\nAge: %lum%s", s_reading.detail,
           (unsigned long)((now - s_reading.observed) / 60), ps_fresh(&s_reading, now) ? "" : " / unavailable");
       else snprintf(body, sizeof body, "%s", s_reading.detail);
+      const PsReading *last = &s_history[s_channel];
+      if (!ps_fresh(&s_reading, now) && last->observed) {
+        snprintf(body, sizeof body, "%s\nLast: %s, %lum ago%s", s_reading.detail,
+          ps_state_name(last->state), (unsigned long)(now >= last->observed ? (now - last->observed) / 60 : 0),
+          last->timeline ? "\nSamples are old." : "");
+      }
     }
     else snprintf(body, sizeof body, "One topic tap: weather. Two: drummer. Three: custom. Long-short-long: unknown. Closing pulse ends the answer.");
     footer = "Back: return";
   } else if (s_view == VIEW_HELP) {
     static const char *const pages[] = {
       "Select: play / stop\nHold Select: refresh\nUp / Down: source\nBack: return",
-      "Three 2-hour slots.\nQuiet means dry\nbetween opening\nand closing cues.",
+      "Each 1.4s slot\nmeans 2 hours.\nQuiet means dry\nbetween opening\nand closing cues.",
       "Hold Up: summary\nHold Down: details\nUnknown:\nlong-short-long",
       "Phone: Pebble app >\nPulseTime settings.\nEnable weather;\nenter coordinates.\nOr add a feed URL.",
       "Play on request.\nOld data: unknown.\nRain forecast only;\nsnow isn't included."
@@ -229,7 +286,30 @@ static void render(Layer *layer, GContext *ctx) {
   } else if (s_waiting) { snprintf(body, sizeof body, "Checking...\nPhone must be connected."); footer = "Select: cancel"; }
   else if (s_reading.state == PS_UNKNOWN || (s_view == VIEW_LIVE && !ps_fresh(&s_reading, (uint32_t)time(NULL)))) {
     snprintf(body, sizeof body, "Unknown\nNo current reading");
+    if (s_view == VIEW_LIVE && s_history[s_channel].observed) {
+      const PsReading *last = &s_history[s_channel];
+      uint32_t now = (uint32_t)time(NULL);
+      if (last->timeline) {
+        static const char *const weather[] = {"Dry", "Light", "Rain", "Heavy"};
+        static const char *const custom[] = {"None", "Low", "Medium", "High"};
+        const char *const *levels = s_channel == PS_WEATHER ? weather : custom;
+        snprintf(body, sizeof body, "Old data\n%s / %s / %s\nSeen %lum ago", levels[last->value[0]], levels[last->value[1]], levels[last->value[2]],
+          (unsigned long)(now >= last->observed ? (now - last->observed) / 60 : 0));
+      } else snprintf(body, sizeof body, "Old data\n%s\nLast: %s\nSeen %lum ago", last->label, ps_state_name(last->state),
+          (unsigned long)(now >= last->observed ? (now - last->observed) / 60 : 0));
+    }
     footer = s_view == VIEW_LIVE ? "Select: replay\nHold Select: refresh" : footer;
+  } else if (s_reading.timeline && s_summary) {
+    unsigned first = 3, highest = 0;
+    for (unsigned i = 0; i < 3; ++i) {
+      if (s_reading.value[i] && first == 3) first = i;
+      if (s_reading.value[i] > highest) highest = s_reading.value[i];
+    }
+    if (!highest) snprintf(body, sizeof body, "Summary\nAll quiet\nFeel a calm pair.");
+    else if (s_reading.channel == PS_WEATHER) snprintf(body, sizeof body, "First: %u-%uh\nPeak: %s\n%u tap%s, then patter", first * 2, (first + 1) * 2,
+      (const char *const[]){"Dry", "Light", "Rain", "Heavy"}[highest], first + 1, first ? "s" : "");
+    else snprintf(body, sizeof body, "First: sample %u\nPeak: level %u\n%u tap%s, then patter", first + 1, highest, first + 1, first ? "s" : "");
+    footer = "Select: replay / stop\nHold Up: timeline";
   } else if (s_reading.timeline) {
     static const char *const rain[] = { "Dry", "Light", "Rain", "Heavy" };
     static const char *const ordinal[] = { "None", "Low", "Medium", "High" };
@@ -243,6 +323,7 @@ static void render(Layer *layer, GContext *ctx) {
         snprintf(line, sizeof line, "%s%u: %s", current ? "> " : "", i + 1, ordinal[s_reading.value[i]]);
       text(ctx, line, FONT_KEY_GOTHIC_24_BOLD, GRect(x, y + 34 + i * 28, w, 30));
     }
+    rail(ctx, x, y + h - 44, w);
     footer = s_summary ? "Summary / hold Up: timeline" : "Select: replay / stop\nHold Up: summary";
   } else snprintf(body, sizeof body, "%s\n%s", s_reading.label, ps_state_name(s_reading.state));
   if (*body) text(ctx, body, s_detail ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_18_BOLD, GRect(x, y + 32, w, h - 66));
@@ -266,7 +347,17 @@ static void disappear(Window *window) { stop(); cancel_request(); }
 void ps_ui_open(bool dark, void (*stop_time)(void), void (*quiet)(uint32_t)) {
   s_dark = dark; s_stop_time = stop_time; s_quiet = quiet;
   s_stop_time(); s_view = VIEW_MENU;
-  if (!s_request) { s_request = (uint32_t)time(NULL); srand(s_request); }
+  if (!s_request) {
+    s_request = (uint32_t)time(NULL); srand(s_request);
+    for (unsigned channel = 1; channel <= 3; ++channel) {
+      char wire[241]; PsReading saved;
+      if (persist_read_string(PERSIST_SIGNAL_HISTORY + channel, wire, sizeof wire) > 0 &&
+          ps_decode(wire, &saved) && saved.channel == channel && saved.state != PS_UNKNOWN) {
+        s_history[channel] = saved;
+        APP_LOG(APP_LOG_LEVEL_INFO, "signal history loaded: %u", channel);
+      }
+    }
+  }
   if (!s_window) {
     s_window = window_create();
     window_set_window_handlers(s_window, (WindowHandlers){.load = load, .unload = unload, .disappear = disappear});
@@ -283,6 +374,14 @@ bool ps_ui_inbox(DictionaryIterator *iter) {
   PsReading reading;
   if (!ps_decode(wire, &reading) || reading.request != s_request || reading.channel != s_channel) return true;
   s_reading = reading; s_waiting = false;
+  time_t seconds; uint16_t ms; time_ms(&seconds, &ms);
+  uint32_t now = (uint32_t)seconds;
+  if (ps_fresh(&reading, now)) {
+    s_history[s_channel] = reading;
+    persist_write_string(PERSIST_SIGNAL_HISTORY + s_channel, wire);
+    uint32_t delay = (reading.expires - now) * 1000u - ms + 1u;
+    s_expiry = app_timer_register(delay, reading_expired, NULL);
+  }
   if (s_timeout) app_timer_cancel(s_timeout);
   s_timeout = NULL;
   play(); redraw(); return true;

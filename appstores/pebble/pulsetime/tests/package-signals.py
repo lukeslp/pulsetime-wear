@@ -15,12 +15,22 @@ digest = hashlib.sha256(pbw.read_bytes()).hexdigest()
 version = json.loads((root / 'package.json').read_text())['version']
 out = repo / f'appstores/dist/pebble/signals-{version}' / digest[:12]
 out.mkdir(parents=True, exist_ok=True)
+evidence_files = []
 for target in ('emery', 'flint', 'gabbro'):
-    report = json.loads((root / f'build/signals-evidence/{target}-report.json').read_text())
+    report_file = root / f'build/signals-evidence/{target}-report.json'
+    report = json.loads(report_file.read_text())
     assert report['pbwSHA256'] == digest and report['liveWeather'], 'Native evidence does not match this PBW'
+    assert report['idleExpiryChecked'] and report['failedSourceAndRestartChecked'], 'Freshness checks are missing'
+    assert report['authenticatedChannels'] == [2, 3], 'Authenticated source checks are missing'
+    evidence_files.append(report_file)
+    for frame in report['frames']:
+        assert Path(frame).name == frame and frame.startswith(target + '-') and frame.endswith('.png')
+        evidence_files.append(report_file.parent / frame)
 shutil.copyfile(pbw, out / f'pulsetime-{version}.pbw')
+shutil.copyfile(root / 'GUIDE.md', out / 'GUIDE.md')
+shutil.copyfile(root / 'store/signals-release-notes.md', out / 'RELEASE-NOTES.md')
 source = out / f'pulsetime-{version}-source.zip'
-files = [root / 'package.json', root / 'wscript', root / 'GUIDE.md']
+files = [root / 'package.json', root / 'wscript', root / 'GUIDE.md', root / 'store/signals-release-notes.md']
 for directory in ('src', 'worker_src', 'resources'):
     files.extend(p for p in (root / directory).rglob('*') if p.is_file())
 with zipfile.ZipFile(source, 'w', zipfile.ZIP_DEFLATED) as archive:
@@ -49,8 +59,8 @@ with zipfile.ZipFile(pbw) as tested, zipfile.ZipFile(rebuild / 'pulsetime/build/
     mismatched = [name for name in payloads if normalized(name, tested.read(name)) != normalized(name, rebuilt.read(name))]
     assert not mismatched, f'Rebuilt payload differs: {mismatched}'
 evidence = out / 'evidence'; evidence.mkdir(exist_ok=True)
-for file in (root / 'build/signals-evidence').iterdir():
-    if file.suffix in ('.json', '.png'): shutil.copyfile(file, evidence / file.name)
+for file in evidence_files:
+    shutil.copyfile(file, evidence / file.name)
 manifest = dict(version=version, targets=['emery', 'flint', 'gabbro'], pbwSHA256=digest,
                 sourceSHA256=hashlib.sha256(source.read_bytes()).hexdigest(),
                 independentlyRebuiltPayloads=payloads,
