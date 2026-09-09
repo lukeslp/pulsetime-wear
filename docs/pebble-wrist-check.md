@@ -1,9 +1,17 @@
 # PulseTime Signals wrist check
 
 This sheet is for Luke Steuber's 1.3.0 candidate on Time 2, 2 Duo, or Round 2.
-It records physical evidence separately from emulator results. No results
-have been collected yet. Test one watch at a time; do not transfer a result
-from one model to another.
+It records physical evidence separately from emulator results. Test one watch
+at a time; do not transfer a result from one model to another.
+
+## First wearer report · September 9, 2026
+
+Luke reported “it works” after receiving the location-walkthrough candidate,
+having identified his watch as Time 2. This is a wearer-reported smoke success;
+the exact installed hash, firmware, permission path, and pattern-recognition
+results were not independently observed. No recognition score or evidence for
+2 Duo or Round 2 is inferred. Next: compare dry/unknown and early/late rain by
+touch, then compare timeline with summary.
 
 Candidate PBW SHA-256:
 Use the current candidate hash in [the verification ledger](pebble-signals.md)
