@@ -144,6 +144,25 @@ source/live differences were preserved during the additive bridge deployment.
 The proposed upstream export patch and read-only diagnostic are in
 [pebble-amplitude-export](pebble-amplitude-export/README.md).
 
+### September 9 handoff
+
+The reviewed request fix is committed as `c6885dc` on
+`codex/pebble-live-signals`. Install the current tester PBW through the main
+Pebble phone app. Its bundled companion handles settings and source requests;
+no separate PulseTime Android APK is needed. Android phone/Wear OS 0.3.0
+artifacts remain separate from this Pebble candidate.
+
+Local review reproduced and fixed the busy-outbox startup failure. Claude
+Sonnet 4.6 returned an advisory review; its other proposed defects were not
+supported by the actual callback ordering, bounds, or SDK examples. Grok
+review remains incomplete after service/CLI failures; the browser fallback
+was blocked by the locked Mac. No three-way sign-off is claimed.
+
+Next: obtain the remaining Grok review when reachable, check the actual OS
+Quick Launch path on Time 2, and complete the eight-trial wrist comparison.
+Luke's earlier “it works” remains a smoke report, not a recognition score.
+The store binary has not been replaced with this candidate.
+
 ### Store automation verified
 
 The store has authenticated dashboard APIs, not only catalog APIs. A read-only

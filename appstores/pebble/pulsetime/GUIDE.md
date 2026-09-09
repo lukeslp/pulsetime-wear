@@ -78,6 +78,22 @@ their own settings, so set your preferred language and display in each.
 
 ## Install or update
 
+For the **1.3.0 Signals candidate**, use `pulsetime-1.3.0.pbw` from the tester
+kit. Save it on your phone, then choose **Open with → Pebble** or
+**Share → Pebble**, using the main Pebble app paired to your Time 2, 2 Duo,
+or Round 2. Keep the watch connected while Pebble installs the package.
+Then open PulseTime on the watch and its settings in the phone app.
+
+You do **not** need a separate PulseTime APK for this Pebble version. The PBW
+contains both the watch application and the phone-side code that Pebble runs
+for settings, weather, and data requests. The Android phone and Wear OS APKs
+are separate builds; they do not install onto a Pebble or provide these new
+Signals features. Keep the PBW file extension; do not rename it to APK.
+
+If Pebble is absent from the phone's Open with or Share choices, the file has
+not been installed. Check that the current Pebble app is installed and paired;
+the import route can vary by phone and app version.
+
 Install [**PulseTime Public Beta**](https://apps.repebble.com/1624684ac5dd46ac85eee2a6) from the Pebble app store.
 It appears as **PulseTime** in your watch's app list. If you use more than one
 Pebble, select the watch you want to update in the phone app first. Installing

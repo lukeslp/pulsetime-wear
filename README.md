@@ -20,6 +20,13 @@ readings with lessons and replay. It is not the public release linked below.
 See the [Signals implementation and evidence](docs/pebble-signals.md) and
 [private data bridge](services/signals/README.md).
 
+For the Signals candidate, save `pulsetime-1.3.0.pbw` on your phone and open or
+share it with the main Pebble app paired to your watch. Pebble installs the
+watch app and runs its bundled phone-side code. No separate PulseTime APK is
+needed. The Android phone and Wear OS 0.3.0 APKs are separate products and do
+not include these Pebble Signals changes. See the
+[install instructions](appstores/pebble/pulsetime/GUIDE.md#install-or-update).
+
 Install [**PulseTime Public Beta**](https://apps.repebble.com/1624684ac5dd46ac85eee2a6) from the Pebble app store.
 Version **1.2.0** appears as **PulseTime** in the watch's app list. The first
 launch opens **Learn pattern**. Press Down for the 3:32 hours lesson, Down again
