@@ -1,5 +1,9 @@
 # Choosing a haptic language on Pebble
 
+This page compares the existing time languages. For the 1.3.0 new-watch signal
+grammar, live data, and stock-inspired reference limitations, see
+[Signals](../../../docs/pebble-signals.md) and the [wearer guide](GUIDE.md).
+
 Start with **Terse Quarter, Standard speed, whole-time playback**. Learn the
 hour pulses, the pause, and the quarter pulses before adding exact minutes.
 At 3:32, that default says 3:30. It deliberately groups 3:30–3:44 together;

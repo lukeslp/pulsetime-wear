@@ -4,6 +4,83 @@
     "defaultValue": "PulseTime"
   },
   {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Signals \u00b7 Weather and your data"
+      },
+      {
+        "type": "text",
+        "defaultValue": "Signals are requested only when you open a source on the watch or refresh it. Weather sends your manually entered coordinates to Open-Meteo. Other feeds contact the HTTPS URL you choose. Feed credentials stay on this phone. Hold Select on the clock, then choose Signals."
+      },
+      {
+        "type": "toggle",
+        "messageKey": "WEATHER_ENABLED",
+        "label": "Enable weather requests",
+        "defaultValue": false
+      },
+      {
+        "type": "input",
+        "messageKey": "WEATHER_LAT",
+        "label": "Latitude",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "WEATHER_LON",
+        "label": "Longitude",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "DRUMMER_URL",
+        "label": "Drummer HTTPS feed",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "DRUMMER_TOKEN",
+        "label": "Drummer feed token (optional)",
+        "defaultValue": "",
+        "attributes": {
+          "type": "password"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "SIGNAL_URL",
+        "label": "Custom HTTPS feed",
+        "defaultValue": "",
+        "attributes": {
+          "type": "text"
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "SIGNAL_TOKEN",
+        "label": "Custom feed token (optional)",
+        "defaultValue": "",
+        "attributes": {
+          "type": "password"
+        }
+      },
+      {
+        "type": "text",
+        "defaultValue": "A feed returns a current state or three values, never code or vibration commands. Failed or old data plays Unknown. Weather is a model forecast in three two-hour windows, not an exact rain-onset warning."
+      }
+    ]
+  },
+  {
     "type": "text",
     "defaultValue": "Feel the time without reading the screen. Start with Terse Quarter at Standard speed; it reports the start of the current quarter hour. Your existing saved choices are kept. Use the guide below before choosing an exact-minute language."
   },
@@ -12,7 +89,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Start here · Learn one pattern"
+        "defaultValue": "Start here \u00b7 Learn one pattern"
       },
       {
         "type": "text",
@@ -37,7 +114,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Display · Large and clear"
+        "defaultValue": "Display \u00b7 Large and clear"
       },
       {
         "type": "select",
@@ -46,11 +123,11 @@
         "defaultValue": "bold",
         "options": [
           {
-            "label": "Bold · large time",
+            "label": "Bold \u00b7 large time",
             "value": "bold"
           },
           {
-            "label": "Classic · time on one row",
+            "label": "Classic \u00b7 time on one row",
             "value": "classic"
           }
         ],
@@ -63,11 +140,11 @@
         "defaultValue": "bright",
         "options": [
           {
-            "label": "Bright · black on white",
+            "label": "Bright \u00b7 black on white",
             "value": "bright"
           },
           {
-            "label": "Dark · white on black",
+            "label": "Dark \u00b7 white on black",
             "value": "dark"
           }
         ],
@@ -80,7 +157,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Haptic language · Choose by feel"
+        "defaultValue": "Haptic language \u00b7 Choose by feel"
       },
       {
         "type": "select",
@@ -89,27 +166,27 @@
         "defaultValue": "terse_quarter",
         "options": [
           {
-            "label": "Terse Quarter · start here (15-minute time)",
+            "label": "Terse Quarter \u00b7 start here (15-minute time)",
             "value": "terse_quarter"
           },
           {
-            "label": "Five-Minute Ladder · count fives",
+            "label": "Five-Minute Ladder \u00b7 count fives",
             "value": "five_minute_ladder"
           },
           {
-            "label": "Decimal Place · try for exact minutes",
+            "label": "Decimal Place \u00b7 try for exact minutes",
             "value": "decimal_place"
           },
           {
-            "label": "Binary Clock · advanced, shortest",
+            "label": "Binary Clock \u00b7 advanced, shortest",
             "value": "binary_clock"
           },
           {
-            "label": "Nearest-Quarter Offset · advanced",
+            "label": "Nearest-Quarter Offset \u00b7 advanced",
             "value": "nearest_quarter"
           },
           {
-            "label": "Morse Digits · for Morse readers",
+            "label": "Morse Digits \u00b7 for Morse readers",
             "value": "morse_digits"
           }
         ],
@@ -154,7 +231,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Quick Launch · Set up side buttons"
+        "defaultValue": "Quick Launch \u00b7 Set up side buttons"
       },
       {
         "type": "text",
@@ -211,7 +288,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Optional · Sound"
+        "defaultValue": "Optional \u00b7 Sound"
       },
       {
         "type": "text",
@@ -259,7 +336,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "Choose sound only after trying it privately. The watch motor has no strength control; pulse length and pauses carry the haptic language."
+        "defaultValue": "Sound is optional. This build uses the exported timing-based motor API; per-step strength awaits SDK support."
       }
     ]
   },
@@ -268,7 +345,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Optional · Chimes"
+        "defaultValue": "Optional \u00b7 Chimes"
       },
       {
         "type": "text",
@@ -517,7 +594,7 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Optional · Flick to tell time"
+        "defaultValue": "Optional \u00b7 Flick to tell time"
       },
       {
         "type": "toggle",

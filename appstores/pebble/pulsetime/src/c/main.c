@@ -27,14 +27,15 @@
 // stack, so the wearer lands straight back on their watchface. Pebble workers
 // cannot vibrate at all, which is why the app has to open at all.
 //
-// Pebble has no amplitude control, so the encoder's relative-strength `layer`
-// is ignored here — no PulseTime system depends on amplitude alone.
+// This SDK's exported vibration interface uses durations. The firmware's
+// newer amplitude function is not yet in its SDK export table.
 
 #include <pebble.h>
 
 #include "encoder.h"
 #include "display.h"
 #include "readout.h"
+#include "signals_ui.h"
 
 #define PERSIST_SYSTEM 1
 #define PERSIST_SPEED 2
@@ -945,7 +946,7 @@ static uint16_t menu_rows(MenuLayer *menu, uint16_t section, void *c) {
     case MENU_DISPLAY: return 4;
     case MENU_QUICK: return reports_launch_button() ? 3 : 1;
     case MENU_STATUS: return 3;
-    default: return 7;
+    default: return 8;
   }
 }
 static int16_t menu_height(MenuLayer *menu, MenuIndex *index, void *c) {
@@ -957,8 +958,8 @@ static void menu_draw_row(GContext *ctx, const Layer *cell, MenuIndex *index, vo
   char detail[48];
   switch (s_menu_kind) {
     case MENU_HOME: {
-      static const char *const titles[] = { "Learn pattern", "Practice", "Language", "Speed", "Display", "Quick Launch", "Watch status" };
-      static const char *const subtitles[] = { "Hours, minutes, then all", "22 known times", "Compare seven choices", "Slow, standard, fast", "Bright / dark, bold / row", "Set up the side buttons", "Chimes and wrist flick" };
+      static const char *const titles[] = { "Learn pattern", "Practice", "Language", "Speed", "Display", "Quick Launch", "Watch status", "Signals" };
+      static const char *const subtitles[] = { "Hours, minutes, then all", "22 known times", "Compare seven choices", "Slow, standard, fast", "Bright / dark, bold / row", "Set up the side buttons", "Chimes and wrist flick", "Weather, drummer, your data" };
       title = titles[row]; sub = subtitles[row]; break;
     }
     case MENU_LANGUAGE:
@@ -984,6 +985,7 @@ static void menu_select(MenuLayer *menu, MenuIndex *index, void *c) {
   int row = index->row;
   stop_playback();
   if (s_menu_kind == MENU_HOME) {
+    if (row == 7) { ps_ui_open(s_dark, stop_playback, quiet_worker); return; }
     if (row == 0) { open_guide(0); return; }
     if (row == 1) { open_practice(); return; }
     s_menu_kind = (MenuKind)(row - 1);
@@ -1198,6 +1200,7 @@ static const char *speed_id_of(int i) { return pt_speed_storage_id((PtSpeed)i); 
 static const char *scope_id_of(int i) { return pt_scope_storage_id((PtScope)i); }
 
 static void inbox_received(DictionaryIterator *iter, void *context) {
+  if (ps_ui_inbox(iter)) return;
   bool changed = false;
   bool display_changed = false;
   int v;
@@ -1276,7 +1279,9 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   }
   if (changed) {
     s_auto_exit = false;
-    if (s_guide_window && window_stack_get_top_window() == s_guide_window) {
+    if (ps_ui_active()) {
+      // Signal playback owns the motor while this window is open.
+    } else if (s_guide_window && window_stack_get_top_window() == s_guide_window) {
       stop_playback(); // A new language changes the lesson; wait for Select.
       layer_mark_dirty(s_guide_canvas);
     } else if (s_practice_window && window_stack_get_top_window() == s_practice_window) {
@@ -1369,6 +1374,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
+  ps_ui_deinit();
   stop_playback();
   pt_readout_deinit(&s_readout);
   if (s_guide_window) window_destroy(s_guide_window);

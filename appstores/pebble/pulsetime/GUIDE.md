@@ -1,5 +1,39 @@
 # Your first time check
 
+The **1.3.0 Signals candidate** is for **Time 2, 2 Duo, and Round 2**.
+The public store link below still refers to the published 1.2.0 time app.
+Signals is installed from its tester PBW until a release is published.
+
+## Feel weather or a data source
+
+Hold Select from the clock, choose **Signals**, then choose Weather,
+Drummer, or Custom signal. Select replays or stops. Hold Select refreshes;
+Up and Down switch source. Back returns to the menu. Hold Down shows details.
+
+In the phone app, open PulseTime's settings. Weather is off until enabled;
+enter latitude and longitude for the place you want. The phone sends that
+location to [Open-Meteo](https://open-meteo.com/) only when weather is requested.
+The forecast covers rain, not snowfall. A data source needs an HTTPS URL and
+may use a bearer token. Those settings stay on the phone.
+
+One short opening tap means weather, two mean Drummer, three mean custom.
+Weather then plays three equal windows for the next two, four, and six hours:
+quiet for dry, sparse patter for light rain, denser patter for heavier rain.
+A closing pulse ends the answer. Long-short-long means unknown. Quiet alone
+is never a successful answer. Hold Up compares the timeline with a summary:
+count the first wet window, then feel the strongest predicted rain.
+
+Use **Learn signals** for known examples and **Try without looking** for an
+untimed four-choice weather exercise. It still needs visual setup and answer
+selection. **Feel references** offers four stock-inspired timing patterns;
+it does not reproduce OS braking or per-step strength. Set overall vibration
+strength in the watch's system settings and use **Playback** to feel two taps.
+
+Readings expire. An old or unavailable response plays unknown; a network
+failure does not mean Drummer is down. Drummer's down rhythm describes failed
+selected services when its observer is reachable. This prototype's patterns
+still need comfort and recognition checks on actual watches.
+
 Start with **PulseTime**, the app. It has lessons, practice, and buttons for
 asking the time. **PulseTime Face** is an optional second package: choose it as
 your watchface for a large clock and double-tap playback. The app and face save

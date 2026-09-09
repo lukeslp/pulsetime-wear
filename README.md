@@ -14,6 +14,12 @@ packages and settings.
 
 ## Try PulseTime on Pebble
 
+The next **1.3.0 Signals candidate** targets **Time 2, 2 Duo, and Round 2**.
+It adds on-demand rain timelines, Drummer service states, and custom HTTPS
+readings with lessons and replay. It is not the public release linked below.
+See the [Signals implementation and evidence](docs/pebble-signals.md) and
+[private data bridge](services/signals/README.md).
+
 Install [**PulseTime Public Beta**](https://apps.repebble.com/1624684ac5dd46ac85eee2a6) from the Pebble app store.
 Version **1.2.0** appears as **PulseTime** in the watch's app list. The first
 launch opens **Learn pattern**. Press Down for the 3:32 hours lesson, Down again

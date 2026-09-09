@@ -10,9 +10,10 @@ below).
 It also ships an optional **background worker** (`worker_src/c/worker.c`) so
 the time can be felt from any watchface without opening anything by hand.
 
-Targets: basalt, chalk, diorite, emery, flint, gabbro (every current Pebble
-except the 2013 aplite). Start with the [wearer guide](GUIDE.md).
-See [1.2.0 validation](VALIDATION.md) for current build and emulator evidence;
+The 1.3.0 Signals candidate targets emery (Time 2), flint (2 Duo), and gabbro
+(Round 2). Start with the [wearer guide](GUIDE.md) and
+[Signals requirements and evidence](../../../docs/pebble-signals.md).
+See [1.2.0 validation](VALIDATION.md) for the previous release's evidence;
 the dated checks below retain their original scope.
 
 ## Synchronized digits, version 1.2.0

@@ -1,0 +1,24 @@
+[Unit]
+Description=PulseTime private signal readings
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=coolhand
+WorkingDirectory=/home/coolhand/apps/pulsetime-signals
+EnvironmentFile=/etc/dreamer/pulsetime-signals.env
+ExecStart=/usr/bin/python3 server.py --config config.json --port 5018
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=128M
+TasksMax=48
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

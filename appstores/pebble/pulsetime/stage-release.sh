@@ -36,7 +36,7 @@ test -f "$PBW"
 # `set -o pipefail` and reports a false miss.
 listing="$(unzip -l "$PBW")"
 missing=()
-for platform in basalt chalk diorite emery flint gabbro; do
+for platform in emery flint gabbro; do
   case "$listing" in
     *"$platform/pebble-worker.bin"*) ;;
     *) missing+=("$platform") ;;

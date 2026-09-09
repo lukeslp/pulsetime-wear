@@ -1,0 +1,36 @@
+--- a/tools/generate_native_sdk/exported_symbols.json
++++ b/tools/generate_native_sdk/exported_symbols.json
+@@ -4,7 +4,7 @@
+               "You should also make sure you are obeying our API design guidelines:",
+               "https://pebbletechnology.atlassian.net/wiki/display/DEV/SDK+API+Design+Guidelines"
+             ],
+-  "revision" : "109",
++  "revision" : "110",
+   "version" : "2.0",
+   "files": [
+     "include/pbl/drivers/ambient_light.h",
+@@ -4657,6 +4657,13 @@
+               "type": "function",
+               "name": "vibes_enqueue_custom_pattern",
+               "addedRevision": "0"
++            }, {
++              "type": "type",
++              "name": "VibePatternWithAmplitudes"
++            }, {
++              "type": "function",
++              "name": "vibes_enqueue_custom_pattern_with_amplitudes",
++              "addedRevision": "110"
+             }
+           ]
+         }, {
+--- a/src/fw/process_management/pebble_process_info.h
++++ b/src/fw/process_management/pebble_process_info.h
+@@ -174,7 +174,7 @@
+ // sdk.major:0x5 .minor:0x6a -- Add HRV sampling API (health_service_set_hrv_sample_period) (rev 109)
+ 
+ #define PROCESS_INFO_CURRENT_SDK_VERSION_MAJOR 0x5
+-#define PROCESS_INFO_CURRENT_SDK_VERSION_MINOR 0x6a
++#define PROCESS_INFO_CURRENT_SDK_VERSION_MINOR 0x6b
+ 
+ // The first SDK to ship with 2.x APIs
+ #define PROCESS_INFO_FIRST_2X_SDK_VERSION_MAJOR 0x4

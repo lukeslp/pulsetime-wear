@@ -1,7 +1,7 @@
 {
   "name": "pulsetime",
   "author": "Luke Steuber",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "keywords": [
     "pebble-app"
   ],
@@ -14,9 +14,6 @@
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "basalt",
-      "chalk",
-      "diorite",
       "emery",
       "flint",
       "gabbro"
@@ -41,7 +38,17 @@
       "QUIET_TO",
       "REQUEST",
       "THEME",
-      "STYLE"
+      "STYLE",
+      "SIG_REQUEST",
+      "SIG_CANCEL",
+      "SIG_DATA",
+      "WEATHER_ENABLED",
+      "WEATHER_LAT",
+      "WEATHER_LON",
+      "DRUMMER_URL",
+      "DRUMMER_TOKEN",
+      "SIGNAL_URL",
+      "SIGNAL_TOKEN"
     ],
     "resources": {
       "media": [

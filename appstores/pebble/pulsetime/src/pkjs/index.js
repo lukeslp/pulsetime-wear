@@ -1,13 +1,44 @@
 // PulseTime — phone-side companion (PebbleKit JS).
-// The watch does all the work; the phone only hosts the Clay configuration page
-// and mirrors whatever the watch reports back, so the page never shows a stale
-// choice after the wearer changes the language, speed, or display on the watch.
+// The watch encodes time and signals locally. The phone fetches requested data
+// and keeps feed credentials and manual weather coordinates off the watch.
 
 'use strict';
 
 var Clay = require('./vendor/pebble-clay');
 var clayConfig = require('./config.json');
-var clay = new Clay(clayConfig); // auto-handles showConfiguration + webviewclosed
+var clay = new Clay(clayConfig, null, {autoHandleEvents: false});
+function settings() {
+  try { return JSON.parse(localStorage.getItem('clay-settings')) || {}; } catch (e) { return {}; }
+}
+var signals = require('./signals').create({settings: settings, now: Date.now,
+  xhr: function () { return new XMLHttpRequest(); },
+  send: function (data, success, failure) { Pebble.sendAppMessage(data, success, failure); }});
+var watchKeys = ['SYSTEM','SPEED','EXACT_MINUTES','FLICK_LAUNCH','QL_UP','QL_DOWN',
+  'SOUND','VOLUME','CHIME','QUIET_FROM','QUIET_TO','THEME','STYLE'];
+var formBaseline = null;
+Pebble.addEventListener('showConfiguration', function () {
+  formBaseline = settings();
+  Pebble.openURL(clay.generateUrl());
+});
+Pebble.addEventListener('webviewclosed', function (event) {
+  if (!event || !event.response) return;
+  try {
+    var raw = JSON.parse(event.response.charAt(0) === '{' ? event.response : decodeURIComponent(event.response));
+    var current = settings(), changed = {};
+    Object.keys(raw).forEach(function (key) {
+      var value = raw[key] && typeof raw[key] === 'object' ? raw[key].value : raw[key];
+      // Only edited fields overwrite current watch values. An old open phone
+      // form must not revert a language subsequently changed on the watch.
+      if (!formBaseline || value !== formBaseline[key]) {
+        current[key] = value;
+        if (watchKeys.indexOf(key) !== -1) changed[key] = typeof value === 'boolean' ? (value ? 1 : 0) : value;
+      }
+    });
+    clay.setSettings(current); signals.cancel();
+    if (Object.keys(changed).length) Pebble.sendAppMessage(changed, function () {}, function () {});
+    formBaseline = null;
+  } catch (e) { console.log('PulseTime: settings were not saved; invalid response.'); }
+});
 
 var SYSTEMS = ['terse_quarter', 'five_minute_ladder', 'decimal_place', 'binary_clock', 'nearest_quarter', 'morse_digits'];
 var SPEEDS = ['slow', 'standard', 'fast'];
@@ -69,5 +100,8 @@ Pebble.addEventListener('ready', function () {
 });
 
 Pebble.addEventListener('appmessage', function (e) {
-  if (e && e.payload) mirror(e.payload);
+  if (!e || !e.payload) return;
+  if (e.payload.SIG_CANCEL !== undefined) signals.cancel();
+  if (e.payload.SIG_REQUEST !== undefined) signals.request(e.payload.SIG_REQUEST);
+  mirror(e.payload);
 });

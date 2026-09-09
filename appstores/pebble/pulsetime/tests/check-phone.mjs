@@ -9,22 +9,31 @@ const source = fs.readFileSync(new URL('../src/pkjs/index.js', import.meta.url),
 const events = {};
 const updates = [];
 const messages = [];
+let stored = {};
+let cancellations = 0;
 const plain = value => JSON.parse(JSON.stringify(value));
 
 function Clay(actualConfig) {
   assert.equal(actualConfig, config);
-  this.setSettings = settings => updates.push(plain(settings));
+  this.setSettings = settings => {
+    updates.push(plain(settings));
+    Object.assign(stored, plain(settings));
+  };
+  this.generateUrl = () => 'data:configuration';
 }
 vm.runInNewContext(source, {
   require(name) {
     if (name === './vendor/pebble-clay') return Clay;
     if (name === './config.json') return config;
+    if (name === './signals') return {create: () => ({cancel: () => cancellations++, request: () => {}})};
     throw new Error(`Unexpected import: ${name}`);
   },
   Pebble: {
+    openURL: () => {},
     addEventListener: (event, handler) => { events[event] = handler; },
     sendAppMessage: message => messages.push(plain(message))
   },
+  localStorage: {getItem: () => JSON.stringify(stored)},
   console
 });
 
@@ -82,12 +91,31 @@ assert.equal(fields.get('EXACT_MINUTES').defaultValue, false);
 assert.equal(fields.get('SPEED').defaultValue, 'standard');
 assert.equal(fields.get('THEME').defaultValue, 'bright');
 assert.equal(fields.get('STYLE').defaultValue, 'bold');
-assert.deepEqual(metadata.pebble.messageKeys, [
+assert.deepEqual(metadata.pebble.messageKeys.slice(0, 14), [
   'SYSTEM', 'SPEED', 'EXACT_MINUTES', 'FLICK_LAUNCH', 'QL_UP', 'QL_DOWN',
   'SOUND', 'VOLUME', 'CHIME', 'QUIET_FROM', 'QUIET_TO', 'REQUEST', 'THEME', 'STYLE'
-], 'Existing message ids must stay stable; display keys are appended');
+], 'Existing message ids must stay stable');
 for (const key of fields.keys()) {
   assert(metadata.pebble.messageKeys.includes(key), `${key} is missing from package message keys`);
 }
 
-console.log('Phone contract: every numeric/string choice, defaults, exact toggle, display mirroring, and stable message keys passed.');
+// Saving a form opened before a watch change must preserve the newer watch value.
+stored = {SYSTEM: 'terse_quarter', SPEED: 'standard'};
+events.showConfiguration();
+events.appmessage({payload: {SYSTEM: 'binary_clock'}});
+const priorMessages = messages.length;
+events.webviewclosed({response: encodeURIComponent(JSON.stringify({
+  SYSTEM: 'terse_quarter', SPEED: 'fast', WEATHER_ENABLED: true,
+  WEATHER_LAT: '45', WEATHER_LON: '-122', DRUMMER_TOKEN: 'private%token',
+  SIGNAL_TOKEN: 'other secret', SIGNAL_URL: 'https://example.com/feed'
+}))});
+assert.equal(stored.SYSTEM, 'binary_clock');
+assert.equal(stored.SPEED, 'fast');
+assert.equal(stored.DRUMMER_TOKEN, 'private%token');
+assert.deepEqual(messages.slice(priorMessages), [{SPEED: 'fast'}], 'Secrets and location stay on phone');
+assert.equal(cancellations, 1);
+events.showConfiguration();
+events.webviewclosed({response: JSON.stringify({SIGNAL_TOKEN: 'literal%token'})});
+assert.equal(stored.SIGNAL_TOKEN, 'literal%token');
+assert.deepEqual(metadata.pebble.targetPlatforms, ['emery', 'flint', 'gabbro']);
+console.log('Phone contract: choices, defaults, stable ids, private settings, and stale-form merge passed.');
