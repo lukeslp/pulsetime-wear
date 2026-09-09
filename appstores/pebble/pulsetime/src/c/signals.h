@@ -10,6 +10,7 @@ typedef struct {
   uint32_t request, channel, observed, expires;
   uint8_t value[3], state, timeline;
   char label[25], detail[97];
+  char sample_label[3][9], sample_text[3][13];
 } PsReading;
 typedef struct {
   uint32_t duration[PS_MAX_STEPS], amplitude[PS_MAX_STEPS];

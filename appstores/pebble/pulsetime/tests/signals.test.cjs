@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const {normalize, weather, wire, https, create} = require('../src/pkjs/signals');
+const {normalize, weather, wire, https, create, preset} = require('../src/pkjs/signals');
 const now = 1788933600;
 const good = {version:1, observed_at:now-10, expires_at:now+120, state:'healthy', label:'Drummer', detail:'Checks passed'};
 assert.equal(normalize(good, now).state, 1);
@@ -7,6 +7,19 @@ for (const patch of [{state:'typo'}, {observed_at:now+1}, {expires_at:now}, {exp
   assert.throws(() => normalize({...good,...patch}, now));
 }
 assert.equal(normalize({...good,state:'unknown'},now).state,0);
+const departures=normalize(preset({...good,measurements:[2,10,25]},'departures'),now);
+assert.deepEqual(departures.value,[3,2,1]);
+assert.deepEqual(departures.sampleText,['2 min','10 min','25 min']);
+assert(wire(departures,1,3).startsWith('2|1|3|'));
+assert(wire(departures,4294967295,3).length<=240);
+assert.deepEqual(normalize(preset({...good,measurements:[0,70,95]},'resources'),now).value,[0,2,3]);
+assert.equal(departures.observed,good.observed_at,'Preset preserves source freshness');
+for(const measurements of [[3,2,1],[1,2],[1,NaN,3],[-1,2,3]]) assert.throws(()=>preset({...good,measurements},'departures'));
+assert.throws(()=>preset({...good,measurements:[0,90,101]},'resources'));
+assert.throws(()=>normalize({...good,values:[1,2,3],sample_labels:['A','B','C']},now));
+assert.throws(()=>normalize({...good,values:[1,2,3],sample_labels:['A','B','C'],sample_text:['bad|value','2','3']},now));
+const rich=normalize({...good,values:[1,2,3],sample_labels:['North','East','West'],sample_text:['10 kph','20 kph','30 kph']},now);
+assert.equal(rich.sampleLabels[2],'West');
 assert(https('https://example.com/feed?format=1'));
 for (const bad of ['http://example.com','https://user:pass@host/','https://host/#x','https://host/\n','file:///tmp/a']) assert(!https(bad));
 const forecast = {hourly_units:{rain:'mm',showers:'mm'},hourly:{time:[],rain:[],showers:[]}};

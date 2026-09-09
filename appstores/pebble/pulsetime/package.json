@@ -50,7 +50,9 @@
       "DRUMMER_TOKEN",
       "SIGNAL_URL",
       "SIGNAL_TOKEN",
-      "WEATHER_LOCATION"
+      "WEATHER_LOCATION",
+      "FAVORITE_SIGNAL",
+      "SIGNAL_PRESET"
     ],
     "resources": {
       "media": [

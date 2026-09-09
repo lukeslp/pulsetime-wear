@@ -8,13 +8,15 @@
 // no URL, coordinate, or credential is part of the watch wire format.
 #define PERSIST_SIGNAL_HISTORY 40
 
-typedef enum { VIEW_MENU, VIEW_LIVE, VIEW_LESSON, VIEW_REFERENCE, VIEW_HELP, VIEW_TRIAL, VIEW_CALIBRATE } View;
+typedef enum { VIEW_MENU, VIEW_LIVE, VIEW_LESSON, VIEW_REFERENCE, VIEW_HELP, VIEW_TRIAL, VIEW_CALIBRATE, VIEW_RESULTS } View;
 static Window *s_window;
 static Layer *s_layer;
 static MenuLayer *s_menu;
 static View s_view;
 static bool s_dark, s_waiting, s_playing, s_summary, s_detail, s_revealed;
+static bool s_startup_wait;
 static unsigned s_channel, s_example, s_choice, s_answer, s_trial, s_correct;
+static uint8_t s_trial_order[8], s_mode_correct[2], s_mode_replays[2];
 static uint32_t s_request, s_started;
 static uint8_t s_strength = 65;
 static PsReading s_reading;
@@ -28,7 +30,7 @@ static void render(Layer *layer, GContext *ctx);
 static void play(void);
 static void request(void);
 static const char *const TOPICS[] = { "", "Weather", "Drummer", "Custom signal" };
-static const char *const LESSONS[] = { "Dry throughout", "Rain early", "Rain later", "Unknown", "Healthy", "Busy", "Degraded", "Down" };
+static const char *const LESSONS[] = { "Dry throughout", "Rain early", "Rain later", "Unknown", "Healthy", "Busy", "Degraded", "Down", "Bus arrivals", "Resource use" };
 static const char *const REFERENCES[] = { "Paired taps", "Swell", "Repeated bursts", "Gentle steps" };
 static uint32_t now_ms(void) { time_t seconds; uint16_t ms; time_ms(&seconds, &ms); return (uint32_t)seconds * 1000u + ms; }
 
@@ -43,6 +45,7 @@ static void stop(void) {
   redraw();
 }
 static void cancel_request(void) {
+  s_startup_wait = false;
   s_waiting = false;
   if (s_timeout) app_timer_cancel(s_timeout);
   s_timeout = NULL;
@@ -74,6 +77,7 @@ static void unknown(const char *why) {
   snprintf(s_reading.detail, sizeof s_reading.detail, "%s", why);
 }
 static void expired(void *unused) {
+  s_startup_wait = false;
   s_timeout = NULL; s_waiting = false; ++s_request;
   unknown("Phone unavailable. Open Pebble on phone, then hold Select to retry.");
   if (ps_ui_active() && s_view == VIEW_LIVE) play();
@@ -122,6 +126,7 @@ static void play(void) {
   s_timer = app_timer_register(100, tick, NULL); redraw();
 }
 static void example(unsigned index) {
+  if (index >= 4) s_summary = false;
   memset(&s_reading, 0, sizeof s_reading);
   s_reading.channel = index < 4 ? PS_WEATHER : PS_DRUMMER;
   s_reading.timeline = index < 4;
@@ -129,13 +134,28 @@ static void example(unsigned index) {
   if (index == 1) { s_reading.value[0] = 3; s_reading.value[1] = 1; }
   if (index == 2) { s_reading.value[1] = 1; s_reading.value[2] = 3; }
   snprintf(s_reading.label, sizeof s_reading.label, "%s", LESSONS[index]);
+  if (index >= 8) {
+    s_reading.channel = PS_CUSTOM; s_reading.timeline = 1; s_reading.state = PS_OK;
+    const char *const *labels = index == 8 ? (const char *const[]){"Next", "2nd", "3rd"} : (const char *const[]){"CPU", "Memory", "Disk"};
+    const char *const *values = index == 8 ? (const char *const[]){"2 min", "10 min", "25 min"} : (const char *const[]){"0%", "70%", "95%"};
+    const uint8_t *levels = index == 8 ? (const uint8_t[]){3, 2, 1} : (const uint8_t[]){0, 2, 3};
+    for (unsigned i = 0; i < 3; ++i) {
+      strcpy(s_reading.sample_label[i], labels[i]); strcpy(s_reading.sample_text[i], values[i]); s_reading.value[i] = levels[i];
+    }
+    snprintf(s_reading.detail, sizeof s_reading.detail, "%s", index == 8 ? "Minutes until departures. More taps means sooner." : "CPU, memory, disk used. More taps means higher use.");
+  }
+}
+static void next_trial(void) {
+  s_view = VIEW_TRIAL; s_answer = s_trial_order[s_trial] / 2;
+  s_summary = s_trial_order[s_trial] % 2; s_choice = 0; s_revealed = false;
+  example(s_answer); play();
 }
 
 static uint16_t rows(MenuLayer *menu, uint16_t section, void *ctx) { return 8; }
 static int16_t row_height(MenuLayer *menu, MenuIndex *index, void *ctx) { return PBL_IF_ROUND_ELSE(66, 52); }
 static void menu_draw(GContext *ctx, const Layer *cell, MenuIndex *index, void *context) {
   static const char *const names[] = { "Weather", "Drummer", "Custom signal", "Learn signals", "Feel references", "Playback", "Try without looking", "How it works" };
-  static const char *const notes[] = { "Rain over the next 6h", "Health, load, freshness", "Your HTTPS data feed", "Known, replayable examples", "Four stock-inspired patterns", "Current motor capability", "Four weather meanings", "Controls and phone setup" };
+  static const char *const notes[] = { "Rain over the next 6h", "Health, load, freshness", "Your HTTPS data feed", "Known, replayable examples", "Four stock-inspired patterns", "Current motor capability", "8 trials: timeline / summary", "Controls and phone setup" };
   menu_cell_basic_draw(ctx, cell, names[index->row], notes[index->row], NULL);
 }
 static void choose(unsigned row) {
@@ -146,32 +166,43 @@ static void choose(unsigned row) {
   else if (row == 4) { s_view = VIEW_REFERENCE; s_example = 0; play(); }
   else if (row == 5) { s_view = VIEW_CALIBRATE; }
   else if (row == 6) {
-    s_view = VIEW_TRIAL; s_revealed = false; s_choice = 0;
-    s_answer = (unsigned)rand() % 4; example(s_answer); play();
+    s_trial = s_correct = 0;
+    memset(s_mode_correct, 0, sizeof s_mode_correct); memset(s_mode_replays, 0, sizeof s_mode_replays);
+    for (unsigned i = 0; i < 8; ++i) s_trial_order[i] = i;
+    for (unsigned i = 7; i > 0; --i) { unsigned j = (unsigned)rand() % (i + 1); uint8_t t = s_trial_order[i]; s_trial_order[i] = s_trial_order[j]; s_trial_order[j] = t; }
+    next_trial();
   } else { s_view = VIEW_HELP; s_example = 0; }
   redraw();
 }
 static void menu_select(MenuLayer *menu, MenuIndex *index, void *ctx) { choose(index->row); }
 static void select_click(ClickRecognizerRef r, void *ctx) {
+  if (s_view == VIEW_RESULTS) { choose(6); return; }
   if (s_view == VIEW_MENU) { MenuIndex i = menu_layer_get_selected_index(s_menu); choose(i.row); return; }
   if (s_view == VIEW_HELP) { s_example = (s_example + 1) % 5; redraw(); return; }
   if (s_view == VIEW_TRIAL && s_revealed) {
-    s_answer = (unsigned)rand() % 4; example(s_answer); s_revealed = false; s_choice = 0; play(); return;
+    if (s_trial == 8) {
+      s_view = VIEW_RESULTS;
+      APP_LOG(APP_LOG_LEVEL_INFO, "comparison complete: timeline %u, summary %u", s_mode_correct[0], s_mode_correct[1]);
+      redraw();
+    }
+    else next_trial();
+    return;
   }
   if (s_waiting) { cancel_request(); unknown("Request cancelled. Hold Select to retry."); redraw(); return; }
+  if (s_view == VIEW_TRIAL && !s_playing && s_mode_replays[s_summary] < 255) s_mode_replays[s_summary]++;
   play();
 }
 static void select_long(ClickRecognizerRef r, void *ctx) {
   if (s_view == VIEW_LIVE) { request(); return; }
   if (s_view == VIEW_TRIAL && !s_revealed) {
-    stop(); s_trial++; if (s_choice == s_answer) s_correct++; s_revealed = true; redraw();
+    stop(); s_trial++; if (s_choice == s_answer) { s_correct++; s_mode_correct[s_summary]++; } s_revealed = true; redraw();
   }
 }
 static void change(int direction) {
   stop(); s_detail = false;
   if (s_view == VIEW_MENU) { menu_layer_set_selected_next(s_menu, direction < 0, MenuRowAlignCenter, true); return; }
   if (s_view == VIEW_LIVE) { cancel_request(); s_channel = (s_channel + direction + 2) % 3 + 1; request(); }
-  else if (s_view == VIEW_LESSON) { s_example = (s_example + direction + 8) % 8; example(s_example); play(); }
+  else if (s_view == VIEW_LESSON) { s_example = (s_example + direction + 10) % 10; example(s_example); play(); }
   else if (s_view == VIEW_REFERENCE) { s_example = (s_example + direction + 4) % 4; play(); }
   else if (s_view == VIEW_HELP) { s_example = (s_example + direction + 5) % 5; }
   else if (s_view == VIEW_TRIAL && !s_revealed) { s_choice = (s_choice + direction + 4) % 4; }
@@ -181,7 +212,7 @@ static void up(ClickRecognizerRef r, void *ctx) { change(-1); }
 static void down(ClickRecognizerRef r, void *ctx) { change(1); }
 static void detail(ClickRecognizerRef r, void *ctx) { if (s_view != VIEW_MENU) { stop(); s_detail = !s_detail; redraw(); } }
 static void summary(ClickRecognizerRef r, void *ctx) {
-  if ((s_view == VIEW_LIVE || s_view == VIEW_LESSON) && s_reading.timeline) {
+  if ((s_view == VIEW_LIVE || s_view == VIEW_LESSON) && s_reading.timeline && s_reading.channel == PS_WEATHER) {
     stop(); s_summary = !s_summary; play();
   }
 }
@@ -241,7 +272,7 @@ static void render(Layer *layer, GContext *ctx) {
   if (s_view == VIEW_MENU) return;
   const char *title = s_view == VIEW_LIVE ? TOPICS[s_channel] : s_view == VIEW_LESSON ? LESSONS[s_example] :
     s_view == VIEW_REFERENCE ? "Feel references" : s_view == VIEW_HELP ? "How it works" :
-    s_view == VIEW_TRIAL ? "Try by touch" : "Playback";
+    s_view == VIEW_TRIAL ? "Try by touch" : s_view == VIEW_RESULTS ? "Mode comparison" : "Playback";
   text(ctx, title, FONT_KEY_GOTHIC_24_BOLD, GRect(x, y, w, 30));
   const char *footer = "Select: play / stop\nUp / Down: next";
   char body[160] = "";
@@ -259,6 +290,7 @@ static void render(Layer *layer, GContext *ctx) {
           last->timeline ? "\nSamples are old." : "");
       }
     }
+    else if (s_view == VIEW_LESSON && s_reading.sample_label[0][0]) snprintf(body, sizeof body, "%s", s_reading.detail);
     else snprintf(body, sizeof body, "One topic tap: weather. Two: drummer. Three: custom. Long-short-long: unknown. Closing pulse ends the answer.");
     footer = "Back: return";
   } else if (s_view == VIEW_HELP) {
@@ -275,12 +307,15 @@ static void render(Layer *layer, GContext *ctx) {
     footer = "Select: feel two taps";
   } else if (s_view == VIEW_REFERENCE) {
     snprintf(body, sizeof body, "%s\nTiming only.\nNo OS braking\nor strength swells.", REFERENCES[s_example]);
+  } else if (s_view == VIEW_RESULTS) {
+    snprintf(body, sizeof body, "Timeline: %u / 4\nSummary: %u / 4\nReplays: %u / %u", s_mode_correct[0], s_mode_correct[1], s_mode_replays[0], s_mode_replays[1]);
+    footer = "Select: try again\nBack: return";
   } else if (s_view == VIEW_TRIAL) {
     if (s_revealed) {
       snprintf(body, sizeof body, "%s\n%s\n%u / %u correct", s_choice == s_answer ? "Correct" : "Compare again", LESSONS[s_answer], s_correct, s_trial);
-      footer = "Select: next trial";
+      footer = s_trial == 8 ? "Select: results" : "Select: next trial";
     } else {
-      snprintf(body, sizeof body, "Your answer:\n%s", LESSONS[s_choice]);
+      snprintf(body, sizeof body, "%s %u / 8\nYour answer:\n%s", s_summary ? "Summary" : "Timeline", s_trial + 1, LESSONS[s_choice]);
       footer = "Select: replay\nHold Select: answer";
     }
   } else if (s_waiting) { snprintf(body, sizeof body, "Checking...\nPhone must be connected."); footer = "Select: cancel"; }
@@ -289,7 +324,9 @@ static void render(Layer *layer, GContext *ctx) {
     if (s_view == VIEW_LIVE && s_history[s_channel].observed) {
       const PsReading *last = &s_history[s_channel];
       uint32_t now = (uint32_t)time(NULL);
-      if (last->timeline) {
+      if (last->sample_label[0][0]) {
+        snprintf(body, sizeof body, "Old data\n%s %s\n%s %s\n%s %s", last->sample_label[0], last->sample_text[0], last->sample_label[1], last->sample_text[1], last->sample_label[2], last->sample_text[2]);
+      } else if (last->timeline) {
         static const char *const weather[] = {"Dry", "Light", "Rain", "Heavy"};
         static const char *const custom[] = {"None", "Low", "Medium", "High"};
         const char *const *levels = s_channel == PS_WEATHER ? weather : custom;
@@ -319,12 +356,14 @@ static void render(Layer *layer, GContext *ctx) {
       bool current = s_playing && !s_summary && elapsed >= s_pattern.field_start[i] && elapsed < s_pattern.field_end[i];
       if (s_reading.channel == PS_WEATHER)
         snprintf(line, sizeof line, "%s%u-%uh  %s", current ? "> " : "", i * 2, (i + 1) * 2, rain[s_reading.value[i]]);
+      else if (s_reading.sample_label[i][0])
+        snprintf(line, sizeof line, "%s%s %s", current ? "> " : "", s_reading.sample_label[i], s_reading.sample_text[i]);
       else
         snprintf(line, sizeof line, "%s%u: %s", current ? "> " : "", i + 1, ordinal[s_reading.value[i]]);
-      text(ctx, line, FONT_KEY_GOTHIC_24_BOLD, GRect(x, y + 34 + i * 28, w, 30));
+      text(ctx, line, s_reading.sample_label[i][0] ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_24_BOLD, GRect(x, y + 34 + i * 28, w, 30));
     }
     rail(ctx, x, y + h - 44, w);
-    footer = s_summary ? "Summary / hold Up: timeline" : "Select: replay / stop\nHold Up: summary";
+    footer = s_reading.channel == PS_WEATHER ? "Select: replay / stop\nHold Up: summary" : "Select: replay / stop\nHold Down: meaning";
   } else snprintf(body, sizeof body, "%s\n%s", s_reading.label, ps_state_name(s_reading.state));
   if (*body) text(ctx, body, s_detail ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_18_BOLD, GRect(x, y + 32, w, h - 66));
   text(ctx, footer, FONT_KEY_GOTHIC_14, GRect(x, y + h - 32, w, 32));
@@ -363,6 +402,27 @@ void ps_ui_open(bool dark, void (*stop_time)(void), void (*quiet)(uint32_t)) {
     window_set_window_handlers(s_window, (WindowHandlers){.load = load, .unload = unload, .disappear = disappear});
   }
   window_stack_push(s_window, true);
+}
+void ps_ui_open_source(bool dark, void (*stop_time)(void), void (*quiet)(uint32_t), unsigned channel, bool wait_for_phone) {
+  if (channel < 1 || channel > 3) return;
+  ps_ui_open(dark, stop_time, quiet);
+  APP_LOG(APP_LOG_LEVEL_INFO, "favorite source %u, waiting for phone %u", channel, wait_for_phone);
+  stop(); cancel_request(); s_channel = channel; s_view = VIEW_LIVE;
+  s_detail = false; s_summary = false;
+  layer_set_hidden(menu_layer_get_layer(s_menu), true);
+  if (!wait_for_phone) request();
+  else {
+    unknown("Connecting to phone..."); s_waiting = true; s_startup_wait = true;
+    s_timeout = app_timer_register(18000, expired, NULL); redraw();
+  }
+}
+static void startup_request(void *unused) { s_timeout = NULL; request(); }
+void ps_ui_phone_ready(void) {
+  if (!s_startup_wait || !ps_ui_active()) return;
+  s_startup_wait = false;
+  if (s_timeout) app_timer_cancel(s_timeout);
+  // Let the settings reply vacate the single outbox before requesting data.
+  s_timeout = app_timer_register(150, startup_request, NULL);
 }
 bool ps_ui_inbox(DictionaryIterator *iter) {
   Tuple *t = dict_find(iter, MESSAGE_KEY_SIG_DATA);

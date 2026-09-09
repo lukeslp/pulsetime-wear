@@ -47,8 +47,9 @@ assert.deepEqual(messages, [{ REQUEST: 1 }], 'Startup must request the watch set
 const choices = {
   SYSTEM: ['terse_quarter', 'five_minute_ladder', 'decimal_place', 'binary_clock', 'nearest_quarter', 'morse_digits'],
   SPEED: ['slow', 'standard', 'fast'],
-  QL_UP: ['full', 'hours', 'minutes'],
-  QL_DOWN: ['full', 'hours', 'minutes'],
+  QL_UP: ['full', 'hours', 'minutes', 'favorite'],
+  QL_DOWN: ['full', 'hours', 'minutes', 'favorite'],
+  FAVORITE_SIGNAL: ['weather', 'drummer', 'custom'],
   CHIME: ['off', 'hour', 'half', 'quarter'],
   SOUND: ['off', 'with', 'only'],
   THEME: ['bright', 'dark'],

@@ -11,6 +11,12 @@ Learn named examples with visible pulse timing, compare the timeline with
 a first-rain-and-peak summary, feel four stock-inspired references, and try
 an untimed recognition exercise. Existing time lessons remain available.
 
+Choose a favorite source and assign Favorite signal to a Quick Launch button
+for direct access. Existing time shortcuts remain unchanged until selected.
+Custom samples can show names and units, with presets for departures in minutes
+and CPU, memory, and disk usage in percent. The comparison exercise now contains
+eight balanced trials and reports separate timeline and summary scores.
+
 Weather has a three-step setup and uses the phone's location after enabling
 it and granting Pebble location access. Detected coordinates are rounded for
 the forecast and are not saved as location history. Fixed-place weather and

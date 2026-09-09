@@ -32,7 +32,7 @@ available. Hold Select for the menu, then choose Signals.
   package truthful release notes and installation instructions. Physical
   recognition and comfort must be tested on named watches.
 
-## Strength playback: unresolved upstream export
+## Optional strength playback: unresolved upstream export
 
 Observed on September 9, 2026: PebbleOS v4.33.2, v4.36.0 and current main
 declare and implement `vibes_enqueue_custom_pattern_with_amplitudes`, but
@@ -57,12 +57,26 @@ authorized merely by creating a build; prepare the exact candidate first.
 ### Candidate verified September 9, 2026
 
 Version 1.3.0 PBW SHA-256:
-`18337afa5d208c862b15d169e5bf35d175a8b6110144190ba70d980847d36a5b`.
+`f0447deb7dca0b50fe77f987e32eb3d50afcb9a849cce976a9de12c09d7d5228`.
 The local tester kit is under
-`appstores/dist/pebble/signals-1.3.0/18337afa5d20/` with its source archive,
-guide, candidate release notes, checksum manifest, and 24 native frames per target.
+`appstores/dist/pebble/signals-1.3.0/f0447deb7dca/` with its source archive,
+guide, custom-feed contract, candidate release notes, checksum manifest, and
+30 native interaction frames per target (plus five emulator navigation captures).
 
 - SDK 4.33.1 builds exactly emery, flint, and gabbro, including their workers.
+- Favorite signal is opt-in for either Quick Launch button; existing time
+  defaults are preserved. The watch menu can also request the selected source.
+  All three targets passed weather and custom favorite-menu checks. The SDK's
+  emery emulator has no system Settings app, so assigning the OS shortcut and
+  checking its cold-start phone handshake remain physical Time 2 checks.
+- Custom samples now carry bounded labels and unit text. Departures and
+  resource-use presets preserve timestamps and validate measurement ranges;
+  parser and phone tests cover both. Native lessons display both examples on
+  all three targets. No live transit provider is connected by these presets.
+- The recognition exercise shuffles eight trials, one of each weather meaning
+  in each mode, and reports separate scores and replay counts. Every native
+  run completed it; always selecting dry yielded the expected 1/4 in each
+  mode. This validates scoring and balance, not tactile recognition.
 - All three isolated native emulator runs used the packaged companion to
   fetch real weather for an explicit New York City test location. They
   produced current readings and exercised lessons, summary, reference,
@@ -116,8 +130,9 @@ Run `tests/check-native-signals.py <target>` with pebble-tool's Python from
 the Pebble app directory, then `python3 tests/package-signals.py`. Packaging
 rejects emulator evidence that does not match the exact candidate PBW.
 
-Remaining: physical comfort and recognition on named new watches, and supported
-amplitude playback. Drummer's unrelated infrastructure edits and existing
+Remaining: physical comfort and recognition on named new watches. Timing-only
+playback is the supported product path; amplitude is an optional future
+enhancement. Drummer's unrelated infrastructure edits and existing
 source/live differences were preserved during the additive bridge deployment.
 The proposed upstream export patch and read-only diagnostic are in
 [pebble-amplitude-export](pebble-amplitude-export/README.md).

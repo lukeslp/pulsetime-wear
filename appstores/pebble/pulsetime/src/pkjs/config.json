@@ -209,6 +209,10 @@
           {
             "label": "Minutes only",
             "value": "minutes"
+          },
+          {
+            "label": "Favorite signal",
+            "value": "favorite"
           }
         ]
       },
@@ -229,12 +233,37 @@
           {
             "label": "Minutes only",
             "value": "minutes"
+          },
+          {
+            "label": "Favorite signal",
+            "value": "favorite"
           }
         ]
       },
       {
         "type": "text",
         "defaultValue": "Pebble Time 2, Pebble 2 Duo, and Pebble Round 2 report which shortcut opened PulseTime, so each can play a different phrase. Pebble 2 SE, Pebble 2 HR, Pebble Time, and the original Time Round do not: either shortcut plays the whole time. Once PulseTime is open, Up and Down work for hour and minute phrases on every supported model. These choices do not assign the system shortcut."
+      },
+      {
+        "type": "select",
+        "messageKey": "FAVORITE_SIGNAL",
+        "label": "Favorite signal",
+        "defaultValue": "weather",
+        "options": [
+          {
+            "label": "Weather",
+            "value": "weather"
+          },
+          {
+            "label": "Drummer",
+            "value": "drummer"
+          },
+          {
+            "label": "Custom signal",
+            "value": "custom"
+          }
+        ],
+        "description": "Choose Favorite signal for Up or Down above. Assign that button to PulseTime in the watch’s Settings → Quick Launch. A held button then opens your source directly. Existing time shortcuts stay unchanged."
       }
     ]
   },
@@ -617,6 +646,27 @@
         "attributes": {
           "type": "text"
         }
+      },
+      {
+        "type": "select",
+        "messageKey": "SIGNAL_PRESET",
+        "label": "Custom feed meaning",
+        "defaultValue": "custom",
+        "options": [
+          {
+            "label": "Source-defined levels and labels",
+            "value": "custom"
+          },
+          {
+            "label": "Next three departures (minutes)",
+            "value": "departures"
+          },
+          {
+            "label": "CPU / memory / disk used (%)",
+            "value": "resources"
+          }
+        ],
+        "description": "Presets need three measurements from your feed. Departures: more taps means sooner (within 5 / 15 / 30 minutes). Resources: more taps means higher use (under 50 / under 80 / 80–100%). Zero use is quiet."
       },
       {
         "type": "input",

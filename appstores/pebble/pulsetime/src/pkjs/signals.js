@@ -17,8 +17,37 @@ function normalize(raw, now) {
       (raw.detail !== undefined && typeof raw.detail !== 'string')) throw new Error('Invalid or old reading');
   var values = raw.values;
   if (values !== undefined && (!Array.isArray(values) || values.length !== 3 || !values.every(function (v) { return integer(v, 0, 3); }))) throw new Error('Invalid samples');
-  return {observed: raw.observed_at, expires: raw.expires_at, value: values || [0, 0, 0],
+  var reading = {observed: raw.observed_at, expires: raw.expires_at, value: values || [0, 0, 0],
     state: STATES[raw.state], timeline: values ? 1 : 0, label: clean(raw.label, 24), detail: clean(raw.detail, 96)};
+  if (raw.sample_labels !== undefined || raw.sample_text !== undefined) {
+    if (!values || !textArray(raw.sample_labels, 8) || !textArray(raw.sample_text, 12)) throw new Error('Invalid sample meanings');
+    reading.sampleLabels = raw.sample_labels; reading.sampleText = raw.sample_text;
+  }
+  return reading;
+}
+function textArray(values, length) {
+  return Array.isArray(values) && values.length === 3 && values.every(function (value) {
+    return typeof value === 'string' && value.trim() && value.length <= length && clean(value, length) === value;
+  });
+}
+function preset(raw, choice) {
+  if (!choice || choice === 'custom') return raw;
+  if (choice !== 'departures' && choice !== 'resources') throw new Error('Unknown preset');
+  var values = raw && raw.measurements;
+  if (!Array.isArray(values) || values.length !== 3 || !values.every(function (value) {
+    return typeof value === 'number' && isFinite(value) && value >= 0 && value <= (choice === 'resources' ? 100 : 9999);
+  })) throw new Error('Preset requires three measurements');
+  if (choice === 'departures' && (values[0] > values[1] || values[1] > values[2])) throw new Error('Departures must be ordered');
+  var result = {};
+  Object.keys(raw).forEach(function (key) { result[key] = raw[key]; });
+  result.values = values.map(function (value) {
+    return choice === 'departures' ? (value <= 5 ? 3 : value <= 15 ? 2 : value <= 30 ? 1 : 0) :
+      (value === 0 ? 0 : value < 50 ? 1 : value < 80 ? 2 : 3);
+  });
+  result.sample_labels = choice === 'departures' ? ['Next', '2nd', '3rd'] : ['CPU', 'Memory', 'Disk'];
+  result.sample_text = values.map(function (value) { return (Math.round(value * 10) / 10) + (choice === 'departures' ? ' min' : '%'); });
+  result.detail = choice === 'departures' ? 'Minutes until departures. More taps means sooner.' : 'CPU, memory, disk used. More taps means higher use.';
+  return result;
 }
 function weather(raw, now) {
   var h = raw && raw.hourly;
@@ -44,8 +73,11 @@ function weather(raw, now) {
     label: 'Rain forecast', detail: 'Next 6h: ' + values.map(function(v) { return names[v]; }).join(' / ') + '. Model forecast.'};
 }
 function wire(reading, id, channel) {
-  return [1, id, channel, reading.observed, reading.expires].concat(reading.value,
-    [reading.state, reading.timeline, clean(reading.label, 24), clean(reading.detail, 96)]).join('|');
+  var rich = channel === 3 && reading.sampleLabels;
+  var fields = [rich ? 2 : 1, id, channel, reading.observed, reading.expires].concat(reading.value,
+    [reading.state, reading.timeline, clean(reading.label, 24), clean(reading.detail, rich ? 64 : 96)]);
+  if (rich) for (var i = 0; i < 3; ++i) fields.push(reading.sampleLabels[i], reading.sampleText[i]);
+  return fields.join('|');
 }
 
 function create(deps) {
@@ -115,7 +147,7 @@ function create(deps) {
       if (xhr.responseText.length > 65536 || now - started > 20) { fail('Response too large or too late.'); return; }
       try {
         var raw = JSON.parse(xhr.responseText);
-        respond(channel === 1 ? weather(raw, now) : normalize(raw, now));
+        respond(channel === 1 ? weather(raw, now) : normalize(channel === 3 ? preset(raw, config.SIGNAL_PRESET) : raw, now));
       } catch (e) { fail('Missing, invalid or old source data.'); }
     };
     xhr.onerror = xhr.ontimeout = function () { if (finish()) fail('No connection to source.'); };
@@ -128,4 +160,4 @@ function create(deps) {
   }
   return {request: request, cancel: cancel};
 }
-module.exports = {create: create, normalize: normalize, weather: weather, wire: wire, https: https};
+module.exports = {create: create, normalize: normalize, weather: weather, wire: wire, https: https, preset: preset};

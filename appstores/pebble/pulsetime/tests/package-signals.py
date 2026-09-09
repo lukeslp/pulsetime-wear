@@ -22,6 +22,7 @@ for target in ('emery', 'flint', 'gabbro'):
     assert report['pbwSHA256'] == digest and report['liveWeather'], 'Native evidence does not match this PBW'
     assert report['idleExpiryChecked'] and report['failedSourceAndRestartChecked'], 'Freshness checks are missing'
     assert report['authenticatedChannels'] == [2, 3], 'Authenticated source checks are missing'
+    assert report['balancedComparisonChecked'] and report['favoriteMenuChecked'], 'Favorite and comparison checks are missing'
     evidence_files.append(report_file)
     for frame in report['frames']:
         assert Path(frame).name == frame and frame.startswith(target + '-') and frame.endswith('.png')
@@ -29,6 +30,7 @@ for target in ('emery', 'flint', 'gabbro'):
 shutil.copyfile(pbw, out / f'pulsetime-{version}.pbw')
 shutil.copyfile(root / 'GUIDE.md', out / 'GUIDE.md')
 shutil.copyfile(root / 'store/signals-release-notes.md', out / 'RELEASE-NOTES.md')
+shutil.copyfile(repo / 'docs/pebble-signal-feeds.md', out / 'CUSTOM-FEEDS.md')
 source = out / f'pulsetime-{version}-source.zip'
 files = [root / 'package.json', root / 'wscript', root / 'GUIDE.md', root / 'store/signals-release-notes.md']
 for directory in ('src', 'worker_src', 'resources'):
@@ -38,6 +40,7 @@ with zipfile.ZipFile(source, 'w', zipfile.ZIP_DEFLATED) as archive:
         assert not file.is_symlink()
         archive.write(file, 'pulsetime/' + file.relative_to(root).as_posix())
     archive.write(repo / 'LICENSE', 'pulsetime/LICENSE')
+    archive.write(repo / 'docs/pebble-signal-feeds.md', 'pulsetime/CUSTOM-FEEDS.md')
     archive.writestr('pulsetime/BUILD.txt', 'Install Pebble SDK 4.33.1 and pebble-tool 5.0.39 or compatible.\nRun pebble build in this directory. No npm install is needed.\nThis candidate supports Time 2, 2 Duo, and Round 2.\nIt is not a published release or a physical tactile validation.\n')
 rebuild = Path(tempfile.mkdtemp(prefix='signals-rebuild-', dir=root / 'build'))
 with zipfile.ZipFile(source) as archive: archive.extractall(rebuild)

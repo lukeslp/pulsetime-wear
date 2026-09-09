@@ -15,22 +15,34 @@ static bool number(const char **cursor, uint32_t *out) {
   *cursor = s; *out = value; return true;
 }
 
+static bool field(const char **cursor, char *out, size_t cap, bool last, bool required) {
+  const char *end = last ? *cursor + strlen(*cursor) : strchr(*cursor, '|');
+  if (!end || (required && end == *cursor) || (size_t)(end - *cursor) >= cap) return false;
+  for (const char *p = *cursor; p < end; ++p) if (*p == '|' || (unsigned char)*p < 32 || (unsigned char)*p > 126) return false;
+  memcpy(out, *cursor, end - *cursor); out[end - *cursor] = 0;
+  *cursor = last ? end : end + 1; return true;
+}
+
 bool ps_decode(const char *wire, PsReading *r) {
   if (!wire || !r || strlen(wire) > 240) return false;
   uint32_t f[10];
   const char *s = wire;
   for (unsigned i = 0; i < 10; ++i) if (!number(&s, &f[i])) return false;
-  if (f[0] != 1 || !f[1] || f[2] < 1 || f[2] > 3 || f[5] > 3 ||
+  if ((f[0] != 1 && f[0] != 2) || !f[1] || f[2] < 1 || f[2] > 3 || f[5] > 3 ||
       f[6] > 3 || f[7] > 3 || f[8] > PS_DOWN || f[9] > 1) return false;
   if (f[4] <= f[3] || f[4] - f[3] > 86400) return false;
-  const char *split = strchr(s, '|');
-  if (!split || split == s || split - s > 24 || strlen(split + 1) > 96 || strchr(split + 1, '|')) return false;
-  for (const char *p = s; *p; ++p) if ((unsigned char)*p < 32 || (unsigned char)*p > 126) return false;
   memset(r, 0, sizeof *r);
   r->request = f[1]; r->channel = f[2]; r->observed = f[3]; r->expires = f[4];
   r->value[0] = f[5]; r->value[1] = f[6]; r->value[2] = f[7]; r->state = f[8]; r->timeline = f[9];
-  memcpy(r->label, s, (size_t)(split - s));
-  strcpy(r->detail, split + 1);
+  if (!field(&s, r->label, sizeof r->label, false, true) ||
+      !field(&s, r->detail, sizeof r->detail, f[0] == 1, false)) return false;
+  if (f[0] == 2) {
+    if (!r->timeline || r->channel != PS_CUSTOM) return false;
+    for (unsigned i = 0; i < 3; ++i) {
+      if (!field(&s, r->sample_label[i], sizeof r->sample_label[i], false, true) ||
+          !field(&s, r->sample_text[i], sizeof r->sample_text[i], i == 2, true)) return false;
+    }
+  }
   return true;
 }
 

@@ -51,6 +51,8 @@
 #define PERSIST_GUIDE_DONE 12
 #define PERSIST_THEME 13
 #define PERSIST_STYLE 14
+#define PERSIST_FAVORITE 15
+#define QUICK_FAVORITE 3
 
 static bool s_dark = false;
 static bool s_classic = false;
@@ -104,11 +106,16 @@ static bool s_flick = false; // "Flick to tell time": run the background worker
 // `(0)` -- BUTTON_ID_BACK -- so these settings simply never match and every
 // launch plays the whole time. That degradation needs no #ifdef, but it does
 // need saying out loud on the config page.
-static PtScope s_ql_up = PT_SCOPE_FULL;
-static PtScope s_ql_down = PT_SCOPE_FULL;
+static int s_ql_up = PT_SCOPE_FULL;
+static int s_ql_down = PT_SCOPE_FULL;
 // The scope this particular launch asked for; button presses afterwards always
 // play the whole time, so there is always a way back to it.
-static PtScope s_launch_scope = PT_SCOPE_FULL;
+static int s_launch_scope = PT_SCOPE_FULL;
+static unsigned s_favorite = 1;
+static const char *quick_id(int choice) { return choice == QUICK_FAVORITE ? "favorite" : pt_scope_storage_id((PtScope)choice); }
+static const char *quick_label(int choice) { return choice == QUICK_FAVORITE ? "Favorite signal" : pt_scope_label((PtScope)choice); }
+static const char *favorite_id(int choice) { return (const char *const[]){"weather", "drummer", "custom"}[choice]; }
+static const char *favorite_label(void) { return (const char *const[]){"Weather", "Drummer", "Custom signal"}[s_favorite - 1]; }
 
 // Sound. The Pebble Time 2 and Pebble 2 Duo have a speaker (PBL_SPEAKER), and
 // for an eyes-free clock a second channel is not a garnish -- for many wearers
@@ -238,12 +245,14 @@ static void load_settings(void) {
   if (persist_exists(PERSIST_FLICK)) s_flick = persist_read_bool(PERSIST_FLICK);
   if (persist_exists(PERSIST_QL_UP)) {
     int32_t v = persist_read_int(PERSIST_QL_UP);
-    if (v >= 0 && v <= PT_SCOPE_MINUTES) s_ql_up = (PtScope)v;
+    if (v >= 0 && v <= QUICK_FAVORITE) s_ql_up = (PtScope)v;
   }
   if (persist_exists(PERSIST_QL_DOWN)) {
     int32_t v = persist_read_int(PERSIST_QL_DOWN);
-    if (v >= 0 && v <= PT_SCOPE_MINUTES) s_ql_down = (PtScope)v;
+    if (v >= 0 && v <= QUICK_FAVORITE) s_ql_down = (PtScope)v;
   }
+  int favorite = persist_read_int(PERSIST_FAVORITE);
+  if (favorite >= 1 && favorite <= 3) s_favorite = favorite;
   if (persist_exists(PERSIST_SOUND)) {
     int32_t v = persist_read_int(PERSIST_SOUND);
     if (v >= 0 && v < PT_SOUND_COUNT) s_sound = (PtSound)v;
@@ -269,6 +278,7 @@ static void load_settings(void) {
 static void save_settings(void) {
   persist_write_int(PERSIST_THEME, s_dark);
   persist_write_int(PERSIST_STYLE, s_classic);
+  persist_write_int(PERSIST_FAVORITE, s_favorite);
   persist_write_int(PERSIST_SYSTEM, (int32_t)s_system);
   persist_write_int(PERSIST_SPEED, (int32_t)s_speed);
   persist_write_bool(PERSIST_EXACT, s_exact);
@@ -294,8 +304,9 @@ static void send_settings_to_phone(void) {
   dict_write_cstring(iter, MESSAGE_KEY_SPEED, pt_speed_storage_id(s_speed));
   dict_write_uint8(iter, MESSAGE_KEY_EXACT_MINUTES, s_exact ? 1 : 0);
   dict_write_uint8(iter, MESSAGE_KEY_FLICK_LAUNCH, s_flick ? 1 : 0);
-  dict_write_cstring(iter, MESSAGE_KEY_QL_UP, pt_scope_storage_id(s_ql_up));
-  dict_write_cstring(iter, MESSAGE_KEY_QL_DOWN, pt_scope_storage_id(s_ql_down));
+  dict_write_cstring(iter, MESSAGE_KEY_FAVORITE_SIGNAL, favorite_id(s_favorite - 1));
+  dict_write_cstring(iter, MESSAGE_KEY_QL_UP, quick_id(s_ql_up));
+  dict_write_cstring(iter, MESSAGE_KEY_QL_DOWN, quick_id(s_ql_down));
   dict_write_cstring(iter, MESSAGE_KEY_SOUND, sound_id_of((int)s_sound));
   dict_write_uint8(iter, MESSAGE_KEY_VOLUME, s_volume_choice);
   dict_write_cstring(iter, MESSAGE_KEY_CHIME, chime_id_of((int)s_chime));
@@ -603,7 +614,7 @@ static void wakeup_handler(WakeupId id, int32_t cookie) {
 // Which half of the time this launch asked for. Only Quick Launch carries a
 // button; a launch from the menu, the phone, or the worker always means the
 // whole time.
-static PtScope launch_scope(void) {
+static int launch_scope(void) {
   if (launch_reason() != APP_LAUNCH_QUICK_LAUNCH) return PT_SCOPE_FULL;
   switch (launch_button()) {
     case BUTTON_ID_UP: return s_ql_up;
@@ -944,9 +955,9 @@ static uint16_t menu_rows(MenuLayer *menu, uint16_t section, void *c) {
     case MENU_LANGUAGE: return CYCLE_COUNT;
     case MENU_SPEED: return PT_SPEED_COUNT;
     case MENU_DISPLAY: return 4;
-    case MENU_QUICK: return reports_launch_button() ? 3 : 1;
+    case MENU_QUICK: return reports_launch_button() ? 4 : 1;
     case MENU_STATUS: return 3;
-    default: return 8;
+    default: return 9;
   }
 }
 static int16_t menu_height(MenuLayer *menu, MenuIndex *index, void *c) {
@@ -958,8 +969,8 @@ static void menu_draw_row(GContext *ctx, const Layer *cell, MenuIndex *index, vo
   char detail[48];
   switch (s_menu_kind) {
     case MENU_HOME: {
-      static const char *const titles[] = { "Learn pattern", "Practice", "Language", "Speed", "Display", "Quick Launch", "Watch status", "Signals" };
-      static const char *const subtitles[] = { "Hours, minutes, then all", "22 known times", "Compare seven choices", "Slow, standard, fast", "Bright / dark, bold / row", "Set up the side buttons", "Chimes and wrist flick", "Weather, drummer, your data" };
+      static const char *const titles[] = { "Learn pattern", "Practice", "Language", "Speed", "Display", "Quick Launch", "Watch status", "Signals", "Favorite signal" };
+      static const char *const subtitles[] = { "Hours, minutes, then all", "22 known times", "Compare seven choices", "Slow, standard, fast", "Bright / dark, bold / row", "Set up the side buttons", "Chimes and wrist flick", "Weather, drummer, your data", "Ask your selected source" };
       title = titles[row]; sub = subtitles[row]; break;
     }
     case MENU_LANGUAGE:
@@ -971,7 +982,8 @@ static void menu_draw_row(GContext *ctx, const Layer *cell, MenuIndex *index, vo
       sub = row == s_dark + 2 * s_classic ? "Selected" : "Select: apply"; break;
     case MENU_QUICK:
       if (row == 0) { title = "Set up buttons"; sub = "Watch Settings first"; }
-      else { title = row == 1 ? "Up plays" : "Down plays"; sub = pt_scope_label(row == 1 ? s_ql_up : s_ql_down); }
+      else if (row == 3) { title = "Favorite signal"; sub = favorite_label(); }
+      else { title = row == 1 ? "Up plays" : "Down plays"; sub = quick_label(row == 1 ? s_ql_up : s_ql_down); }
       break;
     case MENU_STATUS:
       if (row == 0) { title = flick_line(); sub = s_flick_note ? "Check phone settings" : "Double wrist-tap worker"; }
@@ -985,6 +997,7 @@ static void menu_select(MenuLayer *menu, MenuIndex *index, void *c) {
   int row = index->row;
   stop_playback();
   if (s_menu_kind == MENU_HOME) {
+    if (row == 8) { ps_ui_open_source(s_dark, stop_playback, quiet_worker, s_favorite, false); return; }
     if (row == 7) { ps_ui_open(s_dark, stop_playback, quiet_worker); return; }
     if (row == 0) { open_guide(0); return; }
     if (row == 1) { open_practice(); return; }
@@ -1005,9 +1018,12 @@ static void menu_select(MenuLayer *menu, MenuIndex *index, void *c) {
     menu_layer_set_highlight_colors(s_menu, ink(), paper());
   } else if (s_menu_kind == MENU_QUICK) {
     if (row == 0) { open_guide(7); return; }
-    PtScope *scope = row == 1 ? &s_ql_up : &s_ql_down;
-    *scope = (PtScope)((*scope + 1) % 3);
-    play_time_scoped(PT_CUE_NONE, 0, *scope);
+    if (row == 3) s_favorite = s_favorite % 3 + 1;
+    else {
+      int *scope = row == 1 ? &s_ql_up : &s_ql_down;
+      *scope = (*scope + 1) % 4;
+      if (*scope != QUICK_FAVORITE) play_time_scoped(PT_CUE_NONE, 0, (PtScope)*scope);
+    }
   } else return;
   save_settings(); send_settings_to_phone();
   menu_layer_reload_data(s_menu);
@@ -1197,7 +1213,7 @@ static bool read_choice(Tuple *t, const char *(*id_of)(int), int count, int *out
 
 static const char *system_id_of(int i) { return pt_system_storage_id((PtSystem)i); }
 static const char *speed_id_of(int i) { return pt_speed_storage_id((PtSpeed)i); }
-static const char *scope_id_of(int i) { return pt_scope_storage_id((PtScope)i); }
+static const char *scope_id_of(int i) { return quick_id(i); }
 
 static void inbox_received(DictionaryIterator *iter, void *context) {
   if (ps_ui_inbox(iter)) return;
@@ -1247,14 +1263,17 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
       (uint8_t)vol != s_volume_choice) {
     s_volume_choice = (uint8_t)vol; changed = true;
   }
-  if (read_choice(dict_find(iter, MESSAGE_KEY_QL_UP), scope_id_of, PT_SCOPE_MINUTES + 1, &v) &&
+  if (read_choice(dict_find(iter, MESSAGE_KEY_QL_UP), scope_id_of, QUICK_FAVORITE + 1, &v) &&
       v != (int)s_ql_up) {
     s_ql_up = (PtScope)v; scopes_changed = true;
   }
-  if (read_choice(dict_find(iter, MESSAGE_KEY_QL_DOWN), scope_id_of, PT_SCOPE_MINUTES + 1, &v) &&
+  if (read_choice(dict_find(iter, MESSAGE_KEY_QL_DOWN), scope_id_of, QUICK_FAVORITE + 1, &v) &&
       v != (int)s_ql_down) {
     s_ql_down = (PtScope)v; scopes_changed = true;
   }
+
+  if (read_choice(dict_find(iter, MESSAGE_KEY_FAVORITE_SIGNAL), favorite_id, 3, &v) &&
+      v + 1 != (int)s_favorite) { s_favorite = v + 1; scopes_changed = true; }
 
   // A REQUEST asks what the watch is using. Apply anything that came with it
   // first, or the answer would report settings the watch never adopted.
@@ -1275,6 +1294,7 @@ static void inbox_received(DictionaryIterator *iter, void *context) {
   if (chime_changed) reschedule_chimes();
   if (requested) {
     send_settings_to_phone();
+    ps_ui_phone_ready();
     return; // answering a query is not a reason to buzz
   }
   if (changed) {
@@ -1366,7 +1386,10 @@ static void init(void) {
   // The whole point: tell the time on launch, in whatever scope the gesture
   // asked for. A chime launch already played above.
   if (!s_auto_exit) {
-    if (!persist_read_bool(PERSIST_GUIDE_DONE) &&
+    if (s_launch_scope == QUICK_FAVORITE) {
+      APP_LOG(APP_LOG_LEVEL_INFO, "favorite shortcut: channel %u", s_favorite);
+      ps_ui_open_source(s_dark, stop_playback, quiet_worker, s_favorite, true);
+    } else if (!persist_read_bool(PERSIST_GUIDE_DONE) &&
         (launch_reason() == APP_LAUNCH_USER || launch_reason() == APP_LAUNCH_PHONE)) {
       open_guide(0);
     } else play_time_scoped(PT_CUE_NONE, 0, s_launch_scope);

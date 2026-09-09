@@ -10,6 +10,14 @@ Hold Select from the clock, choose **Signals**, then choose Weather,
 Drummer, or Custom signal. Select replays or stops. Hold Select refreshes;
 Up and Down switch source. Back returns to the menu. Hold Down shows details.
 
+For direct access, open **Quick Launch** in PulseTime's menu or phone settings.
+Choose a **Favorite signal**, then set Up or Down to **Favorite signal**.
+Assign that same button to PulseTime in the watch's **Settings → Quick Launch**.
+Hold it from the watchface to request your source directly. Existing time
+shortcuts stay as they were until you change them. The app waits for its phone
+connection before requesting data. **Favorite signal** in the main app menu
+also opens the selected source without choosing a channel again.
+
 In the phone app, open PulseTime's settings and follow **Weather · Set up in
 three steps**. Enable weather, save, and allow location for the Pebble phone
 app if prompted. Saving checks location without fetching weather. Reopen
@@ -28,6 +36,14 @@ token stored on the phone. The Drummer token input has been removed; already
 configured private connections keep their existing credential. Time and
 weather require no feed URL or token.
 
+Custom feeds can supply short sample names and values with units. Two presets
+are available in Advanced: **Next three departures (minutes)** makes nearer
+departures denser, and **CPU / memory / disk used (%)** makes higher usage
+denser. They require measurements from your feed; selecting a preset does not
+connect a transit or server account. **Learn signals** includes both examples.
+Hold Down for the meaning. Custom readings use a timeline, with no weather
+summary that might imply their samples represent forecast hours.
+
 One short opening tap means weather, two mean Drummer, three mean custom.
 Weather then plays three equal windows for the next two, four, and six hours:
 quiet for dry, sparse patter for light rain, denser patter for heavier rain.
@@ -39,8 +55,12 @@ the pulse timing, and a moving mark follows playback. Summary names the
 first wet window and peak rain; it does not predict an exact onset time.
 
 Use **Learn signals** for known examples and **Try without looking** for an
-untimed four-choice weather exercise. It still needs visual setup and answer
-selection. **Feel references** offers four stock-inspired timing patterns;
+eight-trial weather comparison. Each meaning appears once as a timeline and
+once as a summary, in shuffled order. Select replays or stops; Up/Down chooses
+an answer, and hold Select reveals it. After eight answers, Select shows each
+mode's score out of four and its replay count. These small scores are a design
+comparison, not a verdict on your ability. It still needs visual setup and
+answer selection. **Feel references** offers four stock-inspired timing patterns;
 it does not reproduce OS braking or per-step strength. Set overall vibration
 strength in the watch's system settings and use **Playback** to feel two taps.
 

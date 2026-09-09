@@ -8,6 +8,11 @@ int main(void) {
   assert(ps_decode("1|123|1|1000|1500|0|1|3|1|1|Rain|Next 6h", &r));
   assert(r.request == 123 && r.timeline && r.value[2] == 3);
   assert(!ps_fresh(&r, 999) && ps_fresh(&r, 1000) && ps_fresh(&r, 1499) && !ps_fresh(&r, 1500));
+  assert(ps_decode("2|123|3|1000|1500|3|2|1|1|1|Bus 12|Minutes until departure|Next|2 min|2nd|10 min|3rd|25 min", &r));
+  assert(!strcmp(r.sample_label[0], "Next") && !strcmp(r.sample_text[2], "25 min"));
+  assert(!ps_decode("2|123|3|1000|1500|3|2|1|1|1|Bus|x|Next|2 min|2nd|10 min|3rd|25 min|extra", &r));
+  assert(!ps_decode("2|123|3|1000|1500|3|2|1|1|1|Bus|x|Next||2nd|10 min|3rd|25 min", &r));
+  assert(!ps_decode("2|123|1|1000|1500|3|2|1|1|1|Rain|x|Next|2 min|2nd|10 min|3rd|25 min", &r));
   const char *bad[] = {
     "1|0|1|1000|1500|0|1|3|1|1|Rain|x", "1|123|4|1000|1500|0|1|3|1|1|Rain|x",
     "1|123|1|1000|1500|0|1|4|1|1|Rain|x", "1|123|1|1000|999|0|1|3|1|1|Rain|x",

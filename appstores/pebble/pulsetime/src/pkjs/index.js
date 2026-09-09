@@ -20,7 +20,7 @@ var signals = require('./signals').create({settings: settings, now: Date.now,
   xhr: function () { return new XMLHttpRequest(); },
   send: function (data, success, failure) { Pebble.sendAppMessage(data, success, failure); }});
 var watchKeys = ['SYSTEM','SPEED','EXACT_MINUTES','FLICK_LAUNCH','QL_UP','QL_DOWN',
-  'SOUND','VOLUME','CHIME','QUIET_FROM','QUIET_TO','THEME','STYLE'];
+  'SOUND','VOLUME','CHIME','QUIET_FROM','QUIET_TO','THEME','STYLE','FAVORITE_SIGNAL'];
 var formBaseline = null;
 Pebble.addEventListener('showConfiguration', function () {
   formBaseline = settings();
@@ -67,7 +67,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
 
 var SYSTEMS = ['terse_quarter', 'five_minute_ladder', 'decimal_place', 'binary_clock', 'nearest_quarter', 'morse_digits'];
 var SPEEDS = ['slow', 'standard', 'fast'];
-var SCOPES = ['full', 'hours', 'minutes'];
+var SCOPES = ['full', 'hours', 'minutes', 'favorite'];
 var CHIMES = ['off', 'hour', 'half', 'quarter'];
 var SOUNDS = ['off', 'with', 'only'];
 var THEMES = ['bright', 'dark'];
@@ -95,6 +95,10 @@ function mirror(payload) {
     var scope = pick(payload[key], SCOPES);
     if (scope) settings[key] = scope;
   });
+  if (payload.FAVORITE_SIGNAL !== undefined) {
+    var favorite = pick(payload.FAVORITE_SIGNAL, ['weather', 'drummer', 'custom']);
+    if (favorite) settings.FAVORITE_SIGNAL = favorite;
+  }
   if (payload.CHIME !== undefined) {
     var chime = pick(payload.CHIME, CHIMES);
     if (chime) settings.CHIME = chime;

@@ -120,11 +120,17 @@ def run(platform, private_config=None):
         click('Back')  # signals menu
         for _ in range(3): click('Down')
         click('Select'); capture('lesson-dry'); click('Down'); capture('lesson-rain-early')
-        click('Up', 1); capture('lesson-summary'); click('Back')
+        click('Up', 1); capture('lesson-summary')
+        for _ in range(7): click('Down')
+        capture('lesson-departures'); click('Down', 1); capture('departure-meaning'); click('Back')
+        click('Down'); capture('lesson-resources'); click('Back')
         click('Down'); click('Select'); capture('references')
         click('Back'); click('Down'); click('Select'); capture('playback')
         click('Back'); click('Down'); click('Select'); capture('trial')
         click('Select', 1); capture('trial-answer')
+        for _ in range(7): click('Select'); click('Select', 1)
+        click('Select'); capture('comparison-results')
+        assert any('comparison complete: timeline 1, summary 1' in line for line in logs), 'Balanced trial did not contain each meaning once per mode'
         click('Back'); click('Down'); click('Select')
         for page in range(5): capture(f'help-{page + 1}'); click('Select')
         if private_config:
@@ -148,6 +154,18 @@ def run(platform, private_config=None):
             assert any('signal history loaded: 2' in line for line in logs[start:]), 'Restart lost Drummer history'
             assert any('signal 2 state 0' in line for line in logs[start:]), 'Restart treated failed source as current'
             capture('drummer-history-after-restart')
+            click('Back'); click('Back'); click('Down')
+            start = len(logs); click('Select'); time.sleep(4)
+            assert any('favorite source 1' in line for line in logs[start:]), 'Favorite menu entry did not open weather'
+            capture('favorite-weather')
+            watch.transport.send_packet(WebSocketPhonesimAppConfig(config=AppConfigSetup()), target=MessageTargetPhone())
+            time.sleep(1)
+            watch.transport.send_packet(WebSocketPhonesimAppConfig(config=AppConfigResponse(
+                data=json.dumps({'FAVORITE_SIGNAL': 'custom', 'QL_UP': 'favorite'}))), target=MessageTargetPhone())
+            time.sleep(2); click('Back'); click('Back')
+            start = len(logs); click('Select'); time.sleep(4)
+            assert any('favorite source 3' in line for line in logs[start:]), 'Phone favorite choice did not reach watch'
+            capture('favorite-custom')
         assert hashlib.sha256(pbw.read_bytes()).hexdigest() == digest
         assert any('signal 1 state' in line for line in logs), 'Never reached signal playback'
         assert not any('crash' in line.lower() or 'fault' in line.lower() for line in logs)
@@ -155,6 +173,7 @@ def run(platform, private_config=None):
                       authenticatedChannels=authenticated_channels,
                       idleExpiryChecked=2 in authenticated_channels,
                       failedSourceAndRestartChecked=bool(private_config),
+                      balancedComparisonChecked=True, favoriteMenuChecked=bool(private_config),
                       testLocation='New York City', frames=frames, logs=logs,
                       checkedAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                       limits='Native emulator and packaged companion; no physical perception evidence.')

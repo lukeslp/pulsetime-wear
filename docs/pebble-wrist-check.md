@@ -35,7 +35,8 @@ This candidate has timing control, not per-step strength or OS motor braking.
 ## Learn before scoring
 
 Open Learn signals. Up and Down move through dry, early rain, late rain,
-unknown, healthy, busy, degraded, and down. Select replays or stops.
+unknown, healthy, busy, degraded, down, bus arrivals, and resource use.
+Select replays or stops.
 
 For weather, identify the opening tap, three equal windows, and closing pulse.
 Each window lasts 1.4 seconds and represents two forecast hours. Dry has
@@ -46,20 +47,22 @@ tester can explain its meaning; record how much practice was needed.
 
 ## Weather recognition
 
-Use Try without looking for 12 trials. Listen by touch before looking at the
+Use Try without looking for eight trials. Listen by touch before looking at the
 answer choices. Record the first answer and replay count. Up/Down select an
 answer; hold Select reveals it, and Select starts another trial. The screen
 and answer selection still require vision or a helper: this is not a claim
-of independent blind onboarding. The app chooses randomly, so record the
-actual example distribution rather than assuming it is balanced.
+of independent blind onboarding. The app shuffles eight presentations:
+dry, early rain, late rain, and unknown
+appear once in each mode. After the last answer, Select shows separate scores
+and replay counts for timeline and summary.
 
 | Trial | First answer | Revealed meaning | Replays | Comfortable? |
 |---|---|---|---|---|
-| 1–12: use one row per trial | | | | |
+| 1–8: use one row per trial | | | | |
 
 Pay particular attention to dry/unknown confusions and early/late reversals.
 Any dry/unknown confusion requires revisiting those cues before release.
-Report counts by meaning, not only an overall percentage. Twelve trials are
+Report counts by meaning, not only an overall percentage. Eight trials are
 an initial design check, not proof of general usability.
 
 ## Compare timeline and summary
@@ -68,7 +71,8 @@ With a helper operating Learn signals out of view, present the same dry,
 early-rain, and late-rain examples in both modes. Alternate which mode comes
 first. For each presentation, ask “When is the first wet window?” and “What
 is the peak rain category?” Record the answer before revealing the screen.
-The app's randomized exercise does not test summary mode.
+This helper-led comparison can follow the app's eight-trial exercise when
+you want to explain why one mode was easier.
 
 | Example | Mode first | Timeline answer / replays | Summary answer / replays | Preferred / why |
 |---|---|---|---|---|
@@ -79,6 +83,14 @@ The app's randomized exercise does not test summary mode.
 Do not use the live forecast as the answer key: it can change between requests.
 
 ## Service states and controls
+
+For the favorite shortcut, select a favorite source in PulseTime settings,
+set Up plays to Favorite signal, and assign PulseTime to Up under the watch's
+Settings > Quick Launch. Return to the watchface, then hold Up. Check that the
+source opens and returns a reading without first playing the time. Repeat
+with the phone disconnected: it should finish as unavailable, and Select
+should cancel the pending request. Restore your preferred time binding after
+testing if desired. The SDK emulator did not validate this OS shortcut path.
 
 Have the helper present each of healthy, busy, degraded, down, and unknown
 twice in a shuffled order using Learn signals. Record intended state, first
