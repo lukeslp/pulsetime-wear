@@ -8,6 +8,7 @@ That request became PulseTime: a clock with known-time lessons to help you
 learn the rhythm, and large, high-contrast digits for anyone who can use them.
 
 **License:** MIT · A small project for friends and anyone it helps.
+See [source and artwork notices](NOTICES.md) for the bundled dependency and graphics.
 
 Created by **Luke Steuber**. PulseTime is a standalone project with its own
 packages and settings.
@@ -227,7 +228,7 @@ build does not establish store publication.
   no PulseTime process resident between scheduled chimes. Battery impact has
   not been measured.
   Canonical source: `appstores/pebble/pulsetime/BUILD.md`. Root-level
-  CloudPebble import: [`lukeslp/pebble-pulsetime`](https://github.com/lukeslp/pebble-pulsetime).
+  CloudPebble import: [`ambient-time/pebble-pulsetime`](https://github.com/ambient-time/pebble-pulsetime).
 - `appstores/pebble/pulsetime-face/`: the same clock as a **watchface**, for
   wearers who want the time under a double-tap with nothing to open and no
   scheduling involved. The canonical app and face use the same encoder through
@@ -236,7 +237,7 @@ build does not establish store publication.
   chimes that survive that, use the watchapp's.
   Canonical source: `appstores/pebble/pulsetime-face/BUILD.md`. Root-level
   CloudPebble import:
-  [`lukeslp/pebble-pulsetime-face`](https://github.com/lukeslp/pebble-pulsetime-face).
+  [`ambient-time/pebble-pulsetime-face`](https://github.com/ambient-time/pebble-pulsetime-face).
 - On the Pebble Time 2 and Pebble 2 Duo, PulseTime can also play the pattern
   through the **speaker**. Tones use pitch to distinguish the encoder's strength
   layers, which a Pebble vibration motor cannot reproduce.

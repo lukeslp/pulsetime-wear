@@ -40,7 +40,7 @@ perception still need testing on the wearer's watch.
 ## CloudPebble import
 
 This directory is canonical. The private
-[`lukeslp/pebble-pulsetime-face`](https://github.com/lukeslp/pebble-pulsetime-face)
+[`ambient-time/pebble-pulsetime-face`](https://github.com/ambient-time/pebble-pulsetime-face)
 repository is its self-contained, root-level CloudPebble mirror. The mirror
 materializes the shared encoder symlinks so CloudPebble can build it without the
 sibling watchapp directory. Preserve UUID

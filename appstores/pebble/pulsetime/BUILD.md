@@ -90,7 +90,7 @@ bash appstores/pebble/pulsetime-face/tests/check-display.sh
 ## CloudPebble import
 
 This directory is canonical. The private
-[`lukeslp/pebble-pulsetime`](https://github.com/lukeslp/pebble-pulsetime)
+[`ambient-time/pebble-pulsetime`](https://github.com/ambient-time/pebble-pulsetime)
 repository is its self-contained, root-level CloudPebble mirror. Preserve UUID
 `e69d82c1-73f1-4b29-a50f-06d17edd13b2` across both copies. This package has
 `watchface: false`, so it is submitted to the Pebble Appstore as an **app**, in
