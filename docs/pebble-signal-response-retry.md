@@ -5,8 +5,8 @@ By Luke Steuber. October 3, 2026.
 ## Scope and decision
 
 The phone companion currently discards a fetched signal response after one
-failed AppMessage delivery. Preserve the same response bytes and retry transient
-delivery failures at most four times, 250 ms apart. Stop before the reading
+failed AppMessage delivery. Preserve the same response bytes and make at most
+four delivery attempts, with 250 ms between retries. Stop before the reading
 expires or 18 seconds after the phone received the original request, whichever
 comes first. The watch's existing request deadline remains unchanged.
 
