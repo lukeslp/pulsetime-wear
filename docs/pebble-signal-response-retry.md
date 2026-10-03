@@ -21,6 +21,8 @@ or standalone mirrors, or publish the Signals candidate.
 - Synchronous transport errors and asynchronous failure callbacks are bounded.
 - Cancellation and superseding requests discard old queued replies.
 - Duplicate or late transport callbacks cannot release a newer in-flight send.
+- A missing callback releases the queue at the original response deadline,
+  without retrying that uncertain delivery.
 - Reading expiry and the original phone-side deadline stop retries.
 - Existing signal, location, phone configuration, C request lifecycle, time
   fixture, reading and display tests continue to pass.
@@ -28,7 +30,18 @@ or standalone mirrors, or publish the Signals candidate.
 ## Evidence boundary
 
 Measured before the change: a synthetic AppMessage failure produced one attempt,
-zero scheduled retries and zero successful deliveries. Existing host tests pass.
-Planned: the regression checks above. Physical delivery, perception and store
-publication are outside this change. The 1.3.0 candidate remains distinct from
-the published 1.2.0 time app.
+zero scheduled retries and zero successful deliveries. The new transient-failure
+test failed against the original implementation. A separate missing-callback
+test reproduced the indefinitely blocked queue before the deadline guard.
+
+Measured after the change: delivery regressions cover asynchronous failure,
+synchronous error and recovery, permanent failure, cancellation, supersession,
+duplicate and absent callbacks, expiry and the original deadline. Existing
+signal, location and phone-configuration tests pass, as do the production C
+request callbacks under address/undefined sanitizers. The 420 full and 840 scoped
+time fixtures, 90,720 reading cases and 57,600 layout cases retain their results.
+
+Physical delivery, perception and store publication are outside this change.
+The 1.3.0 candidate remains distinct from the published 1.2.0 time app. The
+source version, pattern vocabulary, watch request handling, face and mirrors
+are unchanged.

@@ -81,17 +81,38 @@ function wire(reading, id, channel) {
 }
 
 function create(deps) {
-  var generation = 0, active = null, cancelLocation = null, sending = false, pending = [];
+  var generation = 0, active = null, cancelLocation = null, sending = false, pending = [], retry = null;
+  var schedule = deps.setTimeout || setTimeout, unschedule = deps.clearTimeout || clearTimeout;
   function pump() {
-    if (sending || !pending.length) return;
+    if (sending || retry !== null || !pending.length) return;
     var item = pending.shift();
-    if (item.generation !== generation) { pump(); return; }
+    if (item.generation !== generation || deps.now() >= item.deadline) { pump(); return; }
     sending = true;
-    function done() { sending = false; pump(); }
-    deps.send({SIG_DATA: item.data}, done, done);
+    item.attempts++;
+    var settled = false, timeout = null;
+    function done(delivered, timedOut) {
+      if (settled) return;
+      settled = true; sending = false;
+      if (timeout !== null) unschedule(timeout);
+      // Retain only these response bytes, never repeat the source request or
+      // extend its deadline. Cancellation invalidates even a late failure.
+      if (!delivered && !timedOut && item.generation === generation && item.attempts < 4 && deps.now() + 250 < item.deadline) {
+        pending.unshift(item);
+        retry = schedule(function () {
+          if (item.generation !== generation) return;
+          retry = null; pump();
+        }, 250);
+      } else pump();
+    }
+    // An absent callback must not hold every later request forever. Wait out
+    // this envelope's deadline without replaying its uncertain delivery.
+    timeout = schedule(function () { done(false, true); }, Math.max(0, item.deadline - deps.now()));
+    try { deps.send({SIG_DATA: item.data}, function () { done(true); }, function () { done(false); }); }
+    catch (error) { done(false); }
   }
   function cancel() {
     generation++; pending = [];
+    if (retry !== null) unschedule(retry); retry = null;
     if (active) active.abort(); active = null;
     if (cancelLocation) cancelLocation(); cancelLocation = null;
   }
@@ -101,10 +122,11 @@ function create(deps) {
     if (!integer(id, 1, 4294967295)) return;
     cancel();
     var ticket = generation, config = deps.settings(), label = ['','Weather','Drummer','Custom signal'][channel];
-    var started = Math.floor(deps.now() / 1000), url, token = '';
+    var startedMs = deps.now(), started = Math.floor(startedMs / 1000), url, token = '';
     function respond(reading) {
       if (ticket !== generation) return;
-      pending.push({generation: ticket, data: wire(reading, id, channel)}); pump();
+      pending.push({generation: ticket, data: wire(reading, id, channel), attempts: 0,
+        deadline: Math.min(startedMs + 18000, reading.expires * 1000)}); pump();
     }
     function fail(message) { respond(unknown(label, message, Math.floor(deps.now() / 1000))); }
     if (channel === 1) {
