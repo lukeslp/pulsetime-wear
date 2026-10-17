@@ -9,6 +9,7 @@ import com.lukesteuber.pulsetime.shared.PlaybackCommand
 import com.lukesteuber.pulsetime.shared.PlaybackProtocol
 import com.lukesteuber.pulsetime.shared.PlaybackResultCode
 import com.lukesteuber.pulsetime.shared.PulseTimePaths
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
 sealed interface WatchState {
@@ -57,7 +58,14 @@ class WatchPlaybackClient(context: Context, private val onState: (WatchState) ->
 
     suspend fun stopPlayback(requestId: String) {
         val watch = ready ?: return
-        messageClient.sendMessage(watch.nodeId, PulseTimePaths.STOP, requestId.encodeToByteArray()).await()
+        // A watch that walked out of range makes sendMessage fail; report it
+        // instead of letting the exception escape viewModelScope and crash.
+        runCatching {
+            messageClient.sendMessage(watch.nodeId, PulseTimePaths.STOP, requestId.encodeToByteArray()).await()
+        }.onFailure {
+            if (it is CancellationException) throw it
+            onState(WatchState.NotConnected)
+        }
     }
 
     override fun onMessageReceived(event: MessageEvent) {
