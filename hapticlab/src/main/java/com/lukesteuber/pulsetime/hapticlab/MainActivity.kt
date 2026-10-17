@@ -357,8 +357,11 @@ private fun TimeLabScreen(
         Stepper("Hour", hour, { hour = if (hour == 1) 12 else hour - 1 }, { hour = if (hour == 12) 1 else hour + 1 })
         Stepper("Minute", minute, { minute = (minute + 59) % 60 }, { minute = (minute + 1) % 60 })
         Button(onClick = { playTime("practice", hour, minute) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play $hour:${minute.toString().padStart(2, '0')}") }
-        val now = Calendar.getInstance()
-        OutlinedButton(onClick = { playTime("now", now.get(Calendar.HOUR), now.get(Calendar.MINUTE)) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play the current time") }
+        OutlinedButton(onClick = {
+            // Read the clock at the tap; a value captured during composition goes stale while the page stays open.
+            val now = Calendar.getInstance()
+            playTime("now", now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
+        }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play the current time") }
     }
     Section("Blind recognition test") {
         Text("Pulse Lab hides the answer until you choose. Take all the time you need.")
