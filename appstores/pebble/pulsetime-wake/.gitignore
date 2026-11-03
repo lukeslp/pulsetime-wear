@@ -1,0 +1,4 @@
+build/
+tests/.build/
+node_modules/
+.lock-waf_*
