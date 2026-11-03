@@ -18,4 +18,5 @@ the old media, not the original listing.
 
 Category: still Daily. The dashboard update endpoint returns success but ignores every
 category field tried (category with key, slug or id; categoryId; category_id; categoryKey;
-categorySlug; category_name; categoryName). Change it in the developer dashboard.
+categorySlug; category_name; categoryName), and the dashboard's Edit Listing page has
+no category field. Changing it would need the store's operators (appstore@repebble.com).
