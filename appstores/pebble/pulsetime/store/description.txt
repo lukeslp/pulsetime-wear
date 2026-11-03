@@ -1,8 +1,12 @@
-A clock you can feel, with guided practice and huge high-contrast digits.
+Feel the time without looking. Press a button and PulseTime taps it on your wrist: three pulses, a pause, then two more means about 3:30.
 
-A friend who is visually impaired asked me to build a way to feel the time. That request became PulseTime. Press a button to feel the current time; during lessons and time checks, one large black-and-white numeral follows each vibration group.
+Check the time in the dark without lighting the screen, in a meeting without glancing down, or if you are blind or have low vision. Lessons on the watch teach the rhythm, and one large black-and-white numeral follows each group of pulses for anyone who wants to look.
 
-This is a public beta. I would like to hear what works, what feels confusing, and what you would change. Send feedback and ideas to luke@lukesteuber.com.
+A friend who is visually impaired asked me to build a way to feel the time. That request became PulseTime.
+
+PulseTime is still being tested. I would like to hear what works, what feels confusing, and what you would change. Send feedback and ideas to luke@lukesteuber.com.
+
+The store download is version 1.2.0, which tells the time. Signals 1.3.0 is a separate testing candidate for Time 2, 2 Duo, and Round 2; the features below are not yet included in the store download.
 
 Your first time check
 
@@ -25,9 +29,15 @@ Help shape the next version
 
 Tell me your watch model, pattern and speed, the time you expected, and what you felt. Hard-to-read labels, confusing controls, missed taps, and rhythms that blur together are all useful feedback.
 
-I am also exploring vibration "fingerprints," or haptic QRs: learned signals for information beyond time. A remote endpoint could someday turn a server's healthy, degraded, or down status into a familiar rhythm. Remote-endpoint connections and automatic mappings are not implemented. This release tells the time. What else would you want to recognize by touch?
+Signals: testing the next version
 
-Known beta limits
+I am testing short, replayable vibration phrases for information beyond time. A six-hour rain forecast becomes three equal windows: quiet for dry, sparse patter for light rain, and denser patter for heavier rain. Opening and closing cues distinguish a dry forecast from an unavailable reading. A shorter summary identifies the first wet window and strongest predicted rain.
+
+An authenticated HTTPS source can supply service health or three ordered samples. The Drummer example distinguishes healthy, busy, degraded, down, and unknown. A failed connection means unknown, not a confirmed outage. Old readings remain labeled, and checking a source is an explicit action rather than a background alert.
+
+The candidate includes named lessons, visible pulse timing, stock-inspired references, and a recognition exercise. A three-step walkthrough enables weather and explains the Pebble phone app's location permission. Weather uses an approximate phone position; fixed places and custom HTTPS feeds are under Advanced. There is no Drummer token input. Feed credentials stay on the phone. Pattern comfort and recognition still need physical-watch testing. Playback currently controls timing, not per-step strength. Contact luke@lukesteuber.com if you would like to help test on Time 2, 2 Duo, or Round 2.
+
+Known limits
 
 - The app's phone settings can retain older values after a missed watch update. Saving can restore those older choices, including the haptic language. Check every option before saving, then verify the language on the watch and replay a known lesson. Reopening the phone form alone does not guarantee a refresh.
 - Terse Quarter's minutes-only :00 and :15 can feel alike. Use the whole-time answer if uncertain.
