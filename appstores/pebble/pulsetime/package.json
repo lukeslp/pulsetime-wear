@@ -1,5 +1,6 @@
 {
   "name": "pulsetime",
+  "license": "MIT",
   "author": "Luke Steuber",
   "version": "1.2.0",
   "keywords": [

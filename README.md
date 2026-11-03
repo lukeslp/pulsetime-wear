@@ -227,17 +227,18 @@ build does not establish store publication.
   `wakeup_schedule()` has the watch launch PulseTime at the chosen moment with
   no PulseTime process resident between scheduled chimes. Battery impact has
   not been measured.
-  Canonical source: `appstores/pebble/pulsetime/BUILD.md`. Root-level
-  CloudPebble import: [`ambient-time/pebble-pulsetime`](https://github.com/ambient-time/pebble-pulsetime).
+  Source and build notes: `appstores/pebble/pulsetime/BUILD.md`. The former
+  root-level CloudPebble mirror, `ambient-time/pebble-pulsetime`, is archived;
+  this repository is the only source.
 - `appstores/pebble/pulsetime-face/`: the same clock as a **watchface**, for
   wearers who want the time under a double-tap with nothing to open and no
-  scheduling involved. The canonical app and face use the same encoder through
-  a symlink; standalone mirror copies require a parity check. A watchface only
+  scheduling involved. The app and face use the same encoder through
+  a symlink. A watchface only
   runs while it is the foreground app: open any app, or the launcher, and it stops until you come back. For
   chimes that survive that, use the watchapp's.
-  Canonical source: `appstores/pebble/pulsetime-face/BUILD.md`. Root-level
-  CloudPebble import:
-  [`ambient-time/pebble-pulsetime-face`](https://github.com/ambient-time/pebble-pulsetime-face).
+  Source and build notes: `appstores/pebble/pulsetime-face/BUILD.md`. The
+  former root-level CloudPebble mirror, `ambient-time/pebble-pulsetime-face`,
+  is archived; this repository is the only source.
 - On the Pebble Time 2 and Pebble 2 Duo, PulseTime can also play the pattern
   through the **speaker**. Tones use pitch to distinguish the encoder's strength
   layers, which a Pebble vibration motor cannot reproduce.
