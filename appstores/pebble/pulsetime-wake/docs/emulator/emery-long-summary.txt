@@ -1,0 +1,48 @@
+emery long: 47/47 checks passed
+PASS launch: one short pulse = item 1, Wake alarm
+PASS Wake opens: falling pair, then 6:30 (alarm off)
+PASS Up: dial 6:45 played after the presses stop
+PASS Down: dial back to 6:30
+PASS Select arms: next 6:30 is 06:30, 500 min away
+PASS armed: rising pair, then 6:30
+PASS Hold Down: one hour earlier, 5:30
+PASS armed alarm follows the dial (440 min)
+PASS Hold Up: back to 6:30
+PASS Hold Select: status, rising pair then 6:30
+PASS wakeup launches the app at 06:30 with the app closed
+PASS tomorrow's 06:30 is booked again on the ring launch
+PASS ramp step 0: one 60 ms tick
+PASS stage 2 at 60 s
+PASS stage 3 at 108 s
+PASS stage 4 at 156 s
+PASS ring keeps a resume wakeup booked ahead
+PASS Back closes the app; the resume wakeup reopens the ring
+PASS resumed ring launched by the system
+PASS resumed ring carries on at its elapsed stage
+PASS Up: snooze booked
+PASS snooze wakeup booked 9 minutes ahead
+PASS snoozed: two ticks, then the app leaves
+PASS snooze wakeup rings again at 06:43
+PASS Select stops the ring
+PASS stop answers with the time now (6:43) in Terse Quarter
+PASS Down: two pulses = item 2, Intervals
+PASS presets open on item 1, 20 / 10
+PASS Select starts 20 / 10
+PASS lead-in tick
+PASS work starts after three ticks
+PASS countdown ticks before rest
+PASS rest: two pulses, then 7 rounds to go
+PASS done after 8 rounds (233 s)
+PASS item 3, Learn the buzzes
+PASS Learn opens on Alarm on
+PASS Learn row 2 plays its signal
+PASS Learn row 3 plays its signal
+PASS Learn row 4 plays its signal
+PASS Learn row 5 plays its signal
+PASS Learn row 6 plays its signal
+PASS Learn row 7 plays its signal
+PASS Learn row 8 plays its signal
+PASS Learn row 9 plays its signal
+PASS Learn row 10 plays its signal
+PASS Learn row 11 plays its signal
+PASS Learn row 12 plays its signal

@@ -1,0 +1,13 @@
+chalk unanswered: 12/12 checks passed
+PASS launch: one short pulse = item 1, Wake alarm
+PASS Wake opens: falling pair, then 6:30 (alarm off)
+PASS Up: dial 6:45 played after the presses stop
+PASS Down: dial back to 6:30
+PASS Select arms: next 6:30 is 06:30, 500 min away
+PASS armed: rising pair, then 6:30
+PASS Hold Down: one hour earlier, 5:30
+PASS armed alarm follows the dial (440 min)
+PASS Hold Up: back to 6:30
+PASS Hold Select: status, rising pair then 6:30
+PASS wakeup launches the app at 06:30
+PASS unanswered ring stops itself after 10 minutes

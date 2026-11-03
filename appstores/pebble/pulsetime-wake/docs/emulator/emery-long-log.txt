@@ -1,0 +1,465 @@
+    4.01 STEP press back
+    5.16 VIBE position-1 slots=1 ms=60
+    5.16 VIBE position-1 [0] 60
+    5.89 Heap Usage for App <PulseTime : Total Size <107864B> Used <1048B> Still allocated <0B>
+    6.70 STEP set clock 2026-11-02 22:10:00
+    7.52 VIBE position-1 slots=1 ms=60
+    7.52 VIBE position-1 [0] 60
+    7.56 STEP PASS launch: one short pulse = item 1, Wake alarm
+    8.66 STEP screenshot emery-01-home.png
+    8.66 STEP press select
+    8.66 VIBE status-off 6:30 slots=19 ms=5600
+    8.66 VIBE status-off 6:30 [0] 450 150 80 700 200 280 200 280 200 280 200 280
+    8.66 VIBE status-off 6:30 [12] 200 280 200 700 320 280 320
+    8.88 STEP PASS Wake opens: falling pair, then 6:30 (alarm off)
+   10.88 STEP screenshot emery-02-readout-hours.png
+   13.34 Readout: QUARTERS digit=2 at=4680
+   14.38 STEP screenshot emery-03-readout-quarters.png
+   15.99 STEP screenshot emery-04-wake-off.png
+   15.99 STEP press up
+   16.77 VIBE dial 6:45 slots=17 ms=4820
+   16.77 VIBE dial 6:45 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   16.77 VIBE dial 6:45 [12] 320 280 320 280 320
+   16.78 STEP PASS Up: dial 6:45 played after the presses stop
+   20.08 Readout: QUARTERS digit=3 at=3300
+   22.98 STEP press down
+   23.77 VIBE dial 6:30 slots=15 ms=4220
+   23.77 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   23.77 VIBE dial 6:30 [12] 320 280 320
+   23.82 STEP PASS Down: dial back to 6:30
+   27.08 Readout: QUARTERS digit=2 at=3300
+   29.42 STEP press select
+   29.56 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793679705
+   29.56 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   29.57 VIBE armed 6:30 slots=19 ms=5600
+   29.57 VIBE armed 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   29.57 VIBE armed 6:30 [12] 200 280 200 700 320 280 320
+   29.66 STEP PASS Select arms: next 6:30 is 06:30, 500 min away
+   29.66 STEP PASS armed: rising pair, then 6:30
+   34.26 Readout: QUARTERS digit=2 at=4680
+   36.26 STEP screenshot emery-05-wake-on.png
+   36.26 STEP press down (hold)
+   36.78 WAKE scheduled cookie=1 at=05:30 offset=0 id=1793679706
+   36.78 WAKE arm dial=5:30 -> 05:30 in 440 min: armed
+   37.44 VIBE dial 5:30 slots=13 ms=3740
+   37.45 VIBE dial 5:30 [0] 200 280 200 280 200 280 200 280 200 700 320 280
+   37.45 VIBE dial 5:30 [12] 320
+   37.49 STEP PASS Hold Down: one hour earlier, 5:30
+   37.49 STEP PASS armed alarm follows the dial (440 min)
+   40.27 Readout: QUARTERS digit=2 at=2820
+   43.09 STEP press up (hold)
+   43.61 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793679707
+   43.61 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   44.27 VIBE dial 6:30 slots=15 ms=4220
+   44.27 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   44.27 VIBE dial 6:30 [12] 320 280 320
+   44.31 STEP PASS Hold Up: back to 6:30
+   47.58 Readout: QUARTERS digit=2 at=3300
+   49.91 STEP press select (hold)
+   50.42 VIBE status-on 6:30 slots=19 ms=5600
+   50.42 VIBE status-on 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   50.42 VIBE status-on 6:30 [12] 200 280 200 700 320 280 320
+   51.02 STEP PASS Hold Select: status, rising pair then 6:30
+   56.11 Readout: QUARTERS digit=2 at=4680
+   56.82 STEP press back
+   57.54 STEP press back
+   57.55 Heap Usage for App <PulseTime : Total Size <107864B> Used <1288B> Still allocated <0B>
+   58.97 STEP screenshot emery-06-watchface-after-arming.png
+   58.97 STEP set clock 2026-11-03 06:29:40
+   79.32 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793716201
+   79.33 WAKE ring start cookie=1 leaves_app=1
+   79.33 WAKE ramp step=0 stage=1 at=2 ms
+   79.33 VIBE ramp-1 slots=1 ms=60
+   79.33 VIBE ramp-1 [0] 60
+   79.33 WAKE scheduled cookie=3 at=06:31 offset=0 id=1793716202
+   79.37 STEP PASS wakeup launches the app at 06:30 with the app closed
+   79.37 STEP PASS tomorrow's 06:30 is booked again on the ring launch
+   79.37 STEP PASS ramp step 0: one 60 ms tick
+   81.49 STEP screenshot emery-07-ring.png
+   89.33 WAKE ramp step=1 stage=1 at=10006 ms
+   89.33 VIBE ramp-1 slots=1 ms=60
+   89.34 VIBE ramp-1 [0] 60
+   99.33 WAKE ramp step=2 stage=1 at=20006 ms
+   99.33 VIBE ramp-1 slots=1 ms=60
+   99.34 VIBE ramp-1 [0] 60
+  109.33 WAKE ramp step=3 stage=1 at=30003 ms
+  109.33 VIBE ramp-1 slots=1 ms=60
+  109.33 VIBE ramp-1 [0] 60
+  119.33 WAKE ramp step=4 stage=1 at=40008 ms
+  119.34 VIBE ramp-1 slots=1 ms=60
+  119.34 VIBE ramp-1 [0] 60
+  129.33 WAKE ramp step=5 stage=1 at=50004 ms
+  129.33 VIBE ramp-1 slots=1 ms=60
+  129.33 VIBE ramp-1 [0] 60
+  129.34 WAKE scheduled cookie=3 at=06:32 offset=0 id=1793716203
+  139.34 WAKE ramp step=6 stage=2 at=60010 ms
+  139.34 STEP PASS stage 2 at 60 s
+  139.34 VIBE ramp-2 slots=3 ms=550
+  139.34 VIBE ramp-2 [0] 150 250 150
+  147.33 WAKE ramp step=7 stage=2 at=68007 ms
+  147.34 VIBE ramp-2 slots=3 ms=550
+  147.34 VIBE ramp-2 [0] 150 250 150
+  155.34 WAKE ramp step=8 stage=2 at=76009 ms
+  155.34 VIBE ramp-2 slots=3 ms=550
+  155.34 VIBE ramp-2 [0] 150 250 150
+  163.33 WAKE ramp step=9 stage=2 at=84006 ms
+  163.33 VIBE ramp-2 slots=3 ms=550
+  163.34 VIBE ramp-2 [0] 150 250 150
+  171.33 WAKE ramp step=10 stage=2 at=92008 ms
+  171.34 VIBE ramp-2 slots=3 ms=550
+  171.34 VIBE ramp-2 [0] 150 250 150
+  179.33 WAKE ramp step=11 stage=2 at=100005 ms
+  179.33 VIBE ramp-2 slots=3 ms=550
+  179.33 VIBE ramp-2 [0] 150 250 150
+  179.34 WAKE scheduled cookie=3 at=06:33 offset=0 id=1793716204
+  187.34 WAKE ramp step=12 stage=3 at=108014 ms
+  187.34 VIBE ramp-3 slots=5 ms=1400
+  187.34 VIBE ramp-3 [0] 300 250 300 250 300
+  187.35 STEP PASS stage 3 at 108 s
+  193.33 WAKE ramp step=13 stage=3 at=114006 ms
+  193.33 VIBE ramp-3 slots=5 ms=1400
+  193.34 VIBE ramp-3 [0] 300 250 300 250 300
+  199.33 WAKE ramp step=14 stage=3 at=120008 ms
+  199.34 VIBE ramp-3 slots=5 ms=1400
+  199.34 VIBE ramp-3 [0] 300 250 300 250 300
+  205.33 WAKE ramp step=15 stage=3 at=126006 ms
+  205.34 VIBE ramp-3 slots=5 ms=1400
+  205.34 VIBE ramp-3 [0] 300 250 300 250 300
+  211.34 WAKE ramp step=16 stage=3 at=132009 ms
+  211.34 VIBE ramp-3 slots=5 ms=1400
+  211.34 VIBE ramp-3 [0] 300 250 300 250 300
+  217.34 WAKE ramp step=17 stage=3 at=138011 ms
+  217.34 VIBE ramp-3 slots=5 ms=1400
+  217.34 VIBE ramp-3 [0] 300 250 300 250 300
+  223.33 WAKE ramp step=18 stage=3 at=144007 ms
+  223.34 VIBE ramp-3 slots=5 ms=1400
+  223.34 VIBE ramp-3 [0] 300 250 300 250 300
+  229.33 WAKE ramp step=19 stage=3 at=150005 ms
+  229.33 VIBE ramp-3 slots=5 ms=1400
+  229.34 VIBE ramp-3 [0] 300 250 300 250 300
+  229.34 WAKE scheduled cookie=3 at=06:34 offset=0 id=1793716205
+  235.34 WAKE ramp step=20 stage=4 at=156014 ms
+  235.34 VIBE ramp-4 slots=3 ms=1900
+  235.34 VIBE ramp-4 [0] 800 300 800
+  235.37 STEP PASS stage 4 at 156 s
+  236.46 STEP screenshot emery-08-ring-stage4.png
+  236.47 STEP PASS ring keeps a resume wakeup booked ahead
+  236.47 STEP press back
+  236.47 Heap Usage for App <PulseTime : Total Size <107864B> Used <620B> Still allocated <0B>
+  319.36 WAKE ring resumes after 240639 ms at step 41
+  319.36 WAKE ring start cookie=3 leaves_app=1
+  319.36 WAKE ramp step=41 stage=4 at=240643 ms
+  319.38 VIBE ramp-4 slots=3 ms=1900
+  319.38 VIBE ramp-4 [0] 800 300 800
+  319.38 WAKE scheduled cookie=3 at=06:35 offset=0 id=1793716206
+  319.38 STEP PASS Back closes the app; the resume wakeup reopens the ring
+  319.38 STEP PASS resumed ring launched by the system
+  319.38 STEP PASS resumed ring carries on at its elapsed stage
+  320.88 STEP press up
+  320.89 WAKE scheduled cookie=2 at=06:43 offset=0 id=1793716207
+  320.90 WAKE snooze booked
+  320.90 VIBE snoozed slots=3 ms=310
+  320.90 VIBE snoozed [0] 80 150 80
+  321.20 STEP PASS Up: snooze booked
+  321.20 STEP PASS snooze wakeup booked 9 minutes ahead
+  321.20 STEP PASS snoozed: two ticks, then the app leaves
+  321.42 Heap Usage for App <PulseTime : Total Size <107864B> Used <620B> Still allocated <0B>
+  322.80 STEP screenshot emery-09-after-snooze.png
+  322.80 STEP set clock 2026-11-03 06:42:45
+  338.14 WAKE ring start cookie=2 leaves_app=1
+  338.14 STEP PASS snooze wakeup rings again at 06:43
+  338.14 WAKE ramp step=0 stage=1 at=3 ms
+  338.14 VIBE ramp-1 slots=1 ms=60
+  338.14 VIBE ramp-1 [0] 60
+  338.15 WAKE scheduled cookie=3 at=06:44 offset=0 id=1793802601
+  340.74 STEP screenshot emery-10-snooze-ring.png
+  340.74 STEP press select
+  340.74 WAKE stopped after 2603 ms at step 1
+  340.74 VIBE stopped-now 6:43 slots=15 ms=4220
+  340.74 VIBE stopped-now 6:43 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+  340.74 VIBE stopped-now 6:43 [12] 320 280 320
+  340.96 STEP PASS Select stops the ring
+  340.96 STEP PASS stop answers with the time now (6:43) in Terse Quarter
+  342.26 STEP screenshot emery-11-stop-readout.png
+  344.04 Readout: QUARTERS digit=2 at=3300
+  345.17 Heap Usage for App <PulseTime : Total Size <107864B> Used <620B> Still allocated <0B>
+  348.35 STEP screenshot emery-12-after-stop.png
+  348.35 STEP set clock 2026-11-03 07:00:00
+  349.17 VIBE position-1 slots=1 ms=60
+  349.17 VIBE position-1 [0] 60
+  350.66 STEP press down
+  350.67 VIBE position-2 slots=3 ms=270
+  350.67 VIBE position-2 [0] 60 150 60
+  351.58 STEP PASS Down: two pulses = item 2, Intervals
+  351.58 STEP press select
+  351.59 VIBE position-1 slots=1 ms=60
+  351.59 VIBE position-1 [0] 60
+  352.51 STEP PASS presets open on item 1, 20 / 10
+  352.61 STEP screenshot emery-13-presets.png
+  352.61 STEP press select
+  352.61 INTERVAL start preset=0
+  352.61 INTERVAL t=0 phase=0 round=0 left=8 remaining=3
+  352.61 VIBE interval-tick slots=1 ms=60
+  352.61 VIBE interval-tick [0] 60
+  352.83 STEP PASS Select starts 20 / 10
+  352.83 STEP PASS lead-in tick
+  353.18 INTERVAL t=1 phase=0 round=0 left=8 remaining=2
+  353.18 VIBE interval-tick slots=1 ms=60
+  353.19 VIBE interval-tick [0] 60
+  354.18 INTERVAL t=2 phase=0 round=0 left=8 remaining=1
+  354.19 VIBE interval-tick slots=1 ms=60
+  354.19 VIBE interval-tick [0] 60
+  355.18 INTERVAL t=3 phase=1 round=1 left=7 remaining=20
+  355.19 VIBE interval-work slots=1 ms=900
+  355.19 VIBE interval-work [0] 900
+  355.22 STEP PASS work starts after three ticks
+  361.31 STEP screenshot emery-14-interval-work.png
+  372.18 INTERVAL t=20 phase=1 round=1 left=7 remaining=3
+  372.18 VIBE interval-tick slots=1 ms=60
+  372.18 VIBE interval-tick [0] 60
+  372.21 STEP PASS countdown ticks before rest
+  373.19 INTERVAL t=21 phase=1 round=1 left=7 remaining=2
+  373.19 VIBE interval-tick slots=1 ms=60
+  373.19 VIBE interval-tick [0] 60
+  374.18 INTERVAL t=22 phase=1 round=1 left=7 remaining=1
+  374.18 VIBE interval-tick slots=1 ms=60
+  374.18 VIBE interval-tick [0] 60
+  375.18 INTERVAL t=23 phase=2 round=1 left=7 remaining=10
+  375.18 VIBE interval-rest slots=17 ms=5000
+  375.19 VIBE interval-rest [0] 300 200 300 700 200 280 200 280 200 280 200 280
+  375.19 VIBE interval-rest [12] 200 700 200 280 200
+  375.24 STEP PASS rest: two pulses, then 7 rounds to go
+  376.84 STEP screenshot emery-15-interval-rest.png
+  382.18 INTERVAL t=30 phase=2 round=1 left=7 remaining=3
+  382.18 VIBE interval-tick slots=1 ms=60
+  382.19 VIBE interval-tick [0] 60
+  383.18 INTERVAL t=31 phase=2 round=1 left=7 remaining=2
+  383.18 VIBE interval-tick slots=1 ms=60
+  383.18 VIBE interval-tick [0] 60
+  384.18 INTERVAL t=32 phase=2 round=1 left=7 remaining=1
+  384.18 VIBE interval-tick slots=1 ms=60
+  384.19 VIBE interval-tick [0] 60
+  385.18 INTERVAL t=33 phase=1 round=2 left=6 remaining=20
+  385.18 VIBE interval-work slots=1 ms=900
+  385.19 VIBE interval-work [0] 900
+  402.19 INTERVAL t=50 phase=1 round=2 left=6 remaining=3
+  402.19 VIBE interval-tick slots=1 ms=60
+  402.19 VIBE interval-tick [0] 60
+  403.18 INTERVAL t=51 phase=1 round=2 left=6 remaining=2
+  403.18 VIBE interval-tick slots=1 ms=60
+  403.19 VIBE interval-tick [0] 60
+  404.18 INTERVAL t=52 phase=1 round=2 left=6 remaining=1
+  404.18 VIBE interval-tick slots=1 ms=60
+  404.18 VIBE interval-tick [0] 60
+  405.18 INTERVAL t=53 phase=2 round=2 left=6 remaining=10
+  405.18 VIBE interval-rest slots=15 ms=4520
+  405.19 VIBE interval-rest [0] 300 200 300 700 200 280 200 280 200 280 200 280
+  405.19 VIBE interval-rest [12] 200 700 200
+  412.18 INTERVAL t=60 phase=2 round=2 left=6 remaining=3
+  412.18 VIBE interval-tick slots=1 ms=60
+  412.18 VIBE interval-tick [0] 60
+  413.18 INTERVAL t=61 phase=2 round=2 left=6 remaining=2
+  413.18 VIBE interval-tick slots=1 ms=60
+  413.18 VIBE interval-tick [0] 60
+  414.18 INTERVAL t=62 phase=2 round=2 left=6 remaining=1
+  414.18 VIBE interval-tick slots=1 ms=60
+  414.18 VIBE interval-tick [0] 60
+  415.18 INTERVAL t=63 phase=1 round=3 left=5 remaining=20
+  415.18 VIBE interval-work slots=1 ms=900
+  415.18 VIBE interval-work [0] 900
+  432.18 INTERVAL t=80 phase=1 round=3 left=5 remaining=3
+  432.18 VIBE interval-tick slots=1 ms=60
+  432.18 VIBE interval-tick [0] 60
+  433.18 INTERVAL t=81 phase=1 round=3 left=5 remaining=2
+  433.18 VIBE interval-tick slots=1 ms=60
+  433.19 VIBE interval-tick [0] 60
+  434.18 INTERVAL t=82 phase=1 round=3 left=5 remaining=1
+  434.18 VIBE interval-tick slots=1 ms=60
+  434.18 VIBE interval-tick [0] 60
+  435.18 INTERVAL t=83 phase=2 round=3 left=5 remaining=10
+  435.18 VIBE interval-rest slots=13 ms=3620
+  435.18 VIBE interval-rest [0] 300 200 300 700 200 280 200 280 200 280 200 280
+  435.19 VIBE interval-rest [12] 200
+  442.18 INTERVAL t=90 phase=2 round=3 left=5 remaining=3
+  442.19 VIBE interval-tick slots=1 ms=60
+  442.19 VIBE interval-tick [0] 60
+  443.18 INTERVAL t=91 phase=2 round=3 left=5 remaining=2
+  443.18 VIBE interval-tick slots=1 ms=60
+  443.19 VIBE interval-tick [0] 60
+  444.18 INTERVAL t=92 phase=2 round=3 left=5 remaining=1
+  444.19 VIBE interval-tick slots=1 ms=60
+  444.19 VIBE interval-tick [0] 60
+  445.18 INTERVAL t=93 phase=1 round=4 left=4 remaining=20
+  445.19 VIBE interval-work slots=1 ms=900
+  445.19 VIBE interval-work [0] 900
+  462.18 INTERVAL t=110 phase=1 round=4 left=4 remaining=3
+  462.18 VIBE interval-tick slots=1 ms=60
+  462.18 VIBE interval-tick [0] 60
+  463.18 INTERVAL t=111 phase=1 round=4 left=4 remaining=2
+  463.18 VIBE interval-tick slots=1 ms=60
+  463.18 VIBE interval-tick [0] 60
+  464.18 INTERVAL t=112 phase=1 round=4 left=4 remaining=1
+  464.18 VIBE interval-tick slots=1 ms=60
+  464.18 VIBE interval-tick [0] 60
+  465.18 INTERVAL t=113 phase=2 round=4 left=4 remaining=10
+  465.18 VIBE interval-rest slots=11 ms=3140
+  465.18 VIBE interval-rest [0] 300 200 300 700 200 280 200 280 200 280 200
+  472.18 INTERVAL t=120 phase=2 round=4 left=4 remaining=3
+  472.18 VIBE interval-tick slots=1 ms=60
+  472.18 VIBE interval-tick [0] 60
+  473.18 INTERVAL t=121 phase=2 round=4 left=4 remaining=2
+  473.18 VIBE interval-tick slots=1 ms=60
+  473.18 VIBE interval-tick [0] 60
+  474.18 INTERVAL t=122 phase=2 round=4 left=4 remaining=1
+  474.18 VIBE interval-tick slots=1 ms=60
+  474.18 VIBE interval-tick [0] 60
+  475.18 INTERVAL t=123 phase=1 round=5 left=3 remaining=20
+  475.18 VIBE interval-work slots=1 ms=900
+  475.18 VIBE interval-work [0] 900
+  492.18 INTERVAL t=140 phase=1 round=5 left=3 remaining=3
+  492.18 VIBE interval-tick slots=1 ms=60
+  492.19 VIBE interval-tick [0] 60
+  493.18 INTERVAL t=141 phase=1 round=5 left=3 remaining=2
+  493.18 VIBE interval-tick slots=1 ms=60
+  493.18 VIBE interval-tick [0] 60
+  494.18 INTERVAL t=142 phase=1 round=5 left=3 remaining=1
+  494.18 VIBE interval-tick slots=1 ms=60
+  494.18 VIBE interval-tick [0] 60
+  495.18 INTERVAL t=143 phase=2 round=5 left=3 remaining=10
+  495.18 VIBE interval-rest slots=9 ms=2660
+  495.18 VIBE interval-rest [0] 300 200 300 700 200 280 200 280 200
+  502.18 INTERVAL t=150 phase=2 round=5 left=3 remaining=3
+  502.18 VIBE interval-tick slots=1 ms=60
+  502.18 VIBE interval-tick [0] 60
+  503.18 INTERVAL t=151 phase=2 round=5 left=3 remaining=2
+  503.18 VIBE interval-tick slots=1 ms=60
+  503.18 VIBE interval-tick [0] 60
+  504.18 INTERVAL t=152 phase=2 round=5 left=3 remaining=1
+  504.19 VIBE interval-tick slots=1 ms=60
+  504.19 VIBE interval-tick [0] 60
+  505.18 INTERVAL t=153 phase=1 round=6 left=2 remaining=20
+  505.18 VIBE interval-work slots=1 ms=900
+  505.18 VIBE interval-work [0] 900
+  522.18 INTERVAL t=170 phase=1 round=6 left=2 remaining=3
+  522.18 VIBE interval-tick slots=1 ms=60
+  522.18 VIBE interval-tick [0] 60
+  523.19 INTERVAL t=171 phase=1 round=6 left=2 remaining=2
+  523.19 VIBE interval-tick slots=1 ms=60
+  523.19 VIBE interval-tick [0] 60
+  524.18 INTERVAL t=172 phase=1 round=6 left=2 remaining=1
+  524.18 VIBE interval-tick slots=1 ms=60
+  524.19 VIBE interval-tick [0] 60
+  525.18 INTERVAL t=173 phase=2 round=6 left=2 remaining=10
+  525.18 VIBE interval-rest slots=7 ms=2180
+  525.18 VIBE interval-rest [0] 300 200 300 700 200 280 200
+  532.18 INTERVAL t=180 phase=2 round=6 left=2 remaining=3
+  532.18 VIBE interval-tick slots=1 ms=60
+  532.18 VIBE interval-tick [0] 60
+  533.18 INTERVAL t=181 phase=2 round=6 left=2 remaining=2
+  533.18 VIBE interval-tick slots=1 ms=60
+  533.19 VIBE interval-tick [0] 60
+  534.18 INTERVAL t=182 phase=2 round=6 left=2 remaining=1
+  534.18 VIBE interval-tick slots=1 ms=60
+  534.18 VIBE interval-tick [0] 60
+  535.18 INTERVAL t=183 phase=1 round=7 left=1 remaining=20
+  535.18 VIBE interval-work slots=1 ms=900
+  535.18 VIBE interval-work [0] 900
+  552.18 INTERVAL t=200 phase=1 round=7 left=1 remaining=3
+  552.18 VIBE interval-tick slots=1 ms=60
+  552.18 VIBE interval-tick [0] 60
+  553.18 INTERVAL t=201 phase=1 round=7 left=1 remaining=2
+  553.18 VIBE interval-tick slots=1 ms=60
+  553.19 VIBE interval-tick [0] 60
+  554.18 INTERVAL t=202 phase=1 round=7 left=1 remaining=1
+  554.18 VIBE interval-tick slots=1 ms=60
+  554.18 VIBE interval-tick [0] 60
+  555.19 INTERVAL t=203 phase=2 round=7 left=1 remaining=10
+  555.19 VIBE interval-rest slots=5 ms=1700
+  555.19 VIBE interval-rest [0] 300 200 300 700 200
+  562.18 INTERVAL t=210 phase=2 round=7 left=1 remaining=3
+  562.18 VIBE interval-tick slots=1 ms=60
+  562.18 VIBE interval-tick [0] 60
+  563.18 INTERVAL t=211 phase=2 round=7 left=1 remaining=2
+  563.18 VIBE interval-tick slots=1 ms=60
+  563.18 VIBE interval-tick [0] 60
+  564.18 INTERVAL t=212 phase=2 round=7 left=1 remaining=1
+  564.18 VIBE interval-tick slots=1 ms=60
+  564.19 VIBE interval-tick [0] 60
+  565.18 INTERVAL t=213 phase=1 round=8 left=0 remaining=20
+  565.18 VIBE interval-work slots=1 ms=900
+  565.19 VIBE interval-work [0] 900
+  582.18 INTERVAL t=230 phase=1 round=8 left=0 remaining=3
+  582.18 VIBE interval-tick slots=1 ms=60
+  582.18 VIBE interval-tick [0] 60
+  583.18 INTERVAL t=231 phase=1 round=8 left=0 remaining=2
+  583.18 VIBE interval-tick slots=1 ms=60
+  583.18 VIBE interval-tick [0] 60
+  584.18 INTERVAL t=232 phase=1 round=8 left=0 remaining=1
+  584.18 VIBE interval-tick slots=1 ms=60
+  584.18 VIBE interval-tick [0] 60
+  585.18 INTERVAL t=233 phase=3 round=8 left=0 remaining=0
+  585.18 VIBE interval-done slots=5 ms=2400
+  585.18 VIBE interval-done [0] 600 300 600 300 600
+  585.20 STEP PASS done after 8 rounds (233 s)
+  588.29 STEP screenshot emery-18-interval-done.png
+  588.30 STEP press back
+  589.23 STEP press back
+  590.15 STEP press down
+  590.15 VIBE position-3 slots=5 ms=480
+  590.15 VIBE position-3 [0] 60 150 60 150 60
+  591.07 STEP press down
+  591.08 VIBE position-3 slots=5 ms=480
+  591.08 VIBE position-3 [0] 60 150 60 150 60
+  592.00 STEP PASS item 3, Learn the buzzes
+  592.00 STEP press select
+  592.01 VIBE learn-1 slots=3 ms=680
+  592.01 VIBE learn-1 [0] 80 150 450
+  593.13 STEP PASS Learn opens on Alarm on
+  593.13 STEP press down
+  593.14 VIBE learn-2 slots=3 ms=680
+  593.14 VIBE learn-2 [0] 450 150 80
+  595.86 STEP PASS Learn row 2 plays its signal
+  595.86 STEP press down
+  595.86 VIBE learn-3 slots=3 ms=310
+  595.86 VIBE learn-3 [0] 80 150 80
+  598.58 STEP PASS Learn row 3 plays its signal
+  598.58 STEP press down
+  598.58 VIBE learn-4 slots=5 ms=1650
+  598.59 VIBE learn-4 [0] 450 150 450 150 450
+  601.31 STEP PASS Learn row 4 plays its signal
+  601.31 STEP press down
+  601.31 VIBE learn-5 slots=1 ms=60
+  601.31 VIBE learn-5 [0] 60
+  604.03 STEP PASS Learn row 5 plays its signal
+  604.03 STEP press down
+  604.04 VIBE learn-6 slots=3 ms=550
+  604.04 VIBE learn-6 [0] 150 250 150
+  606.76 STEP PASS Learn row 6 plays its signal
+  606.76 STEP press down
+  606.76 VIBE learn-7 slots=5 ms=1400
+  606.76 VIBE learn-7 [0] 300 250 300 250 300
+  609.48 STEP PASS Learn row 7 plays its signal
+  609.48 STEP press down
+  609.49 VIBE learn-8 slots=3 ms=1900
+  609.49 VIBE learn-8 [0] 800 300 800
+  612.21 STEP PASS Learn row 8 plays its signal
+  612.21 STEP press down
+  612.22 VIBE learn-9 slots=1 ms=900
+  612.22 VIBE learn-9 [0] 900
+  614.94 STEP PASS Learn row 9 plays its signal
+  614.94 STEP press down
+  614.94 VIBE learn-10 slots=9 ms=2660
+  614.95 VIBE learn-10 [0] 300 200 300 700 200 280 200 280 200
+  620.47 STEP PASS Learn row 10 plays its signal
+  620.47 STEP press down
+  620.47 VIBE learn-11 slots=5 ms=2060
+  620.47 VIBE learn-11 [0] 60 940 60 940 60
+  623.19 STEP PASS Learn row 11 plays its signal
+  623.19 STEP press down
+  623.19 VIBE learn-12 slots=5 ms=2400
+  623.19 VIBE learn-12 [0] 600 300 600 300 600
+  625.92 STEP PASS Learn row 12 plays its signal
+  626.01 STEP screenshot emery-17-learn.png
+  626.01 STEP press back
+  626.64 STEP press back
+  626.64 Heap Usage for App <PulseTime : Total Size <107864B> Used <2260B> Still allocated <0B>

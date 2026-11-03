@@ -799,6 +799,7 @@ static const LearnRow LEARN[] = {
 
 static Window *s_menu_windows[3];
 static MenuLayer *s_menus[3];
+static int s_menu_row[3];
 
 static void play_learn(int row) {
   uint32_t total = 0;
@@ -893,13 +894,14 @@ static void menu_choose(MenuKind kind, int row) {
       if (row == 0) open_wake();
       else if (row == 1) {
         window_stack_push(s_menu_windows[MENU_PRESETS], true);
+        s_menu_row[MENU_PRESETS] = s_preset;
         if (s_menus[MENU_PRESETS]) {
           menu_layer_set_selected_index(s_menus[MENU_PRESETS], MenuIndex(0, s_preset), MenuRowAlignCenter, false);
         }
         play_position(s_preset + 1);
       } else {
         window_stack_push(s_menu_windows[MENU_LEARN], true);
-        play_learn(s_menus[MENU_LEARN] ? (int)menu_layer_get_selected_index(s_menus[MENU_LEARN]).row : 0);
+        play_learn(s_menu_row[MENU_LEARN]);
       }
       break;
     case MENU_PRESETS:
@@ -913,18 +915,26 @@ static void menu_choose(MenuKind kind, int row) {
   }
 }
 
+// The app keeps each list's row itself. On round watches the menu layer reports
+// its new row only after the scroll animation ends (seen on Time Round and
+// Round 2 emulators), so reading it back would announce the previous item.
 static void step_menu(ClickRecognizerRef r, void *c) {
   const MenuKind kind = kind_of_window(window_stack_get_top_window());
   MenuLayer *m = s_menus[kind];
   if (!m) return;
-  const bool up = click_recognizer_get_button_id(r) == BUTTON_ID_UP;
-  menu_layer_set_selected_next(m, up, MenuRowAlignCenter, true);
-  menu_moved(kind, (int)menu_layer_get_selected_index(m).row);
+  const int rows = (int)menu_rows(m, 0, NULL);
+  const int step = click_recognizer_get_button_id(r) == BUTTON_ID_UP ? -1 : 1;
+  int row = s_menu_row[kind] + step;
+  if (row < 0) row = 0;
+  if (row >= rows) row = rows - 1;
+  s_menu_row[kind] = row;
+  menu_layer_set_selected_index(m, MenuIndex(0, row), MenuRowAlignCenter, true);
+  menu_moved(kind, row);
 }
 static void choose_menu(ClickRecognizerRef r, void *c) {
   const MenuKind kind = kind_of_window(window_stack_get_top_window());
   if (!s_menus[kind]) return;
-  menu_choose(kind, (int)menu_layer_get_selected_index(s_menus[kind]).row);
+  menu_choose(kind, s_menu_row[kind]);
 }
 static void menu_click_config(void *c) {
   window_single_click_subscribe(BUTTON_ID_UP, step_menu);
@@ -944,6 +954,7 @@ static void menu_load(Window *w) {
     .select_click = menu_select_cb });
   menu_layer_set_normal_colors(s_menus[kind], GColorWhite, GColorBlack);
   menu_layer_set_highlight_colors(s_menus[kind], GColorBlack, GColorWhite);
+  menu_layer_set_selected_index(s_menus[kind], MenuIndex(0, s_menu_row[kind]), MenuRowAlignCenter, false);
   window_set_click_config_provider(w, menu_click_config);
   layer_add_child(root, menu_layer_get_layer(s_menus[kind]));
 }
@@ -958,6 +969,7 @@ static void menu_unload(Window *w) {
   stop_vibe();
   menu_layer_destroy(s_menus[kind]);
   s_menus[kind] = NULL;
+  if (kind == MENU_LEARN) s_menu_row[kind] = 0; // Learn always starts at Alarm on
 }
 
 static void create_menu_windows(void) {

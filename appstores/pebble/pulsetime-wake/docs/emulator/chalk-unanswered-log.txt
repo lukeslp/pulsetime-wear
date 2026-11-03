@@ -1,0 +1,482 @@
+    4.00 STEP press back
+    5.54 VIBE position-1 slots=1 ms=60
+    5.54 VIBE position-1 [0] 60
+    6.24 Heap Usage for App <PulseTime : Total Size <42352B> Used <1024B> Still allocated <0B>
+    7.03 STEP set clock 2026-11-02 22:10:00
+    7.87 VIBE position-1 slots=1 ms=60
+    7.87 VIBE position-1 [0] 60
+    7.90 STEP PASS launch: one short pulse = item 1, Wake alarm
+    8.96 STEP screenshot chalk-01-home.png
+    8.96 STEP press select
+    9.02 VIBE status-off 6:30 slots=19 ms=5600
+    9.02 VIBE status-off 6:30 [0] 450 150 80 700 200 280 200 280 200 280 200 280
+    9.02 VIBE status-off 6:30 [12] 200 280 200 700 320 280 320
+    9.19 STEP PASS Wake opens: falling pair, then 6:30 (alarm off)
+   11.15 STEP screenshot chalk-02-readout-hours.png
+   13.71 Readout: QUARTERS digit=2 at=4680
+   14.64 STEP screenshot chalk-03-readout-quarters.png
+   16.27 STEP screenshot chalk-04-wake-off.png
+   16.27 STEP press up
+   17.13 VIBE dial 6:45 slots=17 ms=4820
+   17.13 STEP PASS Up: dial 6:45 played after the presses stop
+   17.13 VIBE dial 6:45 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   17.13 VIBE dial 6:45 [12] 320 280 320 280 320
+   20.44 Readout: QUARTERS digit=3 at=3300
+   23.34 STEP press down
+   24.21 VIBE dial 6:30 slots=15 ms=4220
+   24.21 STEP PASS Down: dial back to 6:30
+   24.21 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   24.21 VIBE dial 6:30 [12] 320 280 320
+   27.51 Readout: QUARTERS digit=2 at=3300
+   29.81 STEP press select
+   29.99 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793651539
+   29.99 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   30.01 VIBE armed 6:30 slots=19 ms=5600
+   30.01 VIBE armed 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   30.02 VIBE armed 6:30 [12] 200 280 200 700 320 280 320
+   30.03 STEP PASS Select arms: next 6:30 is 06:30, 500 min away
+   30.03 STEP PASS armed: rising pair, then 6:30
+   34.70 Readout: QUARTERS digit=2 at=4680
+   36.60 STEP screenshot chalk-05-wake-on.png
+   36.60 STEP press down (hold)
+   37.16 WAKE scheduled cookie=1 at=05:30 offset=0 id=1793651540
+   37.16 WAKE arm dial=5:30 -> 05:30 in 440 min: armed
+   37.87 VIBE dial 5:30 slots=13 ms=3740
+   37.87 VIBE dial 5:30 [0] 200 280 200 280 200 280 200 280 200 700 320 280
+   37.87 VIBE dial 5:30 [12] 320
+   37.92 STEP PASS Hold Down: one hour earlier, 5:30
+   37.92 STEP PASS armed alarm follows the dial (440 min)
+   40.69 Readout: QUARTERS digit=2 at=2820
+   43.52 STEP press up (hold)
+   44.08 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793651541
+   44.08 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   44.79 VIBE dial 6:30 slots=15 ms=4220
+   44.79 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   44.79 VIBE dial 6:30 [12] 320 280 320
+   44.84 STEP PASS Hold Up: back to 6:30
+   48.09 Readout: QUARTERS digit=2 at=3300
+   50.44 STEP press select (hold)
+   51.01 VIBE status-on 6:30 slots=19 ms=5600
+   51.02 VIBE status-on 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   51.02 VIBE status-on 6:30 [12] 200 280 200 700 320 280 320
+   51.55 STEP PASS Hold Select: status, rising pair then 6:30
+   55.70 Readout: QUARTERS digit=2 at=4680
+   57.36 STEP press back
+   57.41 Animation 300000002 does not exist
+   57.41 Animation 300000002 does not exist
+   58.08 STEP press back
+   58.14 Heap Usage for App <PulseTime : Total Size <42352B> Used <1196B> Still allocated <0B>
+   59.47 STEP screenshot chalk-06-watchface-after-arming.png
+   59.47 STEP set clock 2026-11-03 06:29:40
+   79.61 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793716201
+   79.62 WAKE ring start cookie=1 leaves_app=1
+   79.62 WAKE ramp step=0 stage=1 at=0 ms
+   79.62 VIBE ramp-1 slots=1 ms=60
+   79.62 VIBE ramp-1 [0] 60
+   79.62 WAKE scheduled cookie=3 at=06:31 offset=0 id=1793716202
+   79.65 STEP PASS wakeup launches the app at 06:30
+   89.63 WAKE ramp step=1 stage=1 at=10012 ms
+   89.63 VIBE ramp-1 slots=1 ms=60
+   89.64 VIBE ramp-1 [0] 60
+   99.63 WAKE ramp step=2 stage=1 at=20008 ms
+   99.63 VIBE ramp-1 slots=1 ms=60
+   99.63 VIBE ramp-1 [0] 60
+  109.62 WAKE ramp step=3 stage=1 at=30000 ms
+  109.62 VIBE ramp-1 slots=1 ms=60
+  109.62 VIBE ramp-1 [0] 60
+  119.63 WAKE ramp step=4 stage=1 at=40008 ms
+  119.63 VIBE ramp-1 slots=1 ms=60
+  119.63 VIBE ramp-1 [0] 60
+  129.62 WAKE ramp step=5 stage=1 at=50000 ms
+  129.62 VIBE ramp-1 slots=1 ms=60
+  129.62 VIBE ramp-1 [0] 60
+  129.63 WAKE scheduled cookie=3 at=06:32 offset=0 id=1793716203
+  139.64 WAKE ramp step=6 stage=2 at=60016 ms
+  139.64 VIBE ramp-2 slots=3 ms=550
+  139.64 VIBE ramp-2 [0] 150 250 150
+  147.62 WAKE ramp step=7 stage=2 at=68000 ms
+  147.62 VIBE ramp-2 slots=3 ms=550
+  147.62 VIBE ramp-2 [0] 150 250 150
+  155.63 WAKE ramp step=8 stage=2 at=76012 ms
+  155.63 VIBE ramp-2 slots=3 ms=550
+  155.63 VIBE ramp-2 [0] 150 250 150
+  163.62 WAKE ramp step=9 stage=2 at=84000 ms
+  163.62 VIBE ramp-2 slots=3 ms=550
+  163.62 VIBE ramp-2 [0] 150 250 150
+  171.62 WAKE ramp step=10 stage=2 at=92000 ms
+  171.62 VIBE ramp-2 slots=3 ms=550
+  171.62 VIBE ramp-2 [0] 150 250 150
+  179.63 WAKE ramp step=11 stage=2 at=100008 ms
+  179.63 VIBE ramp-2 slots=3 ms=550
+  179.63 VIBE ramp-2 [0] 150 250 150
+  179.64 WAKE scheduled cookie=3 at=06:33 offset=0 id=1793716204
+  187.64 WAKE ramp step=12 stage=3 at=108020 ms
+  187.64 VIBE ramp-3 slots=5 ms=1400
+  187.64 VIBE ramp-3 [0] 300 250 300 250 300
+  193.62 WAKE ramp step=13 stage=3 at=114000 ms
+  193.62 VIBE ramp-3 slots=5 ms=1400
+  193.62 VIBE ramp-3 [0] 300 250 300 250 300
+  199.63 WAKE ramp step=14 stage=3 at=120008 ms
+  199.63 VIBE ramp-3 slots=5 ms=1400
+  199.63 VIBE ramp-3 [0] 300 250 300 250 300
+  205.63 WAKE ramp step=15 stage=3 at=126008 ms
+  205.63 VIBE ramp-3 slots=5 ms=1400
+  205.63 VIBE ramp-3 [0] 300 250 300 250 300
+  211.62 WAKE ramp step=16 stage=3 at=132000 ms
+  211.62 VIBE ramp-3 slots=5 ms=1400
+  211.62 VIBE ramp-3 [0] 300 250 300 250 300
+  217.63 WAKE ramp step=17 stage=3 at=138008 ms
+  217.63 VIBE ramp-3 slots=5 ms=1400
+  217.63 VIBE ramp-3 [0] 300 250 300 250 300
+  223.62 WAKE ramp step=18 stage=3 at=144004 ms
+  223.62 VIBE ramp-3 slots=5 ms=1400
+  223.62 VIBE ramp-3 [0] 300 250 300 250 300
+  229.62 WAKE ramp step=19 stage=3 at=150004 ms
+  229.62 VIBE ramp-3 slots=5 ms=1400
+  229.63 VIBE ramp-3 [0] 300 250 300 250 300
+  229.64 WAKE scheduled cookie=3 at=06:33 offset=0 id=1793716205
+  235.64 WAKE ramp step=20 stage=4 at=156023 ms
+  235.64 VIBE ramp-4 slots=3 ms=1900
+  235.64 VIBE ramp-4 [0] 800 300 800
+  239.62 WAKE ramp step=21 stage=4 at=160004 ms
+  239.63 VIBE ramp-4 slots=3 ms=1900
+  239.63 VIBE ramp-4 [0] 800 300 800
+  243.62 WAKE ramp step=22 stage=4 at=164004 ms
+  243.63 VIBE ramp-4 slots=3 ms=1900
+  243.63 VIBE ramp-4 [0] 800 300 800
+  247.63 WAKE ramp step=23 stage=4 at=168008 ms
+  247.63 VIBE ramp-4 slots=3 ms=1900
+  247.63 VIBE ramp-4 [0] 800 300 800
+  251.63 WAKE ramp step=24 stage=4 at=172008 ms
+  251.63 VIBE ramp-4 slots=3 ms=1900
+  251.63 VIBE ramp-4 [0] 800 300 800
+  255.63 WAKE ramp step=25 stage=4 at=176008 ms
+  255.63 VIBE ramp-4 slots=3 ms=1900
+  255.63 VIBE ramp-4 [0] 800 300 800
+  259.62 WAKE ramp step=26 stage=4 at=180000 ms
+  259.62 VIBE ramp-4 slots=3 ms=1900
+  259.62 VIBE ramp-4 [0] 800 300 800
+  263.63 WAKE ramp step=27 stage=4 at=184008 ms
+  263.63 VIBE ramp-4 slots=3 ms=1900
+  263.63 VIBE ramp-4 [0] 800 300 800
+  267.62 WAKE ramp step=28 stage=4 at=188004 ms
+  267.63 VIBE ramp-4 slots=3 ms=1900
+  267.63 VIBE ramp-4 [0] 800 300 800
+  271.62 WAKE ramp step=29 stage=4 at=192008 ms
+  271.63 VIBE ramp-4 slots=3 ms=1900
+  271.63 VIBE ramp-4 [0] 800 300 800
+  275.62 WAKE ramp step=30 stage=4 at=196008 ms
+  275.63 VIBE ramp-4 slots=3 ms=1900
+  275.63 VIBE ramp-4 [0] 800 300 800
+  275.64 WAKE scheduled cookie=3 at=06:34 offset=0 id=1793716206
+  279.63 WAKE ramp step=31 stage=4 at=200016 ms
+  279.64 VIBE ramp-4 slots=3 ms=1900
+  279.64 VIBE ramp-4 [0] 800 300 800
+  283.62 WAKE ramp step=32 stage=4 at=204000 ms
+  283.62 VIBE ramp-4 slots=3 ms=1900
+  283.62 VIBE ramp-4 [0] 800 300 800
+  287.62 WAKE ramp step=33 stage=4 at=208004 ms
+  287.62 VIBE ramp-4 slots=3 ms=1900
+  287.62 VIBE ramp-4 [0] 800 300 800
+  291.62 WAKE ramp step=34 stage=4 at=212000 ms
+  291.62 VIBE ramp-4 slots=3 ms=1900
+  291.62 VIBE ramp-4 [0] 800 300 800
+  295.63 WAKE ramp step=35 stage=4 at=216008 ms
+  295.63 VIBE ramp-4 slots=3 ms=1900
+  295.63 VIBE ramp-4 [0] 800 300 800
+  299.62 WAKE ramp step=36 stage=4 at=219996 ms
+  299.62 VIBE ramp-4 slots=3 ms=1900
+  299.62 VIBE ramp-4 [0] 800 300 800
+  303.62 WAKE ramp step=37 stage=4 at=224004 ms
+  303.63 VIBE ramp-4 slots=3 ms=1900
+  303.63 VIBE ramp-4 [0] 800 300 800
+  307.62 WAKE ramp step=38 stage=4 at=228000 ms
+  307.62 VIBE ramp-4 slots=3 ms=1900
+  307.62 VIBE ramp-4 [0] 800 300 800
+  311.62 WAKE ramp step=39 stage=4 at=232004 ms
+  311.62 VIBE ramp-4 slots=3 ms=1900
+  311.62 VIBE ramp-4 [0] 800 300 800
+  315.62 WAKE ramp step=40 stage=4 at=236004 ms
+  315.62 VIBE ramp-4 slots=3 ms=1900
+  315.63 VIBE ramp-4 [0] 800 300 800
+  319.62 WAKE ramp step=41 stage=4 at=240000 ms
+  319.62 VIBE ramp-4 slots=3 ms=1900
+  319.62 VIBE ramp-4 [0] 800 300 800
+  323.62 WAKE ramp step=42 stage=4 at=244004 ms
+  323.62 VIBE ramp-4 slots=3 ms=1900
+  323.62 VIBE ramp-4 [0] 800 300 800
+  323.63 WAKE scheduled cookie=3 at=06:35 offset=0 id=1793716207
+  327.63 WAKE ramp step=43 stage=4 at=248016 ms
+  327.64 VIBE ramp-4 slots=3 ms=1900
+  327.64 VIBE ramp-4 [0] 800 300 800
+  331.62 WAKE ramp step=44 stage=4 at=252000 ms
+  331.62 VIBE ramp-4 slots=3 ms=1900
+  331.62 VIBE ramp-4 [0] 800 300 800
+  335.63 WAKE ramp step=45 stage=4 at=256008 ms
+  335.63 VIBE ramp-4 slots=3 ms=1900
+  335.63 VIBE ramp-4 [0] 800 300 800
+  339.62 WAKE ramp step=46 stage=4 at=260000 ms
+  339.62 VIBE ramp-4 slots=3 ms=1900
+  339.62 VIBE ramp-4 [0] 800 300 800
+  343.62 WAKE ramp step=47 stage=4 at=264000 ms
+  343.62 VIBE ramp-4 slots=3 ms=1900
+  343.62 VIBE ramp-4 [0] 800 300 800
+  347.62 WAKE ramp step=48 stage=4 at=268004 ms
+  347.63 VIBE ramp-4 slots=3 ms=1900
+  347.63 VIBE ramp-4 [0] 800 300 800
+  351.62 WAKE ramp step=49 stage=4 at=271996 ms
+  351.62 VIBE ramp-4 slots=3 ms=1900
+  351.62 VIBE ramp-4 [0] 800 300 800
+  355.63 WAKE ramp step=50 stage=4 at=276012 ms
+  355.63 VIBE ramp-4 slots=3 ms=1900
+  355.63 VIBE ramp-4 [0] 800 300 800
+  359.62 WAKE ramp step=51 stage=4 at=280000 ms
+  359.62 VIBE ramp-4 slots=3 ms=1900
+  359.62 VIBE ramp-4 [0] 800 300 800
+  363.62 WAKE ramp step=52 stage=4 at=284004 ms
+  363.62 VIBE ramp-4 slots=3 ms=1900
+  363.62 VIBE ramp-4 [0] 800 300 800
+  367.62 WAKE ramp step=53 stage=4 at=288008 ms
+  367.63 VIBE ramp-4 slots=3 ms=1900
+  367.63 VIBE ramp-4 [0] 800 300 800
+  371.62 WAKE ramp step=54 stage=4 at=292000 ms
+  371.62 VIBE ramp-4 slots=3 ms=1900
+  371.62 VIBE ramp-4 [0] 800 300 800
+  371.63 WAKE scheduled cookie=3 at=06:36 offset=0 id=1793716208
+  375.64 WAKE ramp step=55 stage=4 at=296020 ms
+  375.64 VIBE ramp-4 slots=3 ms=1900
+  375.64 VIBE ramp-4 [0] 800 300 800
+  379.62 WAKE ramp step=56 stage=4 at=300004 ms
+  379.62 VIBE ramp-4 slots=3 ms=1900
+  379.62 VIBE ramp-4 [0] 800 300 800
+  383.62 WAKE ramp step=57 stage=4 at=304004 ms
+  383.62 VIBE ramp-4 slots=3 ms=1900
+  383.62 VIBE ramp-4 [0] 800 300 800
+  387.62 WAKE ramp step=58 stage=4 at=308000 ms
+  387.62 VIBE ramp-4 slots=3 ms=1900
+  387.62 VIBE ramp-4 [0] 800 300 800
+  391.62 WAKE ramp step=59 stage=4 at=312004 ms
+  391.63 VIBE ramp-4 slots=3 ms=1900
+  391.63 VIBE ramp-4 [0] 800 300 800
+  395.62 WAKE ramp step=60 stage=4 at=316004 ms
+  395.63 VIBE ramp-4 slots=3 ms=1900
+  395.63 VIBE ramp-4 [0] 800 300 800
+  399.63 WAKE ramp step=61 stage=4 at=320008 ms
+  399.63 VIBE ramp-4 slots=3 ms=1900
+  399.63 VIBE ramp-4 [0] 800 300 800
+  403.61 WAKE ramp step=62 stage=4 at=323996 ms
+  403.62 VIBE ramp-4 slots=3 ms=1900
+  403.62 VIBE ramp-4 [0] 800 300 800
+  407.62 WAKE ramp step=63 stage=4 at=328004 ms
+  407.62 VIBE ramp-4 slots=3 ms=1900
+  407.62 VIBE ramp-4 [0] 800 300 800
+  411.62 WAKE ramp step=64 stage=4 at=332008 ms
+  411.63 VIBE ramp-4 slots=3 ms=1900
+  411.63 VIBE ramp-4 [0] 800 300 800
+  415.62 WAKE ramp step=65 stage=4 at=336000 ms
+  415.62 VIBE ramp-4 slots=3 ms=1900
+  415.62 VIBE ramp-4 [0] 800 300 800
+  419.62 WAKE ramp step=66 stage=4 at=340000 ms
+  419.62 VIBE ramp-4 slots=3 ms=1900
+  419.62 VIBE ramp-4 [0] 800 300 800
+  419.63 WAKE scheduled cookie=3 at=06:37 offset=0 id=1793716209
+  423.64 WAKE ramp step=67 stage=4 at=344020 ms
+  423.64 VIBE ramp-4 slots=3 ms=1900
+  423.64 VIBE ramp-4 [0] 800 300 800
+  427.62 WAKE ramp step=68 stage=4 at=348004 ms
+  427.62 VIBE ramp-4 slots=3 ms=1900
+  427.62 VIBE ramp-4 [0] 800 300 800
+  431.62 WAKE ramp step=69 stage=4 at=352004 ms
+  431.62 VIBE ramp-4 slots=3 ms=1900
+  431.62 VIBE ramp-4 [0] 800 300 800
+  435.62 WAKE ramp step=70 stage=4 at=356000 ms
+  435.62 VIBE ramp-4 slots=3 ms=1900
+  435.62 VIBE ramp-4 [0] 800 300 800
+  439.62 WAKE ramp step=71 stage=4 at=360004 ms
+  439.62 VIBE ramp-4 slots=3 ms=1900
+  439.62 VIBE ramp-4 [0] 800 300 800
+  443.62 WAKE ramp step=72 stage=4 at=364000 ms
+  443.62 VIBE ramp-4 slots=3 ms=1900
+  443.62 VIBE ramp-4 [0] 800 300 800
+  447.62 WAKE ramp step=73 stage=4 at=368004 ms
+  447.62 VIBE ramp-4 slots=3 ms=1900
+  447.63 VIBE ramp-4 [0] 800 300 800
+  451.62 WAKE ramp step=74 stage=4 at=372000 ms
+  451.62 VIBE ramp-4 slots=3 ms=1900
+  451.62 VIBE ramp-4 [0] 800 300 800
+  455.63 WAKE ramp step=75 stage=4 at=376008 ms
+  455.63 VIBE ramp-4 slots=3 ms=1900
+  455.63 VIBE ramp-4 [0] 800 300 800
+  459.62 WAKE ramp step=76 stage=4 at=380004 ms
+  459.62 VIBE ramp-4 slots=3 ms=1900
+  459.62 VIBE ramp-4 [0] 800 300 800
+  463.62 WAKE ramp step=77 stage=4 at=384008 ms
+  463.63 VIBE ramp-4 slots=3 ms=1900
+  463.63 VIBE ramp-4 [0] 800 300 800
+  467.63 WAKE ramp step=78 stage=4 at=388008 ms
+  467.63 VIBE ramp-4 slots=3 ms=1900
+  467.63 VIBE ramp-4 [0] 800 300 800
+  467.65 WAKE scheduled cookie=3 at=06:37 offset=0 id=1793716210
+  471.64 WAKE ramp step=79 stage=4 at=392020 ms
+  471.64 VIBE ramp-4 slots=3 ms=1900
+  471.64 VIBE ramp-4 [0] 800 300 800
+  475.62 WAKE ramp step=80 stage=4 at=396004 ms
+  475.62 VIBE ramp-4 slots=3 ms=1900
+  475.63 VIBE ramp-4 [0] 800 300 800
+  479.62 WAKE ramp step=81 stage=4 at=400004 ms
+  479.62 VIBE ramp-4 slots=3 ms=1900
+  479.62 VIBE ramp-4 [0] 800 300 800
+  483.62 WAKE ramp step=82 stage=4 at=404000 ms
+  483.62 VIBE ramp-4 slots=3 ms=1900
+  483.62 VIBE ramp-4 [0] 800 300 800
+  487.62 WAKE ramp step=83 stage=4 at=408004 ms
+  487.62 VIBE ramp-4 slots=3 ms=1900
+  487.62 VIBE ramp-4 [0] 800 300 800
+  491.62 WAKE ramp step=84 stage=4 at=412008 ms
+  491.63 VIBE ramp-4 slots=3 ms=1900
+  491.63 VIBE ramp-4 [0] 800 300 800
+  495.62 WAKE ramp step=85 stage=4 at=416004 ms
+  495.62 VIBE ramp-4 slots=3 ms=1900
+  495.62 VIBE ramp-4 [0] 800 300 800
+  499.62 WAKE ramp step=86 stage=4 at=420004 ms
+  499.62 VIBE ramp-4 slots=3 ms=1900
+  499.62 VIBE ramp-4 [0] 800 300 800
+  503.62 WAKE ramp step=87 stage=4 at=424004 ms
+  503.62 VIBE ramp-4 slots=3 ms=1900
+  503.62 VIBE ramp-4 [0] 800 300 800
+  507.62 WAKE ramp step=88 stage=4 at=427996 ms
+  507.62 VIBE ramp-4 slots=3 ms=1900
+  507.62 VIBE ramp-4 [0] 800 300 800
+  511.62 WAKE ramp step=89 stage=4 at=432004 ms
+  511.63 VIBE ramp-4 slots=3 ms=1900
+  511.63 VIBE ramp-4 [0] 800 300 800
+  515.62 WAKE ramp step=90 stage=4 at=436000 ms
+  515.62 VIBE ramp-4 slots=3 ms=1900
+  515.63 VIBE ramp-4 [0] 800 300 800
+  515.64 WAKE scheduled cookie=3 at=06:38 offset=0 id=1793716211
+  519.65 WAKE ramp step=91 stage=4 at=440031 ms
+  519.65 VIBE ramp-4 slots=3 ms=1900
+  519.65 VIBE ramp-4 [0] 800 300 800
+  523.63 WAKE ramp step=92 stage=4 at=444008 ms
+  523.63 VIBE ramp-4 slots=3 ms=1900
+  523.63 VIBE ramp-4 [0] 800 300 800
+  527.62 WAKE ramp step=93 stage=4 at=448000 ms
+  527.62 VIBE ramp-4 slots=3 ms=1900
+  527.62 VIBE ramp-4 [0] 800 300 800
+  531.62 WAKE ramp step=94 stage=4 at=452008 ms
+  531.62 VIBE ramp-4 slots=3 ms=1900
+  531.62 VIBE ramp-4 [0] 800 300 800
+  535.62 WAKE ramp step=95 stage=4 at=456008 ms
+  535.62 VIBE ramp-4 slots=3 ms=1900
+  535.63 VIBE ramp-4 [0] 800 300 800
+  539.62 WAKE ramp step=96 stage=4 at=460004 ms
+  539.62 VIBE ramp-4 slots=3 ms=1900
+  539.62 VIBE ramp-4 [0] 800 300 800
+  543.62 WAKE ramp step=97 stage=4 at=464004 ms
+  543.62 VIBE ramp-4 slots=3 ms=1900
+  543.62 VIBE ramp-4 [0] 800 300 800
+  547.62 WAKE ramp step=98 stage=4 at=468008 ms
+  547.62 VIBE ramp-4 slots=3 ms=1900
+  547.62 VIBE ramp-4 [0] 800 300 800
+  551.61 WAKE ramp step=99 stage=4 at=472000 ms
+  551.61 VIBE ramp-4 slots=3 ms=1900
+  551.61 VIBE ramp-4 [0] 800 300 800
+  555.63 WAKE ramp step=100 stage=4 at=476012 ms
+  555.63 VIBE ramp-4 slots=3 ms=1900
+  555.63 VIBE ramp-4 [0] 800 300 800
+  559.62 WAKE ramp step=101 stage=4 at=480004 ms
+  559.62 VIBE ramp-4 slots=3 ms=1900
+  559.62 VIBE ramp-4 [0] 800 300 800
+  563.62 WAKE ramp step=102 stage=4 at=484004 ms
+  563.62 VIBE ramp-4 slots=3 ms=1900
+  563.62 VIBE ramp-4 [0] 800 300 800
+  563.66 WAKE scheduled cookie=3 at=06:39 offset=0 id=1793716212
+  567.65 WAKE ramp step=103 stage=4 at=488035 ms
+  567.65 VIBE ramp-4 slots=3 ms=1900
+  567.65 VIBE ramp-4 [0] 800 300 800
+  571.61 WAKE ramp step=104 stage=4 at=492000 ms
+  571.61 VIBE ramp-4 slots=3 ms=1900
+  571.62 VIBE ramp-4 [0] 800 300 800
+  575.62 WAKE ramp step=105 stage=4 at=496004 ms
+  575.62 VIBE ramp-4 slots=3 ms=1900
+  575.62 VIBE ramp-4 [0] 800 300 800
+  579.62 WAKE ramp step=106 stage=4 at=500004 ms
+  579.62 VIBE ramp-4 slots=3 ms=1900
+  579.62 VIBE ramp-4 [0] 800 300 800
+  583.62 WAKE ramp step=107 stage=4 at=504004 ms
+  583.62 VIBE ramp-4 slots=3 ms=1900
+  583.62 VIBE ramp-4 [0] 800 300 800
+  587.61 WAKE ramp step=108 stage=4 at=508004 ms
+  587.62 VIBE ramp-4 slots=3 ms=1900
+  587.62 VIBE ramp-4 [0] 800 300 800
+  591.62 WAKE ramp step=109 stage=4 at=512004 ms
+  591.62 VIBE ramp-4 slots=3 ms=1900
+  591.62 VIBE ramp-4 [0] 800 300 800
+  595.62 WAKE ramp step=110 stage=4 at=516004 ms
+  595.62 VIBE ramp-4 slots=3 ms=1900
+  595.62 VIBE ramp-4 [0] 800 300 800
+  599.62 WAKE ramp step=111 stage=4 at=520008 ms
+  599.63 VIBE ramp-4 slots=3 ms=1900
+  599.63 VIBE ramp-4 [0] 800 300 800
+  603.73 WAKE ramp step=112 stage=4 at=524113 ms
+  603.73 VIBE ramp-4 slots=3 ms=1900
+  603.73 VIBE ramp-4 [0] 800 300 800
+  607.62 WAKE ramp step=113 stage=4 at=528004 ms
+  607.62 VIBE ramp-4 slots=3 ms=1900
+  607.62 VIBE ramp-4 [0] 800 300 800
+  611.62 WAKE ramp step=114 stage=4 at=532008 ms
+  611.62 VIBE ramp-4 slots=3 ms=1900
+  611.62 VIBE ramp-4 [0] 800 300 800
+  611.65 WAKE scheduled cookie=3 at=06:40 offset=0 id=1793716213
+  615.64 WAKE ramp step=115 stage=4 at=536031 ms
+  615.64 VIBE ramp-4 slots=3 ms=1900
+  615.65 VIBE ramp-4 [0] 800 300 800
+  619.63 WAKE ramp step=116 stage=4 at=540020 ms
+  619.64 VIBE ramp-4 slots=3 ms=1900
+  619.64 VIBE ramp-4 [0] 800 300 800
+  623.61 WAKE ramp step=117 stage=4 at=543996 ms
+  623.61 VIBE ramp-4 slots=3 ms=1900
+  623.61 VIBE ramp-4 [0] 800 300 800
+  627.61 WAKE ramp step=118 stage=4 at=548000 ms
+  627.61 VIBE ramp-4 slots=3 ms=1900
+  627.61 VIBE ramp-4 [0] 800 300 800
+  631.62 WAKE ramp step=119 stage=4 at=552008 ms
+  631.62 VIBE ramp-4 slots=3 ms=1900
+  631.62 VIBE ramp-4 [0] 800 300 800
+  635.62 WAKE ramp step=120 stage=4 at=556004 ms
+  635.62 VIBE ramp-4 slots=3 ms=1900
+  635.62 VIBE ramp-4 [0] 800 300 800
+  639.62 WAKE ramp step=121 stage=4 at=560012 ms
+  639.62 VIBE ramp-4 slots=3 ms=1900
+  639.63 VIBE ramp-4 [0] 800 300 800
+  643.61 WAKE ramp step=122 stage=4 at=564000 ms
+  643.61 VIBE ramp-4 slots=3 ms=1900
+  643.62 VIBE ramp-4 [0] 800 300 800
+  647.62 WAKE ramp step=123 stage=4 at=568008 ms
+  647.62 VIBE ramp-4 slots=3 ms=1900
+  647.62 VIBE ramp-4 [0] 800 300 800
+  651.62 WAKE ramp step=124 stage=4 at=572008 ms
+  651.62 VIBE ramp-4 slots=3 ms=1900
+  651.62 VIBE ramp-4 [0] 800 300 800
+  655.62 WAKE ramp step=125 stage=4 at=576004 ms
+  655.62 VIBE ramp-4 slots=3 ms=1900
+  655.62 VIBE ramp-4 [0] 800 300 800
+  659.62 WAKE ramp step=126 stage=4 at=580008 ms
+  659.62 VIBE ramp-4 slots=3 ms=1900
+  659.62 VIBE ramp-4 [0] 800 300 800
+  659.64 WAKE scheduled cookie=3 at=06:41 offset=0 id=1793716214
+  663.64 WAKE ramp step=127 stage=4 at=584031 ms
+  663.64 VIBE ramp-4 slots=3 ms=1900
+  663.64 VIBE ramp-4 [0] 800 300 800
+  667.61 WAKE ramp step=128 stage=4 at=588004 ms
+  667.62 VIBE ramp-4 slots=3 ms=1900
+  667.62 VIBE ramp-4 [0] 800 300 800
+  671.62 WAKE ramp step=129 stage=4 at=592008 ms
+  671.62 VIBE ramp-4 slots=3 ms=1900
+  671.62 VIBE ramp-4 [0] 800 300 800
+  675.61 WAKE ramp step=130 stage=4 at=596004 ms
+  675.62 VIBE ramp-4 slots=3 ms=1900
+  675.62 VIBE ramp-4 [0] 800 300 800
+  679.62 WAKE unanswered after 600000 ms; stopping
+  679.64 Heap Usage for App <PulseTime : Total Size <42352B> Used <620B> Still allocated <0B>
+  679.66 STEP PASS unanswered ring stops itself after 10 minutes

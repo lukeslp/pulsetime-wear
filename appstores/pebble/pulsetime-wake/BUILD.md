@@ -92,6 +92,10 @@ the next one in any preset. It prints every pattern as an ON/OFF table.
 The app logs each vibration it starts as `VIBE <label> slots=<n> ms=<total>`
 followed by the duration list, and each alarm decision as `WAKE ...`, so an
 emulator run (which has no motor) still records exactly what would be felt.
+`tests/emulator-flow.py` presses the buttons, moves the emulated clock to fire
+the wakeups, saves screenshots, and asserts those log lines; see its header for
+the three modes. The November 2, 2026 captures and logs for all six targets are
+in `docs/emulator/`.
 
 ## Known limits
 

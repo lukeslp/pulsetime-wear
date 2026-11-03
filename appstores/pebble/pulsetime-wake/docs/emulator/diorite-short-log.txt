@@ -1,0 +1,264 @@
+    4.00 STEP press back
+    5.21 VIBE position-1 slots=1 ms=60
+    5.21 VIBE position-1 [0] 60
+    5.93 Heap Usage for App <PulseTime : Total Size <42328B> Used <1024B> Still allocated <0B>
+    6.72 STEP set clock 2026-11-02 22:10:00
+    7.55 VIBE position-1 slots=1 ms=60
+    7.55 VIBE position-1 [0] 60
+    7.57 STEP PASS launch: one short pulse = item 1, Wake alarm
+    8.60 STEP screenshot diorite-01-home.png
+    8.60 STEP press select
+    8.68 VIBE status-off 6:30 slots=19 ms=5600
+    8.68 VIBE status-off 6:30 [0] 450 150 80 700 200 280 200 280 200 280 200 280
+    8.68 VIBE status-off 6:30 [12] 200 280 200 700 320 280 320
+    8.83 STEP PASS Wake opens: falling pair, then 6:30 (alarm off)
+   10.76 STEP screenshot diorite-02-readout-hours.png
+   13.36 Readout: QUARTERS digit=2 at=4680
+   14.18 STEP screenshot diorite-03-readout-quarters.png
+   15.71 STEP screenshot diorite-04-wake-off.png
+   15.71 STEP press up
+   16.57 VIBE dial 6:45 slots=17 ms=4820
+   16.57 VIBE dial 6:45 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   16.57 VIBE dial 6:45 [12] 320 280 320 280 320
+   16.57 STEP PASS Up: dial 6:45 played after the presses stop
+   19.88 Readout: QUARTERS digit=3 at=3300
+   22.78 STEP press down
+   23.64 VIBE dial 6:30 slots=15 ms=4220
+   23.64 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   23.64 VIBE dial 6:30 [12] 320 280 320
+   23.65 STEP PASS Down: dial back to 6:30
+   26.95 Readout: QUARTERS digit=2 at=3300
+   29.26 STEP press select
+   29.44 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793651762
+   29.44 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   29.46 VIBE armed 6:30 slots=19 ms=5600
+   29.46 VIBE armed 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   29.46 VIBE armed 6:30 [12] 200 280 200 700 320 280 320
+   29.48 STEP PASS Select arms: next 6:30 is 06:30, 500 min away
+   29.48 STEP PASS armed: rising pair, then 6:30
+   34.15 Readout: QUARTERS digit=2 at=4680
+   36.01 STEP screenshot diorite-05-wake-on.png
+   36.01 STEP press down (hold)
+   36.57 WAKE scheduled cookie=1 at=05:30 offset=0 id=1793651763
+   36.57 WAKE arm dial=5:30 -> 05:30 in 440 min: armed
+   37.28 VIBE dial 5:30 slots=13 ms=3740
+   37.28 VIBE dial 5:30 [0] 200 280 200 280 200 280 200 280 200 700 320 280
+   37.28 VIBE dial 5:30 [12] 320
+   37.33 STEP PASS Hold Down: one hour earlier, 5:30
+   37.33 STEP PASS armed alarm follows the dial (440 min)
+   40.11 Readout: QUARTERS digit=2 at=2820
+   42.93 STEP press up (hold)
+   43.49 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793651764
+   43.49 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   44.20 VIBE dial 6:30 slots=15 ms=4220
+   44.20 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   44.20 STEP PASS Hold Up: back to 6:30
+   44.20 VIBE dial 6:30 [12] 320 280 320
+   47.50 Readout: QUARTERS digit=2 at=3300
+   49.80 STEP press select (hold)
+   50.38 VIBE status-on 6:30 slots=19 ms=5600
+   50.38 VIBE status-on 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   50.39 VIBE status-on 6:30 [12] 200 280 200 700 320 280 320
+   50.91 STEP PASS Hold Select: status, rising pair then 6:30
+   55.08 Readout: QUARTERS digit=2 at=4680
+   56.71 STEP press back
+   57.44 STEP press back
+   57.50 Heap Usage for App <PulseTime : Total Size <42328B> Used <1264B> Still allocated <0B>
+   58.79 STEP screenshot diorite-06-watchface-after-arming.png
+   58.79 STEP set clock 2026-11-03 06:29:40
+   78.96 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793716201
+   78.97 WAKE ring start cookie=1 leaves_app=1
+   78.97 WAKE ramp step=0 stage=1 at=0 ms
+   78.97 VIBE ramp-1 slots=1 ms=60
+   78.97 VIBE ramp-1 [0] 60
+   78.97 WAKE scheduled cookie=3 at=06:31 offset=0 id=1793716202
+   78.98 STEP PASS wakeup launches the app at 06:30 with the app closed
+   78.98 STEP PASS tomorrow's 06:30 is booked again on the ring launch
+   78.98 STEP PASS ramp step 0: one 60 ms tick
+   81.01 STEP screenshot diorite-07-ring.png
+   88.98 WAKE ramp step=1 stage=1 at=10012 ms
+   88.98 VIBE ramp-1 slots=1 ms=60
+   88.98 VIBE ramp-1 [0] 60
+   88.99 STEP PASS second tick 10 s later
+   88.99 STEP PASS ring keeps a resume wakeup booked ahead
+   88.99 STEP press back
+   89.05 Heap Usage for App <PulseTime : Total Size <42328B> Used <620B> Still allocated <0B>
+  169.03 WAKE ring resumes after 90820 ms at step 9
+  169.03 WAKE ring start cookie=3 leaves_app=1
+  169.03 WAKE ramp step=9 stage=2 at=90820 ms
+  169.03 VIBE ramp-2 slots=3 ms=550
+  169.03 VIBE ramp-2 [0] 150 250 150
+  169.03 WAKE scheduled cookie=3 at=06:32 offset=0 id=1793716203
+  169.04 STEP PASS Back closes the app; the resume wakeup reopens the ring
+  169.04 STEP PASS resumed ring launched by the system
+  169.04 STEP PASS resumed ring carries on at its elapsed stage
+  170.24 WAKE ramp step=10 stage=2 at=92031 ms
+  170.24 VIBE ramp-2 slots=3 ms=550
+  170.24 VIBE ramp-2 [0] 150 250 150
+  170.54 STEP press up
+  170.64 WAKE scheduled cookie=2 at=06:40 offset=0 id=1793716204
+  170.65 WAKE snooze booked
+  170.65 VIBE snoozed slots=3 ms=310
+  170.65 VIBE snoozed [0] 80 150 80
+  170.87 STEP PASS Up: snooze booked
+  170.87 STEP PASS snooze wakeup booked 9 minutes ahead
+  170.87 STEP PASS snoozed: two ticks, then the app leaves
+  171.17 Heap Usage for App <PulseTime : Total Size <42328B> Used <620B> Still allocated <0B>
+  172.41 STEP screenshot diorite-09-after-snooze.png
+  172.41 STEP set clock 2026-11-03 06:39:45
+  187.59 WAKE ring start cookie=2 leaves_app=1
+  187.59 WAKE ramp step=0 stage=1 at=0 ms
+  187.59 VIBE ramp-1 slots=1 ms=60
+  187.59 VIBE ramp-1 [0] 60
+  187.59 WAKE scheduled cookie=3 at=06:41 offset=0 id=1793802601
+  187.62 STEP PASS snooze wakeup rings again at 06:40
+  190.15 STEP screenshot diorite-10-snooze-ring.png
+  190.15 STEP press select
+  190.21 WAKE stopped after 2625 ms at step 1
+  190.23 VIBE stopped-now 6:40 slots=15 ms=4220
+  190.23 VIBE stopped-now 6:40 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+  190.23 VIBE stopped-now 6:40 [12] 320 280 320
+  190.37 STEP PASS Select stops the ring
+  190.37 STEP PASS stop answers with the time now (6:40) in Terse Quarter
+  191.60 STEP screenshot diorite-11-stop-readout.png
+  193.53 Readout: QUARTERS digit=2 at=3300
+  194.66 Heap Usage for App <PulseTime : Total Size <42328B> Used <620B> Still allocated <0B>
+  197.62 STEP screenshot diorite-12-after-stop.png
+  197.62 STEP set clock 2026-11-03 07:00:00
+  198.46 VIBE position-1 slots=1 ms=60
+  198.46 VIBE position-1 [0] 60
+  199.93 STEP press down
+  199.99 VIBE position-2 slots=3 ms=270
+  199.99 VIBE position-2 [0] 60 150 60
+  200.87 STEP PASS Down: two pulses = item 2, Intervals
+  200.87 STEP press select
+  200.92 VIBE position-1 slots=1 ms=60
+  200.92 VIBE position-1 [0] 60
+  201.79 STEP PASS presets open on item 1, 20 / 10
+  201.81 STEP screenshot diorite-13-presets.png
+  201.81 STEP press select
+  201.89 INTERVAL start preset=0
+  201.89 INTERVAL t=0 phase=0 round=0 left=8 remaining=3
+  201.89 VIBE interval-tick slots=1 ms=60
+  201.89 VIBE interval-tick [0] 60
+  202.04 STEP PASS Select starts 20 / 10
+  202.04 STEP PASS lead-in tick
+  202.68 INTERVAL t=1 phase=0 round=0 left=8 remaining=2
+  202.68 VIBE interval-tick slots=1 ms=60
+  202.68 VIBE interval-tick [0] 60
+  203.68 INTERVAL t=2 phase=0 round=0 left=8 remaining=1
+  203.69 VIBE interval-tick slots=1 ms=60
+  203.69 VIBE interval-tick [0] 60
+  204.68 INTERVAL t=3 phase=1 round=1 left=7 remaining=20
+  204.69 VIBE interval-work slots=1 ms=900
+  204.69 VIBE interval-work [0] 900
+  204.70 STEP PASS work starts after three ticks
+  210.72 STEP screenshot diorite-14-interval-work.png
+  221.68 INTERVAL t=20 phase=1 round=1 left=7 remaining=3
+  221.68 VIBE interval-tick slots=1 ms=60
+  221.68 VIBE interval-tick [0] 60
+  221.71 STEP PASS countdown ticks before rest
+  222.70 INTERVAL t=21 phase=1 round=1 left=7 remaining=2
+  222.70 VIBE interval-tick slots=1 ms=60
+  222.70 VIBE interval-tick [0] 60
+  223.69 INTERVAL t=22 phase=1 round=1 left=7 remaining=1
+  223.69 VIBE interval-tick slots=1 ms=60
+  223.69 VIBE interval-tick [0] 60
+  224.68 INTERVAL t=23 phase=2 round=1 left=7 remaining=10
+  224.68 VIBE interval-rest slots=17 ms=5000
+  224.68 VIBE interval-rest [0] 300 200 300 700 200 280 200 280 200 280 200 280
+  224.69 VIBE interval-rest [12] 200 700 200 280 200
+  224.74 STEP PASS rest: two pulses, then 7 rounds to go
+  226.28 STEP screenshot diorite-15-interval-rest.png
+  226.28 STEP press up
+  226.33 INTERVAL status t=24 phase=2 left=7
+  226.34 VIBE status-rest slots=17 ms=5000
+  226.34 VIBE status-rest [0] 300 200 300 700 200 280 200 280 200 280 200 280
+  226.34 VIBE status-rest [12] 200 700 200 280 200
+  226.70 STEP PASS Up: status = rest + rounds to go
+  231.68 INTERVAL t=30 phase=2 round=1 left=7 remaining=3
+  231.68 VIBE interval-tick slots=1 ms=60
+  231.68 VIBE interval-tick [0] 60
+  232.68 INTERVAL t=31 phase=2 round=1 left=7 remaining=2
+  232.69 VIBE interval-tick slots=1 ms=60
+  232.69 VIBE interval-tick [0] 60
+  232.70 STEP press select
+  232.76 INTERVAL paused at t=31
+  232.76 VIBE paused slots=1 ms=80
+  232.76 VIBE paused [0] 80
+  233.43 STEP PASS Select pauses: one tick
+  233.45 STEP screenshot diorite-16-interval-paused.png
+  236.46 STEP press select
+  236.51 INTERVAL resumed at t=31
+  236.51 VIBE rest slots=3 ms=800
+  236.51 VIBE rest [0] 300 200 300
+  236.68 INTERVAL t=32 phase=2 round=1 left=7 remaining=1
+  236.69 VIBE interval-tick slots=1 ms=60
+  236.69 VIBE interval-tick [0] 60
+  236.88 STEP PASS Select resumes with the phase cue
+  237.68 INTERVAL t=33 phase=1 round=2 left=6 remaining=20
+  237.68 VIBE interval-work slots=1 ms=900
+  237.68 VIBE interval-work [0] 900
+  238.89 STEP press back
+  238.94 INTERVAL left at t=34
+  239.82 STEP PASS Back leaves the timer
+  239.82 STEP press back
+  240.74 STEP press down
+  240.80 VIBE position-3 slots=5 ms=480
+  240.80 VIBE position-3 [0] 60 150 60 150 60
+  241.67 STEP press down
+  241.73 VIBE position-3 slots=5 ms=480
+  241.73 VIBE position-3 [0] 60 150 60 150 60
+  242.60 STEP PASS item 3, Learn the buzzes
+  242.60 STEP press select
+  242.66 VIBE learn-1 slots=3 ms=680
+  242.66 VIBE learn-1 [0] 80 150 450
+  243.73 STEP PASS Learn opens on Alarm on
+  243.73 STEP press down
+  243.79 VIBE learn-2 slots=3 ms=680
+  243.79 VIBE learn-2 [0] 450 150 80
+  246.46 STEP PASS Learn row 2 plays its signal
+  246.46 STEP press down
+  246.51 VIBE learn-3 slots=3 ms=310
+  246.51 VIBE learn-3 [0] 80 150 80
+  249.19 STEP PASS Learn row 3 plays its signal
+  249.19 STEP press down
+  249.24 VIBE learn-4 slots=5 ms=1650
+  249.24 VIBE learn-4 [0] 450 150 450 150 450
+  251.92 STEP PASS Learn row 4 plays its signal
+  251.92 STEP press down
+  251.98 VIBE learn-5 slots=1 ms=60
+  251.98 VIBE learn-5 [0] 60
+  254.64 STEP PASS Learn row 5 plays its signal
+  254.64 STEP press down
+  254.70 VIBE learn-6 slots=3 ms=550
+  254.70 VIBE learn-6 [0] 150 250 150
+  257.37 STEP PASS Learn row 6 plays its signal
+  257.37 STEP press down
+  257.43 VIBE learn-7 slots=5 ms=1400
+  257.43 VIBE learn-7 [0] 300 250 300 250 300
+  260.09 STEP PASS Learn row 7 plays its signal
+  260.09 STEP press down
+  260.15 VIBE learn-8 slots=3 ms=1900
+  260.15 VIBE learn-8 [0] 800 300 800
+  262.82 STEP PASS Learn row 8 plays its signal
+  262.82 STEP press down
+  262.88 VIBE learn-9 slots=1 ms=900
+  262.88 VIBE learn-9 [0] 900
+  265.55 STEP PASS Learn row 9 plays its signal
+  265.55 STEP press down
+  265.61 VIBE learn-10 slots=9 ms=2660
+  265.61 VIBE learn-10 [0] 300 200 300 700 200 280 200 280 200
+  271.07 STEP PASS Learn row 10 plays its signal
+  271.07 STEP press down
+  271.13 VIBE learn-11 slots=5 ms=2060
+  271.13 VIBE learn-11 [0] 60 940 60 940 60
+  273.80 STEP PASS Learn row 11 plays its signal
+  273.80 STEP press down
+  273.85 VIBE learn-12 slots=5 ms=2400
+  273.85 VIBE learn-12 [0] 600 300 600 300 600
+  276.52 STEP PASS Learn row 12 plays its signal
+  276.56 STEP screenshot diorite-17-learn.png
+  276.56 STEP press back
+  277.19 STEP press back
+  277.25 Heap Usage for App <PulseTime : Total Size <42328B> Used <2212B> Still allocated <0B>

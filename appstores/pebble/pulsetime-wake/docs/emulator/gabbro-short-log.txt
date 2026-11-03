@@ -1,0 +1,276 @@
+    4.00 STEP press back
+    5.17 VIBE position-1 slots=1 ms=60
+    5.17 VIBE position-1 [0] 60
+    5.90 Heap Usage for App <PulseTime : Total Size <107888B> Used <1048B> Still allocated <0B>
+    6.71 STEP set clock 2026-11-02 22:10:00
+    7.54 VIBE position-1 slots=1 ms=60
+    7.54 VIBE position-1 [0] 60
+    7.58 STEP PASS launch: one short pulse = item 1, Wake alarm
+    8.71 STEP screenshot gabbro-01-home.png
+    8.71 STEP press select
+    8.72 VIBE status-off 6:30 slots=19 ms=5600
+    8.72 VIBE status-off 6:30 [0] 450 150 80 700 200 280 200 280 200 280 200 280
+    8.72 VIBE status-off 6:30 [12] 200 280 200 700 320 280 320
+    8.94 STEP PASS Wake opens: falling pair, then 6:30 (alarm off)
+   10.98 STEP screenshot gabbro-02-readout-hours.png
+   13.41 Readout: QUARTERS digit=2 at=4680
+   14.51 STEP screenshot gabbro-03-readout-quarters.png
+   16.14 STEP screenshot gabbro-04-wake-off.png
+   16.14 STEP press up
+   16.93 VIBE dial 6:45 slots=17 ms=4820
+   16.93 VIBE dial 6:45 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   16.93 VIBE dial 6:45 [12] 320 280 320 280 320
+   16.97 STEP PASS Up: dial 6:45 played after the presses stop
+   20.24 Readout: QUARTERS digit=3 at=3300
+   23.18 STEP press down
+   23.98 VIBE dial 6:30 slots=15 ms=4220
+   23.98 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   23.98 VIBE dial 6:30 [12] 320 280 320
+   24.03 STEP PASS Down: dial back to 6:30
+   27.29 Readout: QUARTERS digit=2 at=3300
+   29.64 STEP press select
+   29.78 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793679705
+   29.78 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   29.79 VIBE armed 6:30 slots=19 ms=5600
+   29.79 VIBE armed 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   29.79 VIBE armed 6:30 [12] 200 280 200 700 320 280 320
+   29.88 STEP PASS Select arms: next 6:30 is 06:30, 500 min away
+   29.88 STEP PASS armed: rising pair, then 6:30
+   34.48 Readout: QUARTERS digit=2 at=4680
+   36.51 STEP screenshot gabbro-05-wake-on.png
+   36.51 STEP press down (hold)
+   37.01 WAKE scheduled cookie=1 at=05:30 offset=0 id=1793679706
+   37.02 WAKE arm dial=5:30 -> 05:30 in 440 min: armed
+   37.68 VIBE dial 5:30 slots=13 ms=3740
+   37.69 VIBE dial 5:30 [0] 200 280 200 280 200 280 200 280 200 700 320 280
+   37.69 VIBE dial 5:30 [12] 320
+   37.72 STEP PASS Hold Down: one hour earlier, 5:30
+   37.73 STEP PASS armed alarm follows the dial (440 min)
+   40.51 Readout: QUARTERS digit=2 at=2820
+   43.33 STEP press up (hold)
+   43.84 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793679707
+   43.84 WAKE arm dial=6:30 -> 06:30 in 500 min: armed
+   44.50 VIBE dial 6:30 slots=15 ms=4220
+   44.50 VIBE dial 6:30 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+   44.51 VIBE dial 6:30 [12] 320 280 320
+   44.55 STEP PASS Hold Up: back to 6:30
+   48.81 Readout: QUARTERS digit=2 at=3300
+   50.16 STEP press select (hold)
+   50.67 VIBE status-on 6:30 slots=19 ms=5600
+   50.67 VIBE status-on 6:30 [0] 80 150 450 700 200 280 200 280 200 280 200 280
+   50.67 VIBE status-on 6:30 [12] 200 280 200 700 320 280 320
+   51.27 STEP PASS Hold Select: status, rising pair then 6:30
+   55.36 Readout: QUARTERS digit=2 at=4680
+   57.08 STEP press back
+   57.09 Animation 300000002 does not exist
+   57.09 Animation 300000002 does not exist
+   57.81 STEP press back
+   57.81 Heap Usage for App <PulseTime : Total Size <107888B> Used <1220B> Still allocated <0B>
+   59.27 STEP screenshot gabbro-06-watchface-after-arming.png
+   59.27 STEP set clock 2026-11-03 06:29:40
+   79.61 WAKE scheduled cookie=1 at=06:30 offset=0 id=1793716201
+   79.61 WAKE ring start cookie=1 leaves_app=1
+   79.62 WAKE ramp step=0 stage=1 at=3 ms
+   79.62 VIBE ramp-1 slots=1 ms=60
+   79.62 VIBE ramp-1 [0] 60
+   79.62 WAKE scheduled cookie=3 at=06:31 offset=0 id=1793716202
+   79.66 STEP PASS wakeup launches the app at 06:30 with the app closed
+   79.66 STEP PASS tomorrow's 06:30 is booked again on the ring launch
+   79.66 STEP PASS ramp step 0: one 60 ms tick
+   81.80 STEP screenshot gabbro-07-ring.png
+   89.62 WAKE ramp step=1 stage=1 at=10010 ms
+   89.63 VIBE ramp-1 slots=1 ms=60
+   89.63 VIBE ramp-1 [0] 60
+   89.66 STEP PASS second tick 10 s later
+   89.66 STEP PASS ring keeps a resume wakeup booked ahead
+   89.66 STEP press back
+   89.67 Heap Usage for App <PulseTime : Total Size <107888B> Used <620B> Still allocated <0B>
+  169.66 WAKE ring resumes after 90977 ms at step 9
+  169.67 WAKE ring start cookie=3 leaves_app=1
+  169.67 WAKE ramp step=9 stage=2 at=90981 ms
+  169.67 STEP PASS Back closes the app; the resume wakeup reopens the ring
+  169.67 STEP PASS resumed ring launched by the system
+  169.67 STEP PASS resumed ring carries on at its elapsed stage
+  169.67 VIBE ramp-2 slots=3 ms=550
+  169.67 VIBE ramp-2 [0] 150 250 150
+  169.67 WAKE scheduled cookie=3 at=06:33 offset=0 id=1793716203
+  170.70 WAKE ramp step=10 stage=2 at=91011 ms
+  170.70 VIBE ramp-2 slots=3 ms=550
+  170.70 VIBE ramp-2 [0] 150 250 150
+  171.17 STEP press up
+  171.18 WAKE scheduled cookie=2 at=06:40 offset=0 id=1793716204
+  171.18 WAKE snooze booked
+  171.19 VIBE snoozed slots=3 ms=310
+  171.19 VIBE snoozed [0] 80 150 80
+  171.49 STEP PASS Up: snooze booked
+  171.49 STEP PASS snooze wakeup booked 9 minutes ahead
+  171.49 STEP PASS snoozed: two ticks, then the app leaves
+  171.71 Heap Usage for App <PulseTime : Total Size <107888B> Used <620B> Still allocated <0B>
+  173.12 STEP screenshot gabbro-09-after-snooze.png
+  173.12 STEP set clock 2026-11-03 06:39:45
+  188.47 WAKE ring start cookie=2 leaves_app=1
+  188.47 WAKE ramp step=0 stage=1 at=3 ms
+  188.47 VIBE ramp-1 slots=1 ms=60
+  188.47 VIBE ramp-1 [0] 60
+  188.47 WAKE scheduled cookie=3 at=06:41 offset=0 id=1793802601
+  188.49 STEP PASS snooze wakeup rings again at 06:40
+  191.12 STEP screenshot gabbro-10-snooze-ring.png
+  191.12 STEP press select
+  191.12 WAKE stopped after 1659 ms at step 1
+  191.13 VIBE stopped-now 6:40 slots=15 ms=4220
+  191.13 VIBE stopped-now 6:40 [0] 200 280 200 280 200 280 200 280 200 280 200 700
+  191.13 VIBE stopped-now 6:40 [12] 320 280 320
+  191.35 STEP PASS Select stops the ring
+  191.35 STEP PASS stop answers with the time now (6:40) in Terse Quarter
+  192.68 STEP screenshot gabbro-11-stop-readout.png
+  194.43 Readout: QUARTERS digit=2 at=3300
+  195.55 Heap Usage for App <PulseTime : Total Size <107888B> Used <620B> Still allocated <0B>
+  198.81 STEP screenshot gabbro-12-after-stop.png
+  198.81 STEP set clock 2026-11-03 07:00:00
+  199.64 VIBE position-1 slots=1 ms=60
+  199.64 VIBE position-1 [0] 60
+  201.12 STEP press down
+  201.13 VIBE position-2 slots=3 ms=270
+  201.13 VIBE position-2 [0] 60 150 60
+  202.06 STEP PASS Down: two pulses = item 2, Intervals
+  202.06 STEP press select
+  202.06 VIBE position-1 slots=1 ms=60
+  202.07 VIBE position-1 [0] 60
+  202.99 STEP PASS presets open on item 1, 20 / 10
+  203.13 STEP screenshot gabbro-13-presets.png
+  203.13 STEP press select
+  203.14 Animation 300000003 does not exist
+  203.14 Animation 300000003 does not exist
+  203.14 INTERVAL start preset=0
+  203.14 INTERVAL t=0 phase=0 round=0 left=8 remaining=3
+  203.14 VIBE interval-tick slots=1 ms=60
+  203.14 VIBE interval-tick [0] 60
+  203.19 INTERVAL t=1 phase=0 round=0 left=8 remaining=2
+  203.19 VIBE interval-tick slots=1 ms=60
+  203.19 VIBE interval-tick [0] 60
+  203.36 STEP PASS Select starts 20 / 10
+  203.36 STEP PASS lead-in tick
+  204.20 INTERVAL t=2 phase=0 round=0 left=8 remaining=1
+  204.20 VIBE interval-tick slots=1 ms=60
+  204.20 VIBE interval-tick [0] 60
+  205.20 INTERVAL t=3 phase=1 round=1 left=7 remaining=20
+  205.20 VIBE interval-work slots=1 ms=900
+  205.20 VIBE interval-work [0] 900
+  205.20 STEP PASS work starts after three ticks
+  211.33 STEP screenshot gabbro-14-interval-work.png
+  222.19 INTERVAL t=20 phase=1 round=1 left=7 remaining=3
+  222.20 VIBE interval-tick slots=1 ms=60
+  222.20 VIBE interval-tick [0] 60
+  222.20 STEP PASS countdown ticks before rest
+  223.20 INTERVAL t=21 phase=1 round=1 left=7 remaining=2
+  223.20 VIBE interval-tick slots=1 ms=60
+  223.20 VIBE interval-tick [0] 60
+  224.20 INTERVAL t=22 phase=1 round=1 left=7 remaining=1
+  224.20 VIBE interval-tick slots=1 ms=60
+  224.21 VIBE interval-tick [0] 60
+  225.20 INTERVAL t=23 phase=2 round=1 left=7 remaining=10
+  225.20 VIBE interval-rest slots=17 ms=5000
+  225.20 VIBE interval-rest [0] 300 200 300 700 200 280 200 280 200 280 200 280
+  225.21 VIBE interval-rest [12] 200 700 200 280 200
+  225.22 STEP PASS rest: two pulses, then 7 rounds to go
+  226.84 STEP screenshot gabbro-15-interval-rest.png
+  226.85 STEP press up
+  226.85 INTERVAL status t=24 phase=2 left=7
+  226.85 VIBE status-rest slots=17 ms=5000
+  226.85 VIBE status-rest [0] 300 200 300 700 200 280 200 280 200 280 200 280
+  226.85 VIBE status-rest [12] 200 700 200 280 200
+  227.27 STEP PASS Up: status = rest + rounds to go
+  232.20 INTERVAL t=30 phase=2 round=1 left=7 remaining=3
+  232.20 VIBE interval-tick slots=1 ms=60
+  232.20 VIBE interval-tick [0] 60
+  233.20 INTERVAL t=31 phase=2 round=1 left=7 remaining=2
+  233.20 VIBE interval-tick slots=1 ms=60
+  233.20 VIBE interval-tick [0] 60
+  233.27 STEP press select
+  233.28 INTERVAL paused at t=31
+  233.28 VIBE paused slots=1 ms=80
+  233.28 VIBE paused [0] 80
+  234.00 STEP PASS Select pauses: one tick
+  234.13 STEP screenshot gabbro-16-interval-paused.png
+  237.13 STEP press select
+  237.14 INTERVAL resumed at t=31
+  237.14 VIBE rest slots=3 ms=800
+  237.14 VIBE rest [0] 300 200 300
+  237.20 INTERVAL t=32 phase=2 round=1 left=7 remaining=1
+  237.20 VIBE interval-tick slots=1 ms=60
+  237.20 VIBE interval-tick [0] 60
+  237.56 STEP PASS Select resumes with the phase cue
+  238.20 INTERVAL t=33 phase=1 round=2 left=6 remaining=20
+  238.20 VIBE interval-work slots=1 ms=900
+  238.20 VIBE interval-work [0] 900
+  239.56 STEP press back
+  239.57 Animation 300000004 does not exist
+  239.57 Animation 300000004 does not exist
+  239.57 INTERVAL left at t=34
+  240.48 STEP PASS Back leaves the timer
+  240.49 STEP press back
+  240.49 Animation 300000005 does not exist
+  240.49 Animation 300000005 does not exist
+  241.41 STEP press down
+  241.41 VIBE position-3 slots=5 ms=480
+  241.41 VIBE position-3 [0] 60 150 60 150 60
+  242.33 STEP press down
+  242.34 VIBE position-3 slots=5 ms=480
+  242.34 VIBE position-3 [0] 60 150 60 150 60
+  243.27 STEP PASS item 3, Learn the buzzes
+  243.27 STEP press select
+  243.27 Animation 300000006 does not exist
+  243.27 Animation 300000006 does not exist
+  243.27 VIBE learn-1 slots=3 ms=680
+  243.27 VIBE learn-1 [0] 80 150 450
+  244.39 STEP PASS Learn opens on Alarm on
+  244.39 STEP press down
+  244.39 VIBE learn-2 slots=3 ms=680
+  244.40 VIBE learn-2 [0] 450 150 80
+  247.12 STEP PASS Learn row 2 plays its signal
+  247.12 STEP press down
+  247.12 VIBE learn-3 slots=3 ms=310
+  247.12 VIBE learn-3 [0] 80 150 80
+  249.84 STEP PASS Learn row 3 plays its signal
+  249.84 STEP press down
+  249.85 VIBE learn-4 slots=5 ms=1650
+  249.85 VIBE learn-4 [0] 450 150 450 150 450
+  252.57 STEP PASS Learn row 4 plays its signal
+  252.57 STEP press down
+  252.58 VIBE learn-5 slots=1 ms=60
+  252.58 VIBE learn-5 [0] 60
+  255.30 STEP PASS Learn row 5 plays its signal
+  255.30 STEP press down
+  255.30 VIBE learn-6 slots=3 ms=550
+  255.30 VIBE learn-6 [0] 150 250 150
+  258.02 STEP PASS Learn row 6 plays its signal
+  258.02 STEP press down
+  258.02 VIBE learn-7 slots=5 ms=1400
+  258.02 VIBE learn-7 [0] 300 250 300 250 300
+  260.74 STEP PASS Learn row 7 plays its signal
+  260.74 STEP press down
+  260.75 VIBE learn-8 slots=3 ms=1900
+  260.75 VIBE learn-8 [0] 800 300 800
+  263.47 STEP PASS Learn row 8 plays its signal
+  263.47 STEP press down
+  263.47 VIBE learn-9 slots=1 ms=900
+  263.47 VIBE learn-9 [0] 900
+  266.19 STEP PASS Learn row 9 plays its signal
+  266.19 STEP press down
+  266.20 VIBE learn-10 slots=9 ms=2660
+  266.20 VIBE learn-10 [0] 300 200 300 700 200 280 200 280 200
+  271.72 STEP PASS Learn row 10 plays its signal
+  271.72 STEP press down
+  271.72 VIBE learn-11 slots=5 ms=2060
+  271.73 VIBE learn-11 [0] 60 940 60 940 60
+  274.45 STEP PASS Learn row 11 plays its signal
+  274.45 STEP press down
+  274.45 VIBE learn-12 slots=5 ms=2400
+  274.45 VIBE learn-12 [0] 600 300 600 300 600
+  277.17 STEP PASS Learn row 12 plays its signal
+  277.30 STEP screenshot gabbro-17-learn.png
+  277.30 STEP press back
+  277.30 Animation 300000009 does not exist
+  277.30 Animation 300000009 does not exist
+  277.93 STEP press back
+  277.93 Heap Usage for App <PulseTime : Total Size <107888B> Used <1736B> Still allocated <0B>
