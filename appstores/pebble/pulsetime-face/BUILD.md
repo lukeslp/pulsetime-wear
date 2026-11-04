@@ -21,8 +21,8 @@ uses full contrast on color and monochrome displays. Display choices save quietl
 and preserve the language, speed, sound, and chime settings. Physical backlight
 brightness remains a watch setting.
 
-The face shares the watchapp's digit renderer and encoder through symlinks;
-CloudPebble mirrors keep ordinary copies. The phone settings include a worked lesson,
+The face shares the watchapp's digit renderer and encoder through symlinks.
+The phone settings include a worked lesson,
 explain that haptic hours use 1–12 even with a 24-hour visual clock, and direct
 wearers to the separate watchapp for guided practice and side-button control.
 The watchface does not intercept system buttons.
@@ -39,12 +39,11 @@ perception still need testing on the wearer's watch.
 
 ## CloudPebble import
 
-This directory is canonical. The private
-[`ambient-time/pebble-pulsetime-face`](https://github.com/ambient-time/pebble-pulsetime-face)
-repository is its self-contained, root-level CloudPebble mirror. The mirror
-materializes the shared encoder symlinks so CloudPebble can build it without the
-sibling watchapp directory. Preserve UUID
-`f9ee597e-a160-43a8-b08e-6af03007487b` across both copies.
+This directory is the only source. The former root-level CloudPebble mirror,
+`ambient-time/pebble-pulsetime-face`, is archived and no longer updated. For a
+CloudPebble import, copy this directory with `cp -RL` so the shared encoder and
+display symlinks become ordinary files, then place its contents at the root of
+a new project. Preserve UUID `f9ee597e-a160-43a8-b08e-6af03007487b`.
 
 For chimes that work across watchfaces and other apps, use the watchapp's
 `wakeup_schedule()` option. It launches the app briefly to play the time. See
@@ -148,8 +147,8 @@ to the same hour disables the quiet period.
 
 `src/c/encoder.c` and `src/c/encoder.h` are **symlinks** into
 `../pulsetime/src/c/`. The
-canonical app and face compile the same source. Standalone mirrors need a
-parity check when their materialized copies change. `stage-release.sh` runs the
+canonical app and face compile the same source. A materialized `cp -RL` copy
+for CloudPebble needs a parity check if it changes. `stage-release.sh` runs the
 watchapp's `tests/check-fixtures.sh`, refuses to build on a broken symlink, and
 then checks `nm` for `pt_encode_readable` in every platform's ELF, because a
 silently-unlinked encoder is the one failure a symlink build could hide.

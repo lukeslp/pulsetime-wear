@@ -34,7 +34,7 @@ controls suited to its watch; Pebble also has an optional watchface.
 |----|------|--------|
 | W1 | Reference encoder port + fixtures pinned to Kotlin (`PortFixturesTest`) | done |
 | W2 | Garmin Venu 2S device app with glance, 8-profile chunker, settings | built, harness 420/420, sideloaded |
-| W3 | Pebble watchapp, phone settings, host checks | 1.2.0 built for all six targets and installed on Time 2 and 2 SE; standalone mirror matches |
+| W3 | Pebble watchapp, phone settings, host checks | 1.2.0 built for all six targets and installed on Time 2 and 2 SE; standalone mirrors folded back here and archived |
 | W4 | Garmin complication → launch on tap; Pebble worker flick-launch | built, both sideloaded/installed; wrist verification open |
 | W4b | Pebble PulseTime Face | 1.2.0 built for all six targets; round playback and return verified in emulators; earlier face installed on Time 2 |
 | W6 | Eyes-free operation: confirmation cues, speed and practice on the wrist | done, verified on emulator + Time 2 |
