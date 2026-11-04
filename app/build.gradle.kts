@@ -25,8 +25,8 @@ android {
         minSdk = 30
         targetSdk = 35
         // Play requires version codes to be unique across phone and Wear artifacts.
-        versionCode = 20_000_003
-        versionName = "0.3.0"
+        versionCode = 20_000_004
+        versionName = "0.3.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
