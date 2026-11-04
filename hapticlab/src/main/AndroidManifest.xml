@@ -4,6 +4,7 @@
 
     <application
         android:allowBackup="true"
+        android:appCategory="accessibility"
         android:icon="@drawable/ic_launcher"
         android:label="Pulse Lab"
         android:supportsRtl="true"
