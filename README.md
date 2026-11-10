@@ -129,6 +129,21 @@ not supported by this project's Kotlin/Gradle toolchain.
 scripts/build-play-release.sh  # signed phone + Wear AABs for closed testing
 ```
 
+Pulse Lab's published APK is release-signed with its own key and is never
+debuggable. The key lives in the release toolkit's store, with its password in
+the login Keychain, so the build runs through the toolkit:
+
+```sh
+~/workspace/android-release-toolkit/scripts/android-release \
+  with-signing --profile pulse-lab -- scripts/build-pulse-lab-release.sh
+```
+
+It stages `dist/pulse-lab/pulse-lab-<version>.apk` with `SHA256SUMS.txt`.
+`:hapticlab:assembleRelease` fails without those signing values, so an unsigned
+release APK cannot be mistaken for the published one. Builds up to 0.2.1 (3)
+were signed with the Android debug key; anyone who has one must uninstall it
+once before installing 0.2.2 or later.
+
 Debug APK:
 
 `app/build/outputs/apk/debug/app-debug.apk`  
