@@ -16,7 +16,7 @@
 
 ## Play Console
 
-- [ ] Sign in as `lucas.steuber@gmail.com`, the same developer account used for Alt Text Intelligence
+- [ ] Sign in with the Play Console owner account, the same developer account used for Alt Text Intelligence
 - [ ] Create or select the PulseTime app with package `com.lukesteuber.pulsetime.wear`
 - [ ] Enroll in Play App Signing and verify the upload certificate fingerprint
 - [ ] Complete the main listing and App content forms

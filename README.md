@@ -10,8 +10,23 @@ learn the rhythm, and large, high-contrast digits for anyone who can use them.
 **License:** MIT · A small project for friends and anyone it helps.
 See [source and artwork notices](NOTICES.md) for the bundled dependency and graphics.
 
-Created by **Luke Steuber**. PulseTime is a standalone project with its own
-packages and settings.
+PulseTime is a standalone project with its own packages and settings.
+
+## What is in this repository
+
+| Platform | Source | Build notes | Where to get it |
+|---|---|---|---|
+| Wear OS watch app and tile | `app/` | [Build](#build) below | [Direct download](https://dr.eamer.dev/downloads/apps/pulse-time/) |
+| Android phone companion | `mobile/` | [Build](#build) below | [Direct download](https://dr.eamer.dev/downloads/apps/pulse-time/) |
+| Pulse Lab, a phone-only haptic test app | `hapticlab/` | [Build](#build) below | [Direct download](https://dr.eamer.dev/downloads/apps/pulse-lab/) |
+| Pebble watchapp | `appstores/pebble/pulsetime/` | [BUILD.md](appstores/pebble/pulsetime/BUILD.md) | [Pebble app store](https://apps.repebble.com/1624684ac5dd46ac85eee2a6) |
+| Pebble watchface | `appstores/pebble/pulsetime-face/` | [BUILD.md](appstores/pebble/pulsetime-face/BUILD.md) | Not yet listed |
+| Garmin Connect IQ app (Venu 2S) | `appstores/garmin/pulsetime/` | [README](appstores/garmin/pulsetime/README.md) | Not yet listed |
+
+`shared/` holds the Kotlin encoders and playback protocol used by the three
+Android modules, and `appstores/shared/` holds the fixtures every port is
+checked against. PulseTime is not on Google Play; `play/` holds the prepared
+closed-test material. [Release status](#release-status) has the details.
 
 ## Try PulseTime on Pebble
 
@@ -112,7 +127,7 @@ Base amplitude is 180/255 × your calibration scale.
 ## Requirements
 
 - JDK 21 (toolchain) / project compiles with Java 17 bytecode  
-- Android SDK with Wear OS (compileSdk 36, minSdk 30, targetSdk 35)  
+- Android SDK with Wear OS (compileSdk 36; the watch app uses minSdk 30 and targetSdk 35, the phone apps minSdk 26 and targetSdk 36)  
 - A physical watch for haptic QA. **Emulator vibration is not sufficient.**
 
 Gradle must run with JDK 21, and the Android SDK must be available through
@@ -130,13 +145,17 @@ scripts/build-play-release.sh  # signed phone + Wear AABs for closed testing
 ```
 
 Pulse Lab's published APK is release-signed with its own key and is never
-debuggable. The key lives in the release toolkit's store, with its password in
-the login Keychain, so the build runs through the toolkit:
+debuggable. The key is not in this repository. The owner's release toolkit, a
+separate project, holds it and supplies the signing values for one build:
 
 ```sh
-~/workspace/android-release-toolkit/scripts/android-release \
+/path/to/android-release-toolkit/scripts/android-release \
   with-signing --profile pulse-lab -- scripts/build-pulse-lab-release.sh
 ```
+
+Without the toolkit, the script needs `PULSE_LAB_RELEASE_STORE_FILE`,
+`PULSE_LAB_RELEASE_STORE_PASSWORD`, `PULSE_LAB_RELEASE_KEY_ALIAS`, and
+`PULSE_LAB_RELEASE_KEY_PASSWORD` in the environment, pointing at your own key.
 
 It stages `dist/pulse-lab/pulse-lab-<version>.apk` with `SHA256SUMS.txt`.
 `:hapticlab:assembleRelease` fails without those signing values, so an unsigned

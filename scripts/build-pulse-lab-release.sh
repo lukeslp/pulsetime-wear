@@ -4,7 +4,7 @@
 # The signing values come from the environment, so run this through the
 # release toolkit, which reads them from the login Keychain:
 #
-#   ~/workspace/android-release-toolkit/scripts/android-release \
+#   /path/to/android-release-toolkit/scripts/android-release \
 #     with-signing --profile pulse-lab -- scripts/build-pulse-lab-release.sh
 set -euo pipefail
 

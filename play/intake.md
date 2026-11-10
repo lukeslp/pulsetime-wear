@@ -3,10 +3,10 @@
 - Product: PulseTime 0.3.0
 - Maintainer: Luke Steuber
 - License: MIT
-- Play Console account: `lucas.steuber@gmail.com`, the same developer account used for Alt Text Intelligence
+- Play Console account: the Play Console owner account, the same developer account used for Alt Text Intelligence
 - Play package: `com.lukesteuber.pulsetime.wear`
-- Play record: confirmed absent from developer account `6919353697792485209`
-  on 2026-07-20; the account contained only `one.whatcoloristhis.twa`
+- Play record: confirmed absent from the Play Console owner account on
+  2026-07-20
 - Source: native Kotlin and Jetpack Compose modules for Android phones (`:mobile`) and Wear OS (`:app`), with shared encoding and playback code in `:shared`
 - Explicit targets: Android phones and Wear OS under one Play listing, using separate version-code ranges
 - Excluded target: the phone-only Pulse Lab (`:hapticlab`) remains a separate testing app and package
