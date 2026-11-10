@@ -1,5 +1,14 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// Pulse Lab has its own release key, separate from PulseTime's upload key.
+// The four values arrive from the environment only; nothing is read from disk.
+val releaseStoreFile = providers.environmentVariable("PULSE_LAB_RELEASE_STORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("PULSE_LAB_RELEASE_STORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("PULSE_LAB_RELEASE_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("PULSE_LAB_RELEASE_KEY_PASSWORD").orNull
+val releaseSigningAvailable = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
+    .all { !it.isNullOrBlank() }
+
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -14,14 +23,28 @@ android {
         applicationId = "com.lukesteuber.pulsetime.hapticlab"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2.1"
+        versionCode = 4
+        versionName = "0.2.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            if (releaseSigningAvailable) {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (releaseSigningAvailable) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -34,6 +57,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
+}
+
+// An unsigned release APK is easy to mistake for a publishable one. Published
+// builds of Pulse Lab are release-signed and never debuggable.
+tasks.matching { it.name == "assembleRelease" }.configureEach {
+    doFirst {
+        check(releaseSigningAvailable) {
+            "Pulse Lab release signing is not configured. Run scripts/build-pulse-lab-release.sh through the release toolkit's with-signing command."
+        }
+    }
 }
 
 dependencies {
