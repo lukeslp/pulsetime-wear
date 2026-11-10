@@ -61,8 +61,8 @@ The watch was not reachable during the 2026-07-19 release refresh. Its earlier d
 | Model | Google Pixel Watch 2 (`aurora`) |
 | Wear OS | 15 |
 | Package | `com.lukesteuber.pulsetime.wear.debug` v0.1.0-debug |
-| Install | 2026-07-16 22:04 — wireless pair `192.168.0.146` + sideload |
-| Serial (mDNS) | `adb-38041RTJWW36NH-VNJaEW (2)._adb-tls-connect._tcp` |
+| Install | 2026-07-16 22:04 — wireless debugging pair on the local network + sideload |
+| Serial (mDNS) | omitted; use `adb devices` to read the paired watch's serial |
 
 ```sh
 adb pair <watch-ip>:<pairing-port>
