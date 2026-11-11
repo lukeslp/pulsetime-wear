@@ -1,5 +1,10 @@
 # PulseTime
 
+[![Pebble app store](https://img.shields.io/badge/Pebble-app_store-E8590C?style=flat-square)](https://apps.repebble.com/1624684ac5dd46ac85eee2a6)
+[![Android and Wear OS download](https://img.shields.io/badge/Android_and_Wear_OS-direct_download_%28testing%29-34A853?style=flat-square)](https://dr.eamer.dev/downloads/apps/pulse-time/)
+[![Pulse Lab download](https://img.shields.io/badge/Pulse_Lab-direct_download_%28preview%29-34A853?style=flat-square)](https://dr.eamer.dev/downloads/apps/pulse-lab/)
+[![F-Droid repository](https://img.shields.io/badge/F--Droid-LocalType_releases_repo-1976D2?style=flat-square)](https://dr.eamer.dev/downloads/fdroid/)
+
 A clock you can feel. PulseTime tells the local time through vibration on
 Wear OS, Pebble, and Garmin.
 
