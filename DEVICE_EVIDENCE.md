@@ -22,7 +22,7 @@ current controls.
 
 | Artifact | Path | Built |
 |----------|------|-------|
-| Debug APK | `app/build/outputs/apk/debug/app-debug.apk` | 2026-07-16 — `assembleDebug` green |
+| Debug APK | `app/build/outputs/apk/debug/app-debug.apk` | 2026-07-16: `assembleDebug` green |
 | Phone release AAB | `dist/play/pulsetime-phone-0.3.0-10000003.aab` | 2026-07-19: clean-built and signed with the protected upload key |
 | Wear release AAB | `dist/play/pulsetime-wear-0.3.0-20000003.aab` | 2026-07-19: clean-built and signed with the same protected upload key |
 | Release validation | `scripts/build-play-release.sh` | Clean tests, release lint, signatures, certificate match, and SHA-256 checksums passed |
@@ -52,7 +52,7 @@ current controls.
 
 ## Device-tested (Pixel Watch 2)
 
-**Status: installed — haptic / TalkBack QA pending human.**
+**Status: installed; haptic / TalkBack QA pending human.**
 
 The watch was not reachable during the 2026-07-19 release refresh. Its earlier debug install remains documented below, but current Wear screenshots and release-build checks must be completed before rollout.
 
@@ -61,7 +61,7 @@ The watch was not reachable during the 2026-07-19 release refresh. Its earlier d
 | Model | Google Pixel Watch 2 (`aurora`) |
 | Wear OS | 15 |
 | Package | `com.lukesteuber.pulsetime.wear.debug` v0.1.0-debug |
-| Install | 2026-07-16 22:04 — wireless debugging pair on the local network + sideload |
+| Install | 2026-07-16 22:04: wireless debugging pair on the local network + sideload |
 | Serial (mDNS) | omitted; use `adb devices` to read the paired watch's serial |
 
 ```sh
@@ -80,7 +80,7 @@ Human checklist:
 
 Play Console login, upload, tester management, and rollout remain **human** gates.
 
-## Garmin Venu 2S — PulseTime app (2026-08-18)
+## Garmin Venu 2S: PulseTime app (2026-08-18)
 
 - [x] `appstores/garmin/dist/pulsetime-venu2s.prg` sideloaded over MTP
   (object id 16777987); imports when the watch disconnects.
@@ -88,7 +88,7 @@ Play Console login, upload, tester management, and rollout remain **human** gate
   Quarter); seams between 8-profile chunks imperceptible; Soft/Standard/Strong
   duty differences felt; tap/press repeats; Up/Down cycles.
 
-## Pebble Time 2 — PulseTime watchapp (2026-08-18)
+## Pebble Time 2: PulseTime watchapp (2026-08-18)
 
 - [x] `pulsetime.pbw` installed over the CloudPebble developer connection
   ("App install succeeded"), final build sha256 952aaa01….
@@ -124,7 +124,7 @@ learned language accidentally.
 Emulator evidence, all on the emery (Pebble Time 2) profile unless noted:
 
 - [x] One short Up/Down press fires only the system handler, one long press only
-  the speed handler — the two do not double-fire (basalt).
+  the speed handler; the two do not double-fire (basalt).
 - [x] Rung 2 of the system cycle logs `exact=1` with cue ×2; rung 3 is the
   five-minute ladder with cue ×3.
 - [x] Hold-Select opens Practice at 1:00; Up steps to 2:00; Back returns.
@@ -134,17 +134,17 @@ Emulator evidence, all on the emery (Pebble Time 2) profile unless noted:
   exhaustive Kotlin sweep (6 systems × 3 speeds × 2 scopes × all 1440 minutes)
   confirms no scoped pattern is ever silent.
 - [x] Speaker code links on emery and flint only, confirmed with `nm` on the
-  built ELFs — not gabbro, despite it being new hardware.
+  built ELFs, not gabbro, despite it being new hardware.
 - [ ] **Wrist, Time 2:** bind both Quick Launch buttons and confirm hold-Up
   gives hours and hold-Down gives minutes. This is the one part of the scope
   feature no emulator can exercise: `launch_button()` needs a real Quick Launch.
 - [ ] **Wrist, Time 2:** sound on. Is pitch actually easier to read than the
   motor for the five-minute ladder's three layers? Is the volume ladder
   (30/65/100 %) usefully spaced?
-- [ ] **Pebble 2 SE (diorite):** install and confirm the graceful degradation —
+- [ ] **Pebble 2 SE (diorite):** install and confirm the graceful degradation:
   scopes and sound absent, everything else identical.
 
-## Pebble Time 2 — PulseTime Face watchface (2026-08-19)
+## Pebble Time 2: PulseTime Face watchface (2026-08-19)
 
 - [x] `pulsetime-face.pbw` installed over the CloudPebble developer connection.
       **Installing a watchface makes it selectable; choosing it replaces the
@@ -153,7 +153,7 @@ Emulator evidence, all on the emery (Pebble Time 2) profile unless noted:
   arms without playing; two taps on different axes do not play; two same-axis
   taps 718 ms apart play the time.
 - [x] Emery emulator: with chime off, crossing 11:00 does nothing. With hourly
-  chime and no quiet period, 11:00 plays `scope=hours` — striking the hour.
+  chime and no quiet period, 11:00 plays `scope=hours`, striking the hour.
   With quiet hours 0–23, 13:00 plays nothing.
 - [ ] **Wrist:** false-trigger rate during ordinary movement over a full day.
   This is the number that decides whether the face is usable, and no emulator
@@ -192,27 +192,27 @@ screen (its own chime set to hourly, so it could not be the source at :30):
 - [x] Fires at the exact boundary with nothing of ours running.
 - [x] Plays the whole time at :30 (`scope=full`); the hour strike is `scope=hours`.
 - [x] Re-arms its own rolling window, so the wearer never has to open the app.
-- [x] Exits with `Still allocated <0B>` — no leak across repeated wakeups.
+- [x] Exits with `Still allocated <0B>`: no leak across repeated wakeups.
 - [x] 8/8 slots accepted; no `E_RANGE` collisions with other apps on this watch.
 - [ ] **Wrist, Time 2:** does the brief app appearance read as intrusive, or does
   it pass unnoticed? This is the one thing the log cannot answer.
 - [ ] **Wrist:** confirm the chain survives a watch power cycle
   (`notify_if_missed` is set, so missed chimes should be reported on power-up).
 - [ ] **Pebble 2 SE (diorite):** `wakeup_schedule` is present on every platform,
-  so chimes should behave identically there — the only major feature that does.
+  so chimes should behave identically there, the only major feature that does.
 
 Note: `pebble emu-set-time` cannot be used to test this. pypkjs (the emulated
 phone) re-syncs the watch clock back to host time, so the jump silently reverts.
 Use quarter-hourly chimes and wait for a real boundary instead.
 
-## Pebble Time 2 — on-hardware confirmation (2026-08-19, later)
+## Pebble Time 2: on-hardware confirmation (2026-08-19, later)
 
 - [x] Chime build (`ae64854`) and the updated watchface installed over the
   CloudPebble developer connection after it came back.
-- [x] `docs/time2-live.png` — the real emery watch running the current app:
+- [x] `docs/time2-live.png`: the real emery watch running the current app:
   20:18, Terse Quarter, "Simple · Standard", "Flick: off", and the new hint
   lines "Sel play · Up/Dn sys" / "Hold: speed, practice". No chime line, which
-  is how the screen reports chimes off — so the default is intact on the device.
+  is how the screen reports chimes off, so the default is intact on the device.
 - Transport note: **CloudPebble allows one connection at a time.** Running
   `pebble logs --cloudpebble` and then `pebble install`/`send-app-message`
   disconnects the logger ("Disconnected."), so device logs and device commands

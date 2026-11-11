@@ -51,7 +51,7 @@ number on the face but could never buzz, so it would only cost battery. The
 published value is therefore refreshed whenever the app runs (every open and
 every replay), and between runs the face keeps showing the last value it was
 given, or the `--:--` placeholder from the resource before the first run. Read
-the complication as a labelled button that happens to remember the last time it
+the complication as a labeled button that happens to remember the last time it
 spoke, not as a live clock.
 
 ## Splitting patterns at the 8-profile limit
@@ -188,7 +188,7 @@ The harness pulls `PulseTimeEncoder.mc` and `PulsePlayer.mc` straight from
 paths, so no copy or symlink is needed). It runs six cases per 50 ms timer tick
 because doing all 420 in one call trips the Connect IQ watchdog.
 
-Float behaviour: Kotlin multiplies `Long * Float` in single precision and
+Float behavior: Kotlin multiplies `Long * Float` in single precision and
 truncates. Monkey C `Float` is also single precision, and the port uses
 `(ms * mult).toNumber()` (truncation, never rounding). The fixtures confirm the
 two agree on every case (for example 150 x 0.78 -> 116, 200 x 0.78 -> 156).

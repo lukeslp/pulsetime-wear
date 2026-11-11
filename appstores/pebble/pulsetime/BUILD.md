@@ -161,7 +161,7 @@ AppQuickLaunchAction launch_get_quick_launch_action(void);  // HOLD | TAP | COMB
 So one install bound to both Quick Launch slots can answer two different
 questions: hold Up for the hour, hold Down for the minutes. `QL_UP` and
 `QL_DOWN` (Clay selects, persist keys 5 and 6) choose what each button plays;
-both default to the whole time, so no existing binding changes behaviour.
+both default to the whole time, so no existing binding changes behavior.
 
 **Availability in the 4.33.1 headers:**
 
