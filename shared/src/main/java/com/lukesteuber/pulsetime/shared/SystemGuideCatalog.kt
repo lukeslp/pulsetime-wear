@@ -65,7 +65,7 @@ object SystemGuideCatalog {
             "nearest_quarter", "Nearest-Quarter Offset", "Clock-style",
             "A short pattern based on the nearest quarter-hour.",
             "Feel a familiar quarter-hour landmark, then whether the real time is before or after it and by how much.",
-            listOf(PulseLegend("Landmark pulses", "12, 15, 30, or 45 minutes", "━"), PulseLegend("Long then short", "Before the landmark", "—·"), PulseLegend("Short then long", "After the landmark", "·—")),
+            listOf(PulseLegend("Landmark pulses", "One for :00, two for :15, three for :30, four for :45", "━"), PulseLegend("Long then short", "Before the landmark", "—·"), PulseLegend("Short then long", "After the landmark", "·—")),
             listOf(
                 GuideExample("3:42", 3, 42, "Three minutes before 3:45.", "— — —  /  ━×4  /  —·  /  · · ·"),
                 GuideExample("4:17", 4, 17, "Two minutes after 4:15.", "—×4  /  ━ ━  /  ·—  /  · ·"),

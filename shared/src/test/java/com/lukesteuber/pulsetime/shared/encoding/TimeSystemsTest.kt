@@ -15,6 +15,24 @@ class TimeSystemsTest {
     }
 
     @Test
+    fun everyGuideQuizOffersItsAnswerOnce() {
+        SystemGuideCatalog.all.forEach { guide ->
+            assertEquals(guide.id, 1, guide.quiz.choices.count { it == guide.quiz.answer })
+            assertEquals(guide.id, "%d:%02d".format(guide.quiz.hour, guide.quiz.minute), guide.quiz.answer)
+        }
+    }
+
+    @Test
+    fun nearestQuarterLandmarkCountsMatchTheGuideLegend() {
+        // The guide says: one pulse for :00, two for :15, three for :30, four for :45.
+        val landmarkOn = 150L
+        listOf(0 to 1, 15 to 2, 30 to 3, 45 to 4).forEach { (minute, count) ->
+            val pattern = TimeEncoderRegistry.encode(TimeSystem.NearestQuarter, 3, minute, standard)
+            assertEquals("minute $minute", count, pattern.segments.count { it.onMs == landmarkOn })
+        }
+    }
+
+    @Test
     fun registry_encodesEverySystemAtBoundaries() {
         val times = listOf(0 to 0, 0 to 59, 3 to 42, 11 to 59, 12 to 0, 23 to 59)
         TimeSystem.entries.forEach { system ->
