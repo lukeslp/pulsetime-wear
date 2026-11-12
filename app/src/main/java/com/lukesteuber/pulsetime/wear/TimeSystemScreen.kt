@@ -24,7 +24,7 @@ fun TimeSystemScreen(
     onSetSpeed: (PlaybackSpeed) -> Unit,
     onBack: () -> Unit,
 ) {
-    WatchList {
+    WatchList(initialCenterItemIndex = 2) {
         item {
             Text("Time systems", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
         }
@@ -71,7 +71,7 @@ fun TimeSystemScreen(
                 checked = settings.layeredHaptics,
                 onCheckedChange = onSetLayered,
                 label = { Text("Layered strength") },
-                secondaryLabel = { Text("Use relative strength as well as rhythm") },
+                secondaryLabel = { Text("Use relative strength as well as rhythm", maxLines = 3) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

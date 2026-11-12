@@ -11,10 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.wear.compose.material3.Button
@@ -83,9 +82,13 @@ fun TrainingScreen(
     var inQuiz by remember { mutableStateOf(false) }
     var quizIndex by remember { mutableIntStateOf(0) }
     var feedback by remember { mutableStateOf<String?>(null) }
+    // Wrong answers stay marked on their own buttons. The feedback line sits
+    // below the answers, often off screen, so it cannot be the only sign.
+    var wrongAnswers by remember { mutableStateOf(emptySet<String>()) }
+    val view = LocalView.current
     val trainSettings = settings.copy(precisionEnabled = false)
 
-    WatchList {
+    WatchList(initialCenterItemIndex = 2) {
         item {
             Text(
                 text = stringResource(R.string.training),
@@ -187,9 +190,11 @@ fun TrainingScreen(
             }
             quiz.options.forEach { option ->
                 item {
+                    val wrong = option in wrongAnswers
                     Button(
                         onClick = {
                             if (option == quiz.correctLabel) {
+                                wrongAnswers = emptySet()
                                 if (quizIndex < QUIZ.lastIndex) {
                                     feedback = "Correct"
                                     quizIndex++
@@ -197,14 +202,18 @@ fun TrainingScreen(
                                     onComplete()
                                 }
                             } else {
+                                wrongAnswers = wrongAnswers + option
                                 feedback = "Try again"
                             }
+                            feedback?.let { view.announceForAccessibility(it) }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = "Answer $option" },
+                            .semantics {
+                                contentDescription = if (wrong) "Answer $option. Not this one." else "Answer $option"
+                            },
                     ) {
-                        Text(option)
+                        Text(if (wrong) "✗ $option" else option)
                     }
                 }
             }
@@ -214,10 +223,7 @@ fun TrainingScreen(
                         text = message,
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.semantics {
-                            contentDescription = message
-                            liveRegion = LiveRegionMode.Polite
-                        },
+                        modifier = Modifier.semantics { contentDescription = message },
                     )
                 }
             }
@@ -248,7 +254,7 @@ private fun AlternateSystemTraining(
         Triple("Three forty-two", 3, 42),
         Triple("Eleven fifty-nine", 11, 59),
     )
-    WatchList {
+    WatchList(initialCenterItemIndex = 2) {
         item {
             Text(settings.timeSystem.title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
         }

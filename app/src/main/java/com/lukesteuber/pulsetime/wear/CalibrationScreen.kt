@@ -31,7 +31,7 @@ fun CalibrationScreen(
     var step by remember { mutableIntStateOf(0) }
     val scale = CALIBRATION_STEPS[step.coerceIn(0, CALIBRATION_STEPS.lastIndex)]
 
-    WatchList {
+    WatchList(initialCenterItemIndex = 2) {
         item {
             Text(
                 text = stringResource(R.string.calibration),

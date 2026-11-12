@@ -199,7 +199,11 @@ private fun HomeScreen(
                     enabled = precisionAllowed,
                     label = { Text(stringResource(R.string.precision)) },
                     secondaryLabel = {
-                        Text(if (precisionAllowed) stringResource(R.string.precision_desc) else stringResource(R.string.precision_locked))
+                        // Three lines: the default two cut both sentences short.
+                        Text(
+                            if (precisionAllowed) stringResource(R.string.precision_desc) else stringResource(R.string.precision_locked),
+                            maxLines = 3,
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
