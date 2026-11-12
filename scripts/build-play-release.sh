@@ -18,7 +18,14 @@ export PULSETIME_UPLOAD_STORE_FILE="${keystore_path}"
 export PULSETIME_UPLOAD_STORE_PASSWORD="${upload_password}"
 export PULSETIME_UPLOAD_KEY_ALIAS="${key_alias}"
 export PULSETIME_UPLOAD_KEY_PASSWORD="${upload_password}"
-export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
+if [[ -z "${JAVA_HOME:-}" ]]; then
+  JAVA_HOME="$(/usr/libexec/java_home -v 21 2>/dev/null || true)"
+  if [[ -z "${JAVA_HOME}" && -d /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ]]; then
+    JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+  fi
+fi
+export JAVA_HOME
+export PATH="${JAVA_HOME}/bin:${PATH}"
 export ANDROID_HOME="${ANDROID_HOME:-${HOME}/Library/Android/sdk}"
 
 cd "${repo_root}"
@@ -36,10 +43,10 @@ cd "${repo_root}"
 mkdir -p "${stage_dir}"
 find "${stage_dir}" -maxdepth 1 -type f -delete
 
-phone_aab="${stage_dir}/pulsetime-phone-0.3.1-10000004.aab"
-wear_aab="${stage_dir}/pulsetime-wear-0.3.1-20000004.aab"
-phone_apk="${stage_dir}/pulsetime-phone-0.3.1-10000004.apk"
-wear_apk="${stage_dir}/pulsetime-wear-0.3.1-20000004.apk"
+phone_aab="${stage_dir}/pulsetime-phone-0.3.2-10000005.aab"
+wear_aab="${stage_dir}/pulsetime-wear-0.3.2-20000005.aab"
+phone_apk="${stage_dir}/pulsetime-phone-0.3.2-10000005.apk"
+wear_apk="${stage_dir}/pulsetime-wear-0.3.2-20000005.apk"
 cp mobile/build/outputs/bundle/release/mobile-release.aab "${phone_aab}"
 cp app/build/outputs/bundle/release/app-release.aab "${wear_aab}"
 cp mobile/build/outputs/apk/release/mobile-release.apk "${phone_apk}"
@@ -72,9 +79,9 @@ fi
 )
 printf 'Upload certificate SHA-256: %s\n' "${phone_cert}" > "${stage_dir}/UPLOAD-CERTIFICATE.txt"
 printf '%s\n' \
-  'PulseTime 0.3.1 signed Android artifacts' \
-  'Phone: version code 10000004' \
-  'Wear OS: version code 20000004' \
+  'PulseTime 0.3.2 signed Android artifacts' \
+  'Phone: version code 10000005' \
+  'Wear OS: version code 20000005' \
   'Package: com.lukesteuber.pulsetime.wear' > "${stage_dir}/RELEASE.txt"
 
 unset upload_password PULSETIME_UPLOAD_STORE_PASSWORD PULSETIME_UPLOAD_KEY_PASSWORD

@@ -183,10 +183,10 @@ Pulse Lab debug APK:
 
 Signed release artifacts:
 
-- `dist/play/pulsetime-phone-0.3.1-10000004.apk`
-- `dist/play/pulsetime-phone-0.3.1-10000004.aab`
-- `dist/play/pulsetime-wear-0.3.1-20000004.apk`
-- `dist/play/pulsetime-wear-0.3.1-20000004.aab`
+- `dist/play/pulsetime-phone-0.3.2-10000005.apk`
+- `dist/play/pulsetime-phone-0.3.2-10000005.aab`
+- `dist/play/pulsetime-wear-0.3.2-20000005.apk`
+- `dist/play/pulsetime-wear-0.3.2-20000005.aab`
 (application id `com.lukesteuber.pulsetime.wear`; human Play upload)
 
 ## Install on Pixel Watch 2 (adb)
