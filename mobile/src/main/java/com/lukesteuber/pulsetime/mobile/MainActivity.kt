@@ -2,6 +2,7 @@ package com.lukesteuber.pulsetime.mobile
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -59,6 +60,8 @@ private fun CompanionApp(vm: CompanionViewModel = viewModel()) {
         vm.start()
         onDispose { vm.stop() }
     }
+    // Back returns to the page this one was opened from; on Home it leaves the app.
+    BackHandler(enabled = screen != "home") { screen = parentScreen(screen) }
     Scaffold(
         topBar = {
             Column(
@@ -85,6 +88,12 @@ private fun CompanionApp(vm: CompanionViewModel = viewModel()) {
             }
         }
     }
+}
+
+internal fun parentScreen(screen: String): String = when (screen) {
+    "detail" -> "systems"
+    "option" -> "settings"
+    else -> "home"
 }
 
 @Composable
