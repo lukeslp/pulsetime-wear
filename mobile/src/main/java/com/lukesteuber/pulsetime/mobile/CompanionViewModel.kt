@@ -1,6 +1,9 @@
 package com.lukesteuber.pulsetime.mobile
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.lukesteuber.pulsetime.shared.PlaybackCommand
@@ -14,16 +17,14 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
     val watchState: StateFlow<WatchState> = _watchState
     private val client = WatchPlaybackClient(application) { _watchState.value = it }
 
-    var selectedSystemId = "terse_quarter"
-    var speedId = "standard"
-    var layered = true
-    var precision = false
-    var strength = .8f
+    // Compose state, so a screen that shows one of these redraws when it changes.
+    var selectedSystemId by mutableStateOf("terse_quarter")
+    var speedId by mutableStateOf("standard")
+    var layered by mutableStateOf(true)
+    var precision by mutableStateOf(false)
+    val strength = .8f
 
-    fun start() {
-        client.start()
-        refresh()
-    }
+    fun start() = client.start()
     fun stop() = client.stop()
     fun refresh() = viewModelScope.launch { client.refresh() }
 

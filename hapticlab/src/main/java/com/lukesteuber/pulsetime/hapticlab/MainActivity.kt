@@ -76,6 +76,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lukesteuber.pulsetime.shared.SystemGuideCatalog
 import com.lukesteuber.pulsetime.shared.encoding.EncodingOptions
+import com.lukesteuber.pulsetime.shared.encoding.PatternDescriber
 import com.lukesteuber.pulsetime.shared.encoding.PlaybackSpeed
 import com.lukesteuber.pulsetime.shared.encoding.TimeEncoderRegistry
 import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
@@ -339,7 +340,8 @@ private fun TimeLabScreen(
             SectionHeading(guide.title)
             Text(guide.summary)
             Text(guide.mentalModel, fontWeight = FontWeight.Bold)
-            guide.legends.forEach { Text("${it.name}: ${it.meaning} (${it.mark})") }
+            // The mark in parentheses is a drawing; a screen reader gets the name and meaning.
+            guide.legends.forEach { Text("${it.name}: ${it.meaning} (${it.mark})", modifier = Modifier.semantics { contentDescription = "${it.name}: ${it.meaning}" }) }
         }
     }
     Section("Customize and compare") {
@@ -357,8 +359,12 @@ private fun TimeLabScreen(
         Stepper("Hour", hour, { hour = if (hour == 1) 12 else hour - 1 }, { hour = if (hour == 12) 1 else hour + 1 })
         Stepper("Minute", minute, { minute = (minute + 59) % 60 }, { minute = (minute + 1) % 60 })
         Button(onClick = { playTime("practice", hour, minute) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play $hour:${minute.toString().padStart(2, '0')}") }
-        val now = Calendar.getInstance()
-        OutlinedButton(onClick = { playTime("now", now.get(Calendar.HOUR), now.get(Calendar.MINUTE)) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play the current time") }
+        Text("What you will feel: " + PatternDescriber.describe(system, hour, minute, precision))
+        OutlinedButton(onClick = {
+            // Read the clock at the tap; a value captured during composition goes stale while the page stays open.
+            val now = Calendar.getInstance()
+            playTime("now", now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
+        }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play the current time") }
     }
     Section("Blind recognition test") {
         Text("Pulse Lab hides the answer until you choose. Take all the time you need.")
@@ -384,7 +390,7 @@ private fun TimeLabScreen(
 @Composable
 private fun Stepper(label: String, value: Int, decrease: () -> Unit, increase: () -> Unit) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("$label: $value", fontWeight = FontWeight.Bold)
+        Text("$label: $value", fontWeight = FontWeight.Bold, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(decrease, Modifier.weight(1f).heightIn(min = 52.dp)) { Text("Decrease $label") }
             OutlinedButton(increase, Modifier.weight(1f).heightIn(min = 52.dp)) { Text("Increase $label") }
