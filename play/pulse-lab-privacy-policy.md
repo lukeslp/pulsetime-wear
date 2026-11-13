@@ -8,7 +8,7 @@ Pulse Lab is a phone app for testing vibration patterns. It works offline and do
 
 The sample signals are fictional. Pulse Lab does not read messages, markets, weather, calendars, health data, or travel directions.
 
-Blind-trial answers and notes are held in memory while the app is open and are not written to storage. Pulse Lab is excluded from Android backup and device transfer.
+Blind-trial answers and notes are held in memory while the app is open and are not written to storage, so Pulse Lab has nothing of yours to back up. From version 0.2.3, Pulse Lab is also excluded from Android backup and device transfer. Earlier versions leave Android's standard app backup switched on, with nothing saved for it to copy.
 
 The feedback page builds a text report from what you typed, your trial results from the current session, the app version, the phone manufacturer and model, the Android version, and which vibration features the phone supports. The report leaves the phone only when you tap Share feedback and choose a destination in Android's share sheet. What happens to it after that depends on the app you chose.
 
