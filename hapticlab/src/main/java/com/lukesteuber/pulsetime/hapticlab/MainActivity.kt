@@ -390,7 +390,7 @@ private fun TimeLabScreen(
 @Composable
 private fun Stepper(label: String, value: Int, decrease: () -> Unit, increase: () -> Unit) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("$label: $value", fontWeight = FontWeight.Bold)
+        Text("$label: $value", fontWeight = FontWeight.Bold, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(decrease, Modifier.weight(1f).heightIn(min = 52.dp)) { Text("Decrease $label") }
             OutlinedButton(increase, Modifier.weight(1f).heightIn(min = 52.dp)) { Text("Increase $label") }

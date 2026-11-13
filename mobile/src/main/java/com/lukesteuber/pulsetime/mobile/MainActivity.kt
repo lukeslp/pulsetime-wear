@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -248,7 +250,8 @@ private fun NumberStepper(label: String, value: Int, down: () -> Unit, up: () ->
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, fontWeight = FontWeight.Bold)
         OutlinedButton(onClick = up) { Text("Increase $label") }
-        Text(value.toString().padStart(2, '0'), fontFamily = FontFamily.Monospace, fontSize = 36.sp)
+        // Announce the new value when a stepper button changes it.
+        Text(value.toString().padStart(2, '0'), fontFamily = FontFamily.Monospace, fontSize = 36.sp, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite; contentDescription = "$label $value" })
         OutlinedButton(onClick = down) { Text("Decrease $label") }
     }
 }
@@ -283,7 +286,11 @@ private fun OptionDetailScreen(id: String, vm: CompanionViewModel) = Page {
         "layering" -> {
             Heading("Layered strength")
             Text("Layering makes different pulse roles feel softer or firmer. Duration and rhythm still carry the same information when strength differences are hard to feel.")
-            Row(verticalAlignment = Alignment.CenterVertically) { Text("Use layered strength", modifier = Modifier.weight(1f)); Switch(checked = vm.layered, onCheckedChange = { vm.layered = it }) }
+            // One control for a screen reader: the label and the switch together.
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(value = vm.layered, role = Role.Switch, onValueChange = { vm.layered = it }),
+                verticalAlignment = Alignment.CenterVertically,
+            ) { Text("Use layered strength", modifier = Modifier.weight(1f)); Switch(checked = vm.layered, onCheckedChange = null) }
             Button(onClick = { vm.layered = true; vm.play("five_minute_ladder", 3, 42) }, modifier = Modifier.fillMaxWidth()) { Text("Play layered example on watch") }
             OutlinedButton(onClick = { vm.layered = false; vm.play("five_minute_ladder", 3, 42) }, modifier = Modifier.fillMaxWidth()) { Text("Play even-strength example") }
         }
