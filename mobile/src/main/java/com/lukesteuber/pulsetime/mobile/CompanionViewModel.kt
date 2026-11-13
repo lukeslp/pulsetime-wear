@@ -24,10 +24,7 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
     var precision by mutableStateOf(false)
     val strength = .8f
 
-    fun start() {
-        client.start()
-        refresh()
-    }
+    fun start() = client.start()
     fun stop() = client.stop()
     fun refresh() = viewModelScope.launch { client.refresh() }
 

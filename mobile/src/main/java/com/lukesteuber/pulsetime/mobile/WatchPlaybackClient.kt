@@ -2,6 +2,7 @@ package com.lukesteuber.pulsetime.mobile
 
 import android.content.Context
 import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.CapabilityInfo
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
@@ -22,13 +23,36 @@ sealed interface WatchState {
 }
 
 class WatchPlaybackClient(context: Context, private val onState: (WatchState) -> Unit) :
-    MessageClient.OnMessageReceivedListener {
+    MessageClient.OnMessageReceivedListener, CapabilityClient.OnCapabilityChangedListener {
     private val capabilityClient = Wearable.getCapabilityClient(context)
     private val messageClient = Wearable.getMessageClient(context)
     private var ready: WatchState.Ready? = null
 
-    fun start() = messageClient.addListener(this)
-    fun stop() = messageClient.removeListener(this)
+    fun start() {
+        messageClient.addListener(this)
+        // Hear about a watch that comes into reach, or leaves, while the app is open.
+        capabilityClient.addListener(this, PulseTimePaths.CAPABILITY)
+    }
+
+    fun stop() {
+        messageClient.removeListener(this)
+        capabilityClient.removeListener(this, PulseTimePaths.CAPABILITY)
+    }
+
+    override fun onCapabilityChanged(info: CapabilityInfo) {
+        val before = ready
+        ready = pickWatch(info.nodes)
+        val now = ready
+        when {
+            now == null -> onState(WatchState.NotConnected)
+            // Leave a demonstration that is being sent or played alone.
+            before == null || before.nodeId != now.nodeId -> onState(now)
+        }
+    }
+
+    private fun pickWatch(nodes: Set<com.google.android.gms.wearable.Node>): WatchState.Ready? =
+        nodes.sortedWith(compareByDescending<com.google.android.gms.wearable.Node> { it.isNearby }.thenBy { it.displayName })
+            .firstOrNull()?.let { WatchState.Ready(it.id, it.displayName) }
 
     suspend fun refresh() {
         onState(WatchState.Checking)
@@ -38,8 +62,7 @@ class WatchPlaybackClient(context: Context, private val onState: (WatchState) ->
             onState(WatchState.NotConnected)
             return
         }
-        val node = capability.nodes.sortedWith(compareByDescending<com.google.android.gms.wearable.Node> { it.isNearby }.thenBy { it.displayName }).firstOrNull()
-        ready = node?.let { WatchState.Ready(it.id, it.displayName) }
+        ready = pickWatch(capability.nodes)
         onState(ready ?: WatchState.NotConnected)
     }
 
