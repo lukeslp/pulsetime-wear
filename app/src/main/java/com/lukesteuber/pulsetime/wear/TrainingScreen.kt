@@ -20,6 +20,7 @@ import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings
+import com.lukesteuber.pulsetime.shared.encoding.PatternDescriber
 import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
 
 private data class Lesson(
@@ -281,7 +282,10 @@ private fun AlternateSystemTraining(
                     onClick = { controller.playSample(hour, minute, settings) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .semantics { contentDescription = "Play $label using ${settings.timeSystem.title}" },
+                        .semantics {
+                            contentDescription = "Play $label using ${settings.timeSystem.title}. " +
+                                PatternDescriber.describe(settings.timeSystem, hour, minute)
+                        },
                 ) {
                     Text("Play $label")
                 }

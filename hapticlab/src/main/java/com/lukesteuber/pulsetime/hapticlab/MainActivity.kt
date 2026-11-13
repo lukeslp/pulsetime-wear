@@ -76,6 +76,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lukesteuber.pulsetime.shared.SystemGuideCatalog
 import com.lukesteuber.pulsetime.shared.encoding.EncodingOptions
+import com.lukesteuber.pulsetime.shared.encoding.PatternDescriber
 import com.lukesteuber.pulsetime.shared.encoding.PlaybackSpeed
 import com.lukesteuber.pulsetime.shared.encoding.TimeEncoderRegistry
 import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
@@ -339,7 +340,8 @@ private fun TimeLabScreen(
             SectionHeading(guide.title)
             Text(guide.summary)
             Text(guide.mentalModel, fontWeight = FontWeight.Bold)
-            guide.legends.forEach { Text("${it.name}: ${it.meaning} (${it.mark})") }
+            // The mark in parentheses is a drawing; a screen reader gets the name and meaning.
+            guide.legends.forEach { Text("${it.name}: ${it.meaning} (${it.mark})", modifier = Modifier.semantics { contentDescription = "${it.name}: ${it.meaning}" }) }
         }
     }
     Section("Customize and compare") {
@@ -357,6 +359,7 @@ private fun TimeLabScreen(
         Stepper("Hour", hour, { hour = if (hour == 1) 12 else hour - 1 }, { hour = if (hour == 12) 1 else hour + 1 })
         Stepper("Minute", minute, { minute = (minute + 59) % 60 }, { minute = (minute + 1) % 60 })
         Button(onClick = { playTime("practice", hour, minute) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Play $hour:${minute.toString().padStart(2, '0')}") }
+        Text("What you will feel: " + PatternDescriber.describe(system, hour, minute, precision))
         OutlinedButton(onClick = {
             // Read the clock at the tap; a value captured during composition goes stale while the page stays open.
             val now = Calendar.getInstance()

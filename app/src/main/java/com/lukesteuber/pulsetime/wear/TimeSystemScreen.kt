@@ -11,6 +11,7 @@ import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SwitchButton
 import androidx.wear.compose.material3.Text
+import com.lukesteuber.pulsetime.shared.encoding.PatternDescriber
 import com.lukesteuber.pulsetime.shared.encoding.PlaybackSpeed
 import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
 import com.lukesteuber.pulsetime.wear.settings.PulseSettings
@@ -59,7 +60,10 @@ fun TimeSystemScreen(
                         onClick = { controller.playSample(3, 42, settings) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = "Preview ${system.title} using 3:42" },
+                            .semantics {
+                                contentDescription = "Preview ${system.title} using 3:42. " +
+                                    PatternDescriber.describe(system, 3, 42, settings.precisionEnabled)
+                            },
                     ) {
                         Text("Preview 3:42")
                     }

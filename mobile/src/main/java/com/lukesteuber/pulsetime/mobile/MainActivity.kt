@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -24,15 +26,21 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lukesteuber.pulsetime.shared.GuideExample
 import com.lukesteuber.pulsetime.shared.SystemGuide
 import com.lukesteuber.pulsetime.shared.SystemGuideCatalog
+import com.lukesteuber.pulsetime.shared.encoding.PatternDescriber
+import com.lukesteuber.pulsetime.shared.encoding.TimeSystem
 
 private val Ink = Color(0xFF102A33)
 private val PulseBlue = Color(0xFF087F8C)
 private val SignalAmber = Color(0xFFE69B22)
+// Text-weight versions of the two accents: at least 4.5:1 on every card color used here.
+private val PulseBlueText = Color(0xFF05616B)
+private val SignalAmberText = Color(0xFF8A5300)
 private val Mist = Color(0xFFE9F5F7)
 private val Paper = Color(0xFFF8FCFC)
 
@@ -59,6 +67,11 @@ private fun CompanionApp(vm: CompanionViewModel = viewModel()) {
     DisposableEffect(Unit) {
         vm.start()
         onDispose { vm.stop() }
+    }
+    // Look for the watch again each time the app comes back to the front.
+    LifecycleResumeEffect(Unit) {
+        vm.refresh()
+        onPauseOrDispose { }
     }
     // Back returns to the page this one was opened from; on Home it leaves the app.
     BackHandler(enabled = screen != "home") { screen = parentScreen(screen) }
@@ -148,7 +161,7 @@ private fun SystemsScreen(open: (String) -> Unit) = Page {
         Card(onClick = { open(guide.id) }, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(18.dp)) {
                 Text(guide.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(guide.shortLabel.uppercase(), fontFamily = FontFamily.Monospace, color = PulseBlue)
+                Text(guide.shortLabel.uppercase(), fontFamily = FontFamily.Monospace, color = PulseBlueText)
                 Text(guide.summary)
             }
         }
@@ -163,7 +176,8 @@ private fun SystemDetailScreen(guide: SystemGuide, vm: CompanionViewModel, onPra
     Section("What each pulse means") {
         guide.legends.forEach { legend ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(legend.mark, fontFamily = FontFamily.Monospace, fontSize = 24.sp, color = PulseBlue, modifier = Modifier.width(64.dp))
+                // The mark is a drawing of the pulse; its name and meaning beside it are the words.
+                Text(legend.mark, fontFamily = FontFamily.Monospace, fontSize = 24.sp, color = PulseBlueText, modifier = Modifier.width(64.dp).clearAndSetSemantics { })
                 Column { Text(legend.name, fontWeight = FontWeight.Bold); Text(legend.meaning) }
             }
         }
@@ -182,17 +196,19 @@ private fun ExampleCard(guide: SystemGuide, example: GuideExample, vm: Companion
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(example.label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(example.breakdown)
-            PulseScore(example.score)
+            // Exact-minute ticks are drawn in the Terse Quarter score, so describe them too.
+            PulseScore(example.score, PatternDescriber.describe(TimeSystem.fromStorage(guide.id), example.hour, example.minute, includePrecision = true))
             Button(onClick = { vm.play(guide.id, example.hour, example.minute) }, modifier = Modifier.fillMaxWidth()) { Text("Play ${example.label} on watch") }
         }
     }
 }
 
 @Composable
-private fun PulseScore(score: String) {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).semantics(mergeDescendants = true) {}, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+private fun PulseScore(score: String, spoken: String) {
+    // A screen reader gets the pattern in words instead of a row of dashes and dots.
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).clearAndSetSemantics { contentDescription = "Pattern: $spoken" }, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         score.split(" ").filter { it.isNotBlank() }.forEach { mark ->
-            Text(mark, fontFamily = FontFamily.Monospace, fontSize = 22.sp, color = if (mark == "/") SignalAmber else PulseBlue, modifier = Modifier.background(Color.White, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 6.dp))
+            Text(mark, fontFamily = FontFamily.Monospace, fontSize = 22.sp, color = if (mark == "/") SignalAmberText else PulseBlueText, modifier = Modifier.background(Color.White, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 6.dp))
         }
     }
 }
@@ -223,6 +239,7 @@ private fun PracticeScreen(vm: CompanionViewModel) = Page {
         NumberStepper("Minute", minute, { minute = if (minute == 0) 59 else minute - 1 }, { minute = if (minute == 59) 0 else minute + 1 })
     }
     Button(onClick = { vm.play(guide.id, hour, minute) }, modifier = Modifier.fillMaxWidth()) { Text("Play ${"%d:%02d".format(hour, minute)} on watch") }
+    Text("What you will feel: " + PatternDescriber.describe(TimeSystem.fromStorage(guide.id), hour, minute, vm.precision))
     guide.examples.forEach { ExampleCard(guide, it, vm) }
 }
 
