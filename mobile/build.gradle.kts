@@ -21,7 +21,7 @@ android {
         minSdk = 26
         targetSdk = 36
         // Phone and Wear artifacts share a package but use disjoint Play ranges.
-        versionCode = 10_000_005
+        versionCode = 10_000_006
         versionName = "0.3.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

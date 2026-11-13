@@ -43,10 +43,10 @@ cd "${repo_root}"
 mkdir -p "${stage_dir}"
 find "${stage_dir}" -maxdepth 1 -type f -delete
 
-phone_aab="${stage_dir}/pulsetime-phone-0.3.2-10000005.aab"
-wear_aab="${stage_dir}/pulsetime-wear-0.3.2-20000005.aab"
-phone_apk="${stage_dir}/pulsetime-phone-0.3.2-10000005.apk"
-wear_apk="${stage_dir}/pulsetime-wear-0.3.2-20000005.apk"
+phone_aab="${stage_dir}/pulsetime-phone-0.3.2-10000006.aab"
+wear_aab="${stage_dir}/pulsetime-wear-0.3.2-20000006.aab"
+phone_apk="${stage_dir}/pulsetime-phone-0.3.2-10000006.apk"
+wear_apk="${stage_dir}/pulsetime-wear-0.3.2-20000006.apk"
 cp mobile/build/outputs/bundle/release/mobile-release.aab "${phone_aab}"
 cp app/build/outputs/bundle/release/app-release.aab "${wear_aab}"
 cp mobile/build/outputs/apk/release/mobile-release.apk "${phone_apk}"
@@ -80,8 +80,8 @@ fi
 printf 'Upload certificate SHA-256: %s\n' "${phone_cert}" > "${stage_dir}/UPLOAD-CERTIFICATE.txt"
 printf '%s\n' \
   'PulseTime 0.3.2 signed Android artifacts' \
-  'Phone: version code 10000005' \
-  'Wear OS: version code 20000005' \
+  'Phone: version code 10000006' \
+  'Wear OS: version code 20000006' \
   'Package: com.lukesteuber.pulsetime.wear' > "${stage_dir}/RELEASE.txt"
 
 unset upload_password PULSETIME_UPLOAD_STORE_PASSWORD PULSETIME_UPLOAD_KEY_PASSWORD
